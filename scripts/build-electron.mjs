@@ -25,7 +25,8 @@ async function buildElectron() {
     target: "node18",
     outfile: join(outDir, "main.cjs"),
     format: "cjs",
-    external: ["electron"],
+    // Keep runtime-only modules external so esbuild doesn't try to resolve them
+    external: ["electron", "electron-updater", "electron-log"],
     sourcemap: true,
   });
 

@@ -21,6 +21,9 @@ import {
   Settings,
   Target,
 } from "lucide-react";
+
+// Logo for header
+import projectLogo from "../data/artemis logo.png";
 import { useLogEvents } from "./hooks/useLogEvents";
 import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
@@ -231,6 +234,51 @@ function App() {
   // Popout state and helpers
   const [popoutOpen, setPopoutOpen] = useState<boolean>(false);
 
+  // Auto-update state
+  const [updateStatus, setUpdateStatus] = useState<'idle'|'checking'|'available'|'downloading'|'downloaded'|'not-available'|'error'>('idle');
+  const [updateProgress, setUpdateProgress] = useState<number | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<any | null>(null);
+  const [updateError, setUpdateError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Subscribe to updater events
+    const unsubChecking = window.electron?.updater?.onChecking?.(() => { setUpdateStatus('checking'); setUpdateProgress(null); setUpdateError(null); });
+    const unsubAvailable = window.electron?.updater?.onAvailable?.((info: any) => { setUpdateStatus('available'); setUpdateInfo(info); });
+    const unsubNotAvailable = window.electron?.updater?.onNotAvailable?.(() => { setUpdateStatus('not-available'); setUpdateProgress(null); });
+    const unsubProgress = window.electron?.updater?.onProgress?.((p: any) => { setUpdateStatus('downloading'); setUpdateProgress(Math.round(p.percent || 0)); });
+    const unsubDownloaded = window.electron?.updater?.onDownloaded?.((_info: any) => { setUpdateStatus('downloaded'); setUpdateProgress(100); });
+    const unsubError = window.electron?.updater?.onError?.((err: string) => { setUpdateStatus('error'); setUpdateError(err); });
+
+    return () => {
+      try { unsubChecking?.(); } catch (_) {}
+      try { unsubAvailable?.(); } catch (_) {}
+      try { unsubNotAvailable?.(); } catch (_) {}
+      try { unsubProgress?.(); } catch (_) {}
+      try { unsubDownloaded?.(); } catch (_) {}
+      try { unsubError?.(); } catch (_) {}
+    };
+  }, []);
+
+  const checkForUpdates = async () => {
+    setUpdateStatus('checking');
+    setUpdateError(null);
+    try {
+      await window.electron?.updater?.check();
+    } catch (e) {
+      setUpdateStatus('error');
+      setUpdateError(String(e));
+    }
+  };
+
+  const installUpdate = async () => {
+    try {
+      await window.electron?.updater?.install();
+    } catch (e) {
+      setUpdateStatus('error');
+      setUpdateError(String(e));
+    }
+  };
+
   useEffect(() => {
     // Query initial popout state on mount
     let mounted = true;
@@ -318,17 +366,12 @@ function App() {
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.branding}>
-          <div>
-            <h1 style={styles.title}>ARTEMIS</h1>
-            <p style={styles.subtitle}>
-              {isViewingPastSession
-                ? `Viewing: ${viewedSession.name}`
-                : sessionActive
-                ? `Session: ${session?.name || "Active"}`
-                : isWatching
-                ? `Tracking: ${logPath}`
-                : "By Project Delta"}
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img
+              src={projectLogo}
+              alt="Project Delta"
+              style={{ height: 48, objectFit: "contain" }}
+            />
           </div>
         </div>
         <div style={styles.controls}>
@@ -341,6 +384,23 @@ function App() {
               <Square size={14} style={{ marginRight: 6 }} /> Stop
             </button>
           )}
+
+          {/* Update controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button onClick={checkForUpdates} style={styles.buttonSecondary} title='Check for updates'>
+              <Activity size={14} style={{ marginRight: 6 }} /> Check
+            </button>
+
+            {updateStatus === 'checking' && <span style={{ color: 'hsl(220 13% 45%)' }}>Checking…</span>}
+            {updateStatus === 'available' && <span style={{ color: 'hsl(217 91% 68%)' }}>Update available</span>}
+            {updateStatus === 'downloading' && <span style={{ color: 'hsl(217 91% 68%)' }}>{updateProgress}%</span>}
+            {updateStatus === 'downloaded' && (
+              <button onClick={installUpdate} style={styles.buttonPrimary} title='Install update'>
+                Install
+              </button>
+            )}
+            {updateStatus === 'error' && <span style={{ color: 'hsl(0 84% 60%)' }}>{updateError || 'Update error'}</span>}
+          </div>
 
           {/* Popout / HUD toggle button */}
           <button

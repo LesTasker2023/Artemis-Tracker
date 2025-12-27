@@ -926,14 +926,33 @@ ipcMain.handle('asteroid:load', () => {
 
 // ==================== Auto-Updater ====================
 
-const { autoUpdater } = require('electron-updater');
-const updaterLog = require('electron-log');
-updaterLog.transports.file.level = 'info';
-autoUpdater.logger = updaterLog;
-// auto download updates (change to false if you want to prompt to download)
-autoUpdater.autoDownload = true;
+let autoUpdater: any;
+let updaterLog: any;
 
-autoUpdater.allowPrerelease = false;
+try {
+  // Require at runtime and handle package shape differences
+  const _updater = require('electron-updater');
+  autoUpdater = _updater && (_updater.autoUpdater || _updater);
+  updaterLog = require('electron-log');
+  if (updaterLog && updaterLog.transports?.file) updaterLog.transports.file.level = 'info';
+  if (autoUpdater && updaterLog) autoUpdater.logger = updaterLog;
+  // auto download updates (change to false if you want to prompt to download)
+  if (autoUpdater) autoUpdater.autoDownload = true;
+  if (autoUpdater) autoUpdater.allowPrerelease = false;
+} catch (err: unknown) {
+  // If packages are not installed in dev, provide no-op fallbacks to avoid crashing the build/runtime
+  const msg = err && typeof err === 'object' && 'message' in err ? (err as any).message : String(err);
+  console.warn('[Main] electron-updater or electron-log not available; auto-update disabled', msg);
+  updaterLog = { info: () => {}, error: () => {}, warn: () => {} };
+  autoUpdater = {
+    on: (_: any) => {},
+    checkForUpdates: async () => ({}),
+    checkForUpdatesAndNotify: async () => ({}),
+    quitAndInstall: () => {},
+    autoDownload: false,
+    allowPrerelease: false,
+  };
+}
 
 function setupAutoUpdater() {
   autoUpdater.on('checking-for-update', () => {
@@ -941,26 +960,26 @@ function setupAutoUpdater() {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:checking');
   });
 
-  autoUpdater.on('update-available', (info) => {
-    updaterLog.info('[AutoUpdater] Update available:', info.version);
+  autoUpdater.on('update-available', (info: any) => {
+    updaterLog.info('[AutoUpdater] Update available:', info?.version);
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:available', info);
   });
 
-  autoUpdater.on('update-not-available', (info) => {
+  autoUpdater.on('update-not-available', (info: any) => {
     updaterLog.info('[AutoUpdater] Update not available');
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:not-available');
   });
 
-  autoUpdater.on('error', (err) => {
+  autoUpdater.on('error', (err: any) => {
     updaterLog.error('[AutoUpdater] Error:', err);
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:error', String(err));
   });
 
-  autoUpdater.on('download-progress', (progress) => {
+  autoUpdater.on('download-progress', (progress: any) => {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:progress', progress);
   });
 
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on('update-downloaded', (info: any) => {
     updaterLog.info('[AutoUpdater] Update downloaded');
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update:downloaded', info);
   });

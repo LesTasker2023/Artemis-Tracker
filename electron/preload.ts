@@ -91,6 +91,40 @@ contextBridge.exposeInMainWorld('electron', {
     save: (asteroids: Asteroid[]) => ipcRenderer.invoke('asteroid:save', asteroids),
     load: (): Promise<Asteroid[]> => ipcRenderer.invoke('asteroid:load'),
   },
+  updater: {
+    check: () => ipcRenderer.invoke('update:check'),
+    install: () => ipcRenderer.invoke('update:install'),
+    onChecking: (cb: () => void) => {
+      const h = () => cb();
+      ipcRenderer.on('update:checking', h);
+      return () => ipcRenderer.removeListener('update:checking', h);
+    },
+    onAvailable: (cb: (info: any) => void) => {
+      const h = (_: unknown, info: any) => cb(info);
+      ipcRenderer.on('update:available', h);
+      return () => ipcRenderer.removeListener('update:available', h);
+    },
+    onNotAvailable: (cb: () => void) => {
+      const h = () => cb();
+      ipcRenderer.on('update:not-available', h);
+      return () => ipcRenderer.removeListener('update:not-available', h);
+    },
+    onProgress: (cb: (progress: any) => void) => {
+      const h = (_: unknown, p: any) => cb(p);
+      ipcRenderer.on('update:progress', h);
+      return () => ipcRenderer.removeListener('update:progress', h);
+    },
+    onDownloaded: (cb: (info: any) => void) => {
+      const h = (_: unknown, info: any) => cb(info);
+      ipcRenderer.on('update:downloaded', h);
+      return () => ipcRenderer.removeListener('update:downloaded', h);
+    },
+    onError: (cb: (err: string) => void) => {
+      const h = (_: unknown, e: any) => cb(String(e));
+      ipcRenderer.on('update:error', h);
+      return () => ipcRenderer.removeListener('update:error', h);
+    },
+  },
   ipcRenderer: {
     on: (channel: string, callback: (...args: unknown[]) => void) => {
       ipcRenderer.on(channel, callback);

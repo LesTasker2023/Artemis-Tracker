@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   release:
@@ -15,7 +15,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install dependencies
         run: npm ci
@@ -23,15 +23,14 @@ jobs:
       - name: Generate icons
         run: npm run generate-icons
 
-      - name: Build & Publish
+      - name: Build (no publish)
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by electron-builder to publish to GitHub Releases
-          CSC_LINK: ${{ secrets.CSC_LINK }}     # optional: mac signing certificate (base64 zipped)
+          CSC_LINK: ${{ secrets.CSC_LINK }} # optional: mac signing certificate (base64 zipped)
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           WINDOWS_CERTIFICATE_FILE: ${{ secrets.WINDOWS_CERTIFICATE_FILE }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
-          npm run build:electron
+          npm run build:electron -- --publish=never
 
       - name: Upload built artifacts (debug)
         uses: actions/upload-artifact@v4
@@ -39,6 +38,13 @@ jobs:
           name: release-artifacts
           path: dist/**
 
+      - name: Publish release (conditional)
+        if: ${{ secrets.PUBLISH_RELEASE == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by electron-builder to publish to GitHub Releases
+        run: |
+          echo "Publishing release because PUBLISH_RELEASE secret is set to true"
+          npm run build:electron -- --publish=always
 # Notes:
 # - This workflow triggers on tag pushes like 'v1.2.3'.
 # - GitHub's provided GITHUB_TOKEN is available as a secret and is sufficient for creating/publishing releases.
