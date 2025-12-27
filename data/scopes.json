@@ -1,0 +1,1167 @@
+[
+    {
+        "Id": 1,
+        "ItemId": 5200001,
+        "Name": "Alekz Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 2,
+            "SkillBonus": 0.6,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 34,
+                "MinTT": 1.02,
+                "Decay": 0.029
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/1"
+        }
+    },
+    {
+        "Id": 2,
+        "ItemId": 5200002,
+        "Name": "Bjornir Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 5,
+            "SkillBonus": 0.8,
+            "Zoom": 12,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 58,
+                "MinTT": 1.74,
+                "Decay": 0.039
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/2"
+        }
+    },
+    {
+        "Id": 3,
+        "ItemId": 5200003,
+        "Name": "Cinclar Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.6,
+            "SkillModification": 7,
+            "SkillBonus": 0.8,
+            "Zoom": 16,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 87,
+                "MinTT": 2.61,
+                "Decay": 0.042
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/3"
+        }
+    },
+    {
+        "Id": 4,
+        "ItemId": 5200004,
+        "Name": "Dacascos Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 8,
+            "SkillBonus": 1,
+            "Zoom": 18,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 120,
+                "MinTT": 3.6,
+                "Decay": 0.051
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/4"
+        }
+    },
+    {
+        "Id": 5,
+        "ItemId": 5200005,
+        "Name": "Elkarr Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 8.5,
+            "SkillBonus": 1.2,
+            "Zoom": 19,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 150,
+                "MinTT": 4.5,
+                "Decay": 0.059
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/5"
+        }
+    },
+    {
+        "Id": 6,
+        "ItemId": 5200006,
+        "Name": "Flexur Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 9,
+            "SkillBonus": 1.3,
+            "Zoom": 20,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 85,
+                "MinTT": 2.55,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/6"
+        }
+    },
+    {
+        "Id": 7,
+        "ItemId": 5200007,
+        "Name": "Grender Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.4,
+            "SkillModification": 9.5,
+            "SkillBonus": 0.4,
+            "Zoom": 21,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 95,
+                "MinTT": 2.85,
+                "Decay": 0.07
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/7"
+        }
+    },
+    {
+        "Id": 8,
+        "ItemId": 5200008,
+        "Name": "Hanzor Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 10,
+            "SkillBonus": 1.4,
+            "Zoom": 22,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 111,
+                "MinTT": 3.33,
+                "Decay": 0.072
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/8"
+        }
+    },
+    {
+        "Id": 9,
+        "ItemId": 5200009,
+        "Name": "Hawk 1k (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 2,
+            "SkillBonus": 0.5,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 40,
+                "MinTT": 0,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/9"
+        }
+    },
+    {
+        "Id": 10,
+        "ItemId": 5200010,
+        "Name": "Hawk 2k (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 4,
+            "SkillBonus": 0.5,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 50,
+                "MinTT": 1.5,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/10"
+        }
+    },
+    {
+        "Id": 11,
+        "ItemId": 5200011,
+        "Name": "Hawk 3k (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 5,
+            "SkillBonus": 0.6,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": null,
+                "MaxTT": 60,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/11"
+        }
+    },
+    {
+        "Id": 12,
+        "ItemId": 5200012,
+        "Name": "Headshot 1",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 4,
+            "SkillBonus": 1.1,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 25,
+                "MinTT": 0.75,
+                "Decay": 0.023
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/12"
+        }
+    },
+    {
+        "Id": 13,
+        "ItemId": 5200013,
+        "Name": "Headshot 2",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 6,
+            "SkillBonus": 1.2,
+            "Zoom": 9,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 35,
+                "MinTT": 1.05,
+                "Decay": 0.032
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/13"
+        }
+    },
+    {
+        "Id": 14,
+        "ItemId": 5200014,
+        "Name": "Headshot 3",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 8,
+            "SkillBonus": 1.3,
+            "Zoom": 12,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 45,
+                "MinTT": 1.35,
+                "Decay": 0.041
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/14"
+        }
+    },
+    {
+        "Id": 15,
+        "ItemId": 5200015,
+        "Name": "Headshot 4",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 10,
+            "SkillBonus": 1.4,
+            "Zoom": 15,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 55,
+                "MinTT": 1.65,
+                "Decay": 0.05
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/15"
+        }
+    },
+    {
+        "Id": 16,
+        "ItemId": 5200016,
+        "Name": "Headshot I (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 4,
+            "SkillBonus": 1.2,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 10,
+                "MinTT": null,
+                "Decay": 0.023
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/16"
+        }
+    },
+    {
+        "Id": 17,
+        "ItemId": 5200017,
+        "Name": "Headshot II (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 6,
+            "SkillBonus": 1.3,
+            "Zoom": 9,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 15,
+                "MinTT": 0.45,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/17"
+        }
+    },
+    {
+        "Id": 18,
+        "ItemId": 5200018,
+        "Name": "Headshot III (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 8,
+            "SkillBonus": 1.4,
+            "Zoom": 12,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 20,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/18"
+        }
+    },
+    {
+        "Id": 19,
+        "ItemId": 5200019,
+        "Name": "Headshot IV (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 10,
+            "SkillBonus": 1.5,
+            "Zoom": 15,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 25,
+                "MinTT": 0.75,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/19"
+        }
+    },
+    {
+        "Id": 20,
+        "ItemId": 5200020,
+        "Name": "Ikamar Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 11,
+            "SkillBonus": 1.6,
+            "Zoom": 24,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 142,
+                "MinTT": 4.26,
+                "Decay": 0.082
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/20"
+        }
+    },
+    {
+        "Id": 21,
+        "ItemId": 5200021,
+        "Name": "Jzar Precision Scope",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 14,
+            "SkillBonus": 1.8,
+            "Zoom": 30,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 187,
+                "MinTT": 5.61,
+                "Decay": 0.088
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/21"
+        }
+    },
+    {
+        "Id": 22,
+        "ItemId": 5200022,
+        "Name": "Longreach 1",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 6,
+            "SkillBonus": 0.6,
+            "Zoom": 24,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 65,
+                "MinTT": 1.95,
+                "Decay": 0.058
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/22"
+        }
+    },
+    {
+        "Id": 23,
+        "ItemId": 5200023,
+        "Name": "Longreach 2",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 9,
+            "SkillBonus": 0.7,
+            "Zoom": 27,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 75,
+                "MinTT": 2.25,
+                "Decay": 0.066
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/23"
+        }
+    },
+    {
+        "Id": 24,
+        "ItemId": 5200024,
+        "Name": "Longreach 3",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 12,
+            "SkillBonus": 0.8,
+            "Zoom": 30,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 85,
+                "MinTT": 2.55,
+                "Decay": 0.075
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/24"
+        }
+    },
+    {
+        "Id": 25,
+        "ItemId": 5200025,
+        "Name": "Longreach 4",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 15,
+            "SkillBonus": 0.9,
+            "Zoom": 33,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 95,
+                "MinTT": 2.85,
+                "Decay": 0.083
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/25"
+        }
+    },
+    {
+        "Id": 26,
+        "ItemId": 5200026,
+        "Name": "Longreach I (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 7,
+            "SkillBonus": 0.7,
+            "Zoom": 24,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 15,
+                "MinTT": 0.45,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/26"
+        }
+    },
+    {
+        "Id": 27,
+        "ItemId": 5200027,
+        "Name": "Longreach II (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 10,
+            "SkillBonus": 0.8,
+            "Zoom": 27,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 20,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/27"
+        }
+    },
+    {
+        "Id": 28,
+        "ItemId": 5200028,
+        "Name": "Longreach III (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 13,
+            "SkillBonus": 0.9,
+            "Zoom": 30,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 25,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/28"
+        }
+    },
+    {
+        "Id": 32,
+        "ItemId": 5200032,
+        "Name": "Seizzt Ranger Scope 1800RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 2,
+            "SkillBonus": 0.4,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 30,
+                "MinTT": 0.9,
+                "Decay": 0.02
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/32"
+        }
+    },
+    {
+        "Id": 33,
+        "ItemId": 5200033,
+        "Name": "Seizzt Ranger Scope 1850RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 3,
+            "SkillBonus": 0.5,
+            "Zoom": 8,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 35,
+                "MinTT": 1.05,
+                "Decay": 0.02
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/33"
+        }
+    },
+    {
+        "Id": 34,
+        "ItemId": 5200034,
+        "Name": "Seizzt Ranger Scope 1900RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 4,
+            "SkillBonus": 0.5,
+            "Zoom": 10,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 45,
+                "MinTT": 1.35,
+                "Decay": 0.026
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/34"
+        }
+    },
+    {
+        "Id": 35,
+        "ItemId": 5200035,
+        "Name": "Seizzt Ranger Scope 1950RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": null,
+            "SkillModification": 5,
+            "SkillBonus": 0.6,
+            "Zoom": 12,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 50,
+                "MinTT": 1.5,
+                "Decay": 0.029
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/35"
+        }
+    },
+    {
+        "Id": 36,
+        "ItemId": 5200036,
+        "Name": "Seizzt Ranger Scope 2500RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.6,
+            "SkillModification": 7,
+            "SkillBonus": 0.6,
+            "Zoom": 16,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 79,
+                "MinTT": 2.37,
+                "Decay": 0.032
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/36"
+        }
+    },
+    {
+        "Id": 37,
+        "ItemId": 5200037,
+        "Name": "Seizzt Ranger Scope 3500RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.6,
+            "SkillModification": 8,
+            "SkillBonus": 0.7,
+            "Zoom": 18,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 110,
+                "MinTT": 3.3,
+                "Decay": 0.037
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/37"
+        }
+    },
+    {
+        "Id": 38,
+        "ItemId": 5200038,
+        "Name": "Seizzt Ranger Scope 4000RS",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 9,
+            "SkillBonus": 0.8,
+            "Zoom": 19,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 140,
+                "MinTT": 4.2,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/38"
+        }
+    },
+    {
+        "Id": 39,
+        "ItemId": 5200039,
+        "Name": "Sweet Scope Mk I",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 1,
+            "SkillBonus": 0.6,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 34,
+                "MinTT": null,
+                "Decay": 0.029
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/39"
+        }
+    },
+    {
+        "Id": 40,
+        "ItemId": 5200040,
+        "Name": "Sweet Scope Mk II",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 2,
+            "SkillBonus": 0.8,
+            "Zoom": 12,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 58,
+                "MinTT": 1.74,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/40"
+        }
+    },
+    {
+        "Id": 41,
+        "ItemId": 5200041,
+        "Name": "Sweet Scope Mk III",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 4,
+            "SkillBonus": 0.8,
+            "Zoom": 16,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 87,
+                "MinTT": 0,
+                "Decay": 0.042
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/41"
+        }
+    },
+    {
+        "Id": 42,
+        "ItemId": 5200042,
+        "Name": "ZX Eagle Eye",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 1,
+            "SkillModification": 2,
+            "SkillBonus": 0.2,
+            "Zoom": 6,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 0.3,
+                "MinTT": 0.009,
+                "Decay": 0.014
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/42"
+        }
+    },
+    {
+        "Id": 30,
+        "ItemId": 5200030,
+        "Name": "Omegaton Ranger Scope Mk. 1",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 10,
+            "SkillBonus": 1.4,
+            "Zoom": 22,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 111,
+                "MinTT": 3.33,
+                "Decay": 0.071
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 1,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/30"
+        }
+    },
+    {
+        "Id": 29,
+        "ItemId": 5200029,
+        "Name": "Longreach IV (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.5,
+            "SkillModification": 16,
+            "SkillBonus": 1,
+            "Zoom": 33,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 30,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/29"
+        }
+    },
+    {
+        "Id": 94,
+        "ItemId": 5200094,
+        "Name": "ArMatrix Precision Scope Mk.1, TWEN Edition",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.2,
+            "SkillModification": 8,
+            "SkillBonus": 1,
+            "Zoom": 20,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 200,
+                "MinTT": 0,
+                "Decay": 0.002
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 1,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/94"
+        }
+    },
+    {
+        "Id": 95,
+        "ItemId": 5200095,
+        "Name": "ArMatrix Precision Scope Mk.2, TWEN Edition",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.2,
+            "SkillModification": 8,
+            "SkillBonus": 1,
+            "Zoom": 20,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 200,
+                "MinTT": 0,
+                "Decay": 0.002
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 1.5,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/95"
+        }
+    },
+    {
+        "Id": 96,
+        "ItemId": 5200096,
+        "Name": "ArMatrix Precision Scope Mk.3, TWEN Edition",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.2,
+            "SkillModification": 8,
+            "SkillBonus": 1,
+            "Zoom": 20,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 200,
+                "MinTT": 0,
+                "Decay": 0.002
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 2,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/96"
+        }
+    },
+    {
+        "Id": 31,
+        "ItemId": 5200031,
+        "Name": "Omegaton Ranger Scope Mk. 2",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.3,
+            "SkillModification": 10,
+            "SkillBonus": 1.4,
+            "Zoom": 22,
+            "Economy": {
+                "Efficiency": 87,
+                "MaxTT": 111,
+                "MinTT": 3.33,
+                "Decay": 0.071
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 2,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/31"
+        }
+    },
+    {
+        "Id": 99,
+        "ItemId": 5200099,
+        "Name": "Mayhem Precision Scope Mk.1",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.2,
+            "SkillModification": 8,
+            "SkillBonus": 1,
+            "Zoom": 20,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 200,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 1,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/99"
+        }
+    },
+    {
+        "Id": 101,
+        "ItemId": 5200101,
+        "Name": "Exceptional Mayhem Precision Scope Mk.2 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Scope",
+            "Weight": 0.2,
+            "SkillModification": 8,
+            "SkillBonus": 1,
+            "Zoom": 20,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 1000,
+                "MinTT": 0,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Chance",
+                "Values": {
+                    "Strength": 2,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/2"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/101"
+        }
+    }
+]

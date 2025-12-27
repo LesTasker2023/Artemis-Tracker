@@ -1,0 +1,343 @@
+[
+
+    {
+        "Id": 51,
+        "ItemId": 5600051,
+        "Name": "Armor Defense Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/51"
+        }
+    },
+    {
+        "Id": 61,
+        "ItemId": 5600061,
+        "Name": "Armor Durability Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/61"
+        }
+    },
+    {
+        "Id": 52,
+        "ItemId": 5600052,
+        "Name": "Armor Defense Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/52"
+        }
+    },
+    {
+        "Id": 62,
+        "ItemId": 5600062,
+        "Name": "Armor Durability Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/62"
+        }
+    },
+    {
+        "Id": 53,
+        "ItemId": 5600053,
+        "Name": "Armor Defense Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/53"
+        }
+    },
+    {
+        "Id": 63,
+        "ItemId": 5600063,
+        "Name": "Armor Durability Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/63"
+        }
+    },
+    {
+        "Id": 54,
+        "ItemId": 5600054,
+        "Name": "Armor Defense Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/54"
+        }
+    },
+    {
+        "Id": 64,
+        "ItemId": 5600064,
+        "Name": "Armor Durability Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/64"
+        }
+    },
+    {
+        "Id": 55,
+        "ItemId": 5600055,
+        "Name": "Armor Defense Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/55"
+        }
+    },
+    {
+        "Id": 65,
+        "ItemId": 5600065,
+        "Name": "Armor Durability Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/65"
+        }
+    },
+    {
+        "Id": 56,
+        "ItemId": 5600056,
+        "Name": "Armor Defense Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/56"
+        }
+    },
+    {
+        "Id": 66,
+        "ItemId": 5600066,
+        "Name": "Armor Durability Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/66"
+        }
+    },
+    {
+        "Id": 57,
+        "ItemId": 5600057,
+        "Name": "Armor Defense Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/57"
+        }
+    },
+    {
+        "Id": 67,
+        "ItemId": 5600067,
+        "Name": "Armor Durability Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/67"
+        }
+    },
+    {
+        "Id": 58,
+        "ItemId": 5600058,
+        "Name": "Armor Defense Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/58"
+        }
+    },
+    {
+        "Id": 68,
+        "ItemId": 5600068,
+        "Name": "Armor Durability Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/68"
+        }
+    },
+    {
+        "Id": 59,
+        "ItemId": 5600059,
+        "Name": "Armor Defense Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/59"
+        }
+    },
+    {
+        "Id": 69,
+        "ItemId": 5600069,
+        "Name": "Armor Durability Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/69"
+        }
+    },
+    {
+        "Id": 60,
+        "ItemId": 5600060,
+        "Name": "Armor Defense Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Armor",
+            "Type": "Defense",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/60"
+        }
+    },
+    {
+        "Id": 70,
+        "ItemId": 5600070,
+        "Name": "Armor Durability Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Armor",
+            "Type": "Durability",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/70"
+        }
+    }
+]

@@ -1,0 +1,240 @@
+[
+    {
+        "id": 1,
+        "name": "Gremlin (M)",
+        "maxTT": 25.50,
+        "durability": 5100,
+        "isLimited": false
+    },
+    {
+        "id": 2,
+        "name": "Gremlin (F)",
+        "maxTT": 25.50,
+        "durability": 5100,
+        "isLimited": false
+    },
+    {
+        "id": 3,
+        "name": "Pixie (M)",
+        "maxTT": 42.00,
+        "durability": 4200,
+        "isLimited": false
+    },
+    {
+        "id": 4,
+        "name": "Pixie (F)",
+        "maxTT": 42.00,
+        "durability": 4200,
+        "isLimited": false
+    },
+    {
+        "id": 5,
+        "name": "Ghost (M)",
+        "maxTT": 64.00,
+        "durability": 6400,
+        "isLimited": false
+    },
+    {
+        "id": 6,
+        "name": "Ghost (F)",
+        "maxTT": 64.00,
+        "durability": 6400,
+        "isLimited": false
+    },
+    {
+        "id": 7,
+        "name": "Goblin (M)",
+        "maxTT": 100.00,
+        "durability": 5000,
+        "isLimited": false
+    },
+    {
+        "id": 8,
+        "name": "Goblin (F)",
+        "maxTT": 100.00,
+        "durability": 5000,
+        "isLimited": false
+    },
+    {
+        "id": 9,
+        "name": "Salamander (M)",
+        "maxTT": 120.00,
+        "durability": 6000,
+        "isLimited": false
+    },
+    {
+        "id": 10,
+        "name": "Salamander (F)",
+        "maxTT": 120.00,
+        "durability": 6000,
+        "isLimited": false
+    },
+    {
+        "id": 11,
+        "name": "Harrier (M)",
+        "maxTT": 80.00,
+        "durability": 8000,
+        "isLimited": false
+    },
+    {
+        "id": 12,
+        "name": "Harrier (F)",
+        "maxTT": 80.00,
+        "durability": 8000,
+        "isLimited": false
+    },
+    {
+        "id": 13,
+        "name": "Adjusted Pixie (M)",
+        "maxTT": 84.00,
+        "durability": 4200,
+        "isLimited": false
+    },
+    {
+        "id": 14,
+        "name": "Adjusted Pixie (F)",
+        "maxTT": 84.00,
+        "durability": 4200,
+        "isLimited": false
+    },
+    {
+        "id": 15,
+        "name": "Modified Gremlin (M)",
+        "maxTT": 51.00,
+        "durability": 5100,
+        "isLimited": false
+    },
+    {
+        "id": 16,
+        "name": "Modified Gremlin (F)",
+        "maxTT": 51.00,
+        "durability": 5100,
+        "isLimited": false
+    },
+    {
+        "id": 17,
+        "name": "Nemesis (M)",
+        "maxTT": 150.00,
+        "durability": 7500,
+        "isLimited": false
+    },
+    {
+        "id": 18,
+        "name": "Nemesis (F)",
+        "maxTT": 150.00,
+        "durability": 7500,
+        "isLimited": false
+    },
+    {
+        "id": 19,
+        "name": "Vigilante (M)",
+        "maxTT": 200.00,
+        "durability": 10000,
+        "isLimited": false
+    },
+    {
+        "id": 20,
+        "name": "Vigilante (F)",
+        "maxTT": 200.00,
+        "durability": 10000,
+        "isLimited": false
+    },
+    {
+        "id": 21,
+        "name": "Perseus (M)",
+        "maxTT": 240.00,
+        "durability": 8000,
+        "isLimited": false
+    },
+    {
+        "id": 22,
+        "name": "Perseus (F)",
+        "maxTT": 240.00,
+        "durability": 8000,
+        "isLimited": false
+    },
+    {
+        "id": 23,
+        "name": "Jaguar (M)",
+        "maxTT": 280.00,
+        "durability": 7000,
+        "isLimited": false
+    },
+    {
+        "id": 24,
+        "name": "Jaguar (F)",
+        "maxTT": 280.00,
+        "durability": 7000,
+        "isLimited": false
+    },
+    {
+        "id": 25,
+        "name": "Martial (M)",
+        "maxTT": 320.00,
+        "durability": 8000,
+        "isLimited": false
+    },
+    {
+        "id": 26,
+        "name": "Martial (F)",
+        "maxTT": 320.00,
+        "durability": 8000,
+        "isLimited": false
+    },
+    {
+        "id": 27,
+        "name": "Ursa (M)",
+        "maxTT": 360.00,
+        "durability": 9000,
+        "isLimited": false
+    },
+    {
+        "id": 28,
+        "name": "Ursa (F)",
+        "maxTT": 360.00,
+        "durability": 9000,
+        "isLimited": false
+    },
+    {
+        "id": 29,
+        "name": "Rascal (M) (L)",
+        "maxTT": 10.00,
+        "durability": 2000,
+        "isLimited": true
+    },
+    {
+        "id": 30,
+        "name": "Rascal (F) (L)",
+        "maxTT": 10.00,
+        "durability": 2000,
+        "isLimited": true
+    },
+    {
+        "id": 31,
+        "name": "Settler (M) (L)",
+        "maxTT": 20.00,
+        "durability": 2500,
+        "isLimited": true
+    },
+    {
+        "id": 32,
+        "name": "Settler (F) (L)",
+        "maxTT": 20.00,
+        "durability": 2500,
+        "isLimited": true
+    },
+    {
+        "id": 33,
+        "name": "Musca (M) (L)",
+        "maxTT": 15.00,
+        "durability": 1500,
+        "isLimited": true
+    },
+    {
+        "id": 34,
+        "name": "Musca (F) (L)",
+        "maxTT": 15.00,
+        "durability": 1500,
+        "isLimited": true
+    }
+]

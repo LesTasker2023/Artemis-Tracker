@@ -1,0 +1,1399 @@
+[
+    {
+        "Id": 43,
+        "ItemId": 5200043,
+        "Name": "Abrer Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 12.5,
+            "SkillBonus": 0.9,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 110,
+                "MinTT": 3.3,
+                "Decay": 0.046
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/43"
+        }
+    },
+    {
+        "Id": 44,
+        "ItemId": 5200044,
+        "Name": "ArMatrix Laser Sight Mk.1, TWEN Edition",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 90,
+                "MaxTT": 200,
+                "MinTT": 0,
+                "Decay": 0.002
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 10,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/44"
+        }
+    },
+    {
+        "Id": 45,
+        "ItemId": 5200045,
+        "Name": "ArMatrix Laser Sight Mk.2, TWEN Edition",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 90,
+                "MaxTT": 200,
+                "MinTT": 0,
+                "Decay": 0.002
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 15,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/45"
+        }
+    },
+    {
+        "Id": 46,
+        "ItemId": 5200046,
+        "Name": "ArMatrix Laser Sight Mk.3, TWEN Edition",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 80,
+                "MaxTT": 200,
+                "MinTT": 0,
+                "Decay": 0.002
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 20,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/46"
+        }
+    },
+    {
+        "Id": 47,
+        "ItemId": 5200047,
+        "Name": "Beacin Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 13,
+            "SkillBonus": 1.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 160,
+                "MinTT": 4.8,
+                "Decay": 0.069
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/47"
+        }
+    },
+    {
+        "Id": 48,
+        "ItemId": 5200048,
+        "Name": "Bullseye 1",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 10,
+            "SkillBonus": 1,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 60,
+                "MinTT": 1.8,
+                "Decay": 0.04
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/48"
+        }
+    },
+    {
+        "Id": 49,
+        "ItemId": 5200049,
+        "Name": "Bullseye 2",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 12,
+            "SkillBonus": 1.1,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 70,
+                "MinTT": 2.1,
+                "Decay": 0.05
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/49"
+        }
+    },
+    {
+        "Id": 50,
+        "ItemId": 5200050,
+        "Name": "Bullseye 3",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 14,
+            "SkillBonus": 1.2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 80,
+                "MinTT": 2.4,
+                "Decay": 0.06
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/50"
+        }
+    },
+    {
+        "Id": 51,
+        "ItemId": 5200051,
+        "Name": "Bullseye 4",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 16,
+            "SkillBonus": 1.3,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 90,
+                "MinTT": 2.7,
+                "Decay": 0.07
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/51"
+        }
+    },
+    {
+        "Id": 52,
+        "ItemId": 5200052,
+        "Name": "Bullseye 5",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 18,
+            "SkillBonus": 1.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 100,
+                "MinTT": 3,
+                "Decay": 0.08
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/52"
+        }
+    },
+    {
+        "Id": 53,
+        "ItemId": 5200053,
+        "Name": "Bullseye 6",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 1.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 110,
+                "MinTT": 3.3,
+                "Decay": 0.09
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/53"
+        }
+    },
+    {
+        "Id": 54,
+        "ItemId": 5200054,
+        "Name": "Bullseye 7",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 22,
+            "SkillBonus": 1.6,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 120,
+                "MinTT": 3.6,
+                "Decay": 0.1
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/54"
+        }
+    },
+    {
+        "Id": 55,
+        "ItemId": 5200055,
+        "Name": "Bullseye 8",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 24,
+            "SkillBonus": 1.7,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 130,
+                "MinTT": 3.9,
+                "Decay": 0.11
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/55"
+        }
+    },
+    {
+        "Id": 56,
+        "ItemId": 5200056,
+        "Name": "Bullseye I (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 10,
+            "SkillBonus": 1.3,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 15,
+                "MinTT": 0.45,
+                "Decay": 0.04
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/56"
+        }
+    },
+    {
+        "Id": 57,
+        "ItemId": 5200057,
+        "Name": "Bullseye II (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 12,
+            "SkillBonus": 1.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 17,
+                "MinTT": 0.51,
+                "Decay": 0.05
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/57"
+        }
+    },
+    {
+        "Id": 58,
+        "ItemId": 5200058,
+        "Name": "Bullseye III (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 14,
+            "SkillBonus": 1.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 20,
+                "MinTT": 0.6,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/58"
+        }
+    },
+    {
+        "Id": 59,
+        "ItemId": 5200059,
+        "Name": "Bullseye IV (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 16,
+            "SkillBonus": 1.6,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 22,
+                "MinTT": 0.66,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/59"
+        }
+    },
+    {
+        "Id": 60,
+        "ItemId": 5200060,
+        "Name": "Bullseye V (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 18,
+            "SkillBonus": 1.7,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 25,
+                "MinTT": 0.75,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/60"
+        }
+    },
+    {
+        "Id": 61,
+        "ItemId": 5200061,
+        "Name": "Bullseye VI (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 1.8,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 27,
+                "MinTT": 0.81,
+                "Decay": 0.09
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/61"
+        }
+    },
+    {
+        "Id": 62,
+        "ItemId": 5200062,
+        "Name": "Bullseye VII (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 22,
+            "SkillBonus": 1.9,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 30,
+                "MinTT": 0.9,
+                "Decay": 0.1
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/62"
+        }
+    },
+    {
+        "Id": 63,
+        "ItemId": 5200063,
+        "Name": "Bullseye VIII (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 24,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 83,
+                "MaxTT": 32,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/63"
+        }
+    },
+    {
+        "Id": 64,
+        "ItemId": 5200064,
+        "Name": "Castar Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": null,
+            "SkillModification": 13.5,
+            "SkillBonus": 1.8,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 220,
+                "MinTT": 6.6,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/64"
+        }
+    },
+    {
+        "Id": 65,
+        "ItemId": 5200065,
+        "Name": "Dynera Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 15.5,
+            "SkillBonus": 1.9,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 260,
+                "MinTT": 7.8,
+                "Decay": 0.096
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/65"
+        }
+    },
+    {
+        "Id": 66,
+        "ItemId": 5200066,
+        "Name": "Ecivox Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 19.5,
+            "SkillBonus": 1.3,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 240,
+                "MinTT": 7.2,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/66"
+        }
+    },
+    {
+        "Id": 67,
+        "ItemId": 5200067,
+        "Name": "Enkidd Dismalites (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 9.9,
+            "SkillBonus": 1.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": null,
+                "MaxTT": 40,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/67"
+        }
+    },
+    {
+        "Id": 68,
+        "ItemId": 5200068,
+        "Name": "Framur Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 21,
+            "SkillBonus": 1.6,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 245,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/68"
+        }
+    },
+    {
+        "Id": 69,
+        "ItemId": 5200069,
+        "Name": "Gargul Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 21.5,
+            "SkillBonus": 1.8,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 79,
+                "MaxTT": 250,
+                "MinTT": 7.5,
+                "Decay": 0.09
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/69"
+        }
+    },
+    {
+        "Id": 70,
+        "ItemId": 5200070,
+        "Name": "Hunnir Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 22,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 60,
+                "MaxTT": 251.75,
+                "MinTT": 7.5525,
+                "Decay": 0.098
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/70"
+        }
+    },
+    {
+        "Id": 71,
+        "ItemId": 5200071,
+        "Name": "I.C.U Laser Sight Mk I",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.3,
+            "SkillModification": 6,
+            "SkillBonus": 0.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 120,
+                "MinTT": null,
+                "Decay": 0.03
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/71"
+        }
+    },
+    {
+        "Id": 72,
+        "ItemId": 5200072,
+        "Name": "Ignaritz Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": null,
+            "SkillModification": 23,
+            "SkillBonus": 2.2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 259,
+                "MinTT": 7.77,
+                "Decay": 0.109
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/72"
+        }
+    },
+    {
+        "Id": 73,
+        "ItemId": 5200073,
+        "Name": "Jakth Laser Sight",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": null,
+            "SkillModification": 23.5,
+            "SkillBonus": 2.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 82,
+                "MaxTT": 262,
+                "MinTT": 7.86,
+                "Decay": 0.126
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/73"
+        }
+    },
+    {
+        "Id": 74,
+        "ItemId": 5200074,
+        "Name": "Lucky Laser Sight Mk I",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.3,
+            "SkillModification": 5,
+            "SkillBonus": 0.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 110,
+                "MinTT": 3.3,
+                "Decay": 0.02
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/74"
+        }
+    },
+    {
+        "Id": 75,
+        "ItemId": 5200075,
+        "Name": "Lucky Laser Sight Mk II",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.3,
+            "SkillModification": 8,
+            "SkillBonus": 1.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 160,
+                "MinTT": 4.8,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/75"
+        }
+    },
+    {
+        "Id": 76,
+        "ItemId": 5200076,
+        "Name": "Omegaton Laser Sight Mk. 1",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 22,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 251.75,
+                "MinTT": 7.55,
+                "Decay": 0.098
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 10,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/76"
+        }
+    },
+    {
+        "Id": 77,
+        "ItemId": 5200077,
+        "Name": "Omegaton Laser Sight Mk. 2",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 22,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 87,
+                "MaxTT": 251.75,
+                "MinTT": 7.55,
+                "Decay": 0.098
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 20,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/77"
+        }
+    },
+    {
+        "Id": 78,
+        "ItemId": 5200078,
+        "Name": "Prototype Mounted Flashlight Smuggler",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": null,
+            "SkillBonus": null,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 100,
+                "MaxTT": null,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/78"
+        }
+    },
+    {
+        "Id": 79,
+        "ItemId": 5200079,
+        "Name": "S \u0026 B Mounted Light P1 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 10,
+            "SkillBonus": 1.3,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 15,
+                "MinTT": 0.45,
+                "Decay": 0.04
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/79"
+        }
+    },
+    {
+        "Id": 80,
+        "ItemId": 5200080,
+        "Name": "S \u0026 B Mounted Light P2 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 12,
+            "SkillBonus": 1.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 17,
+                "MinTT": 0.51,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/80"
+        }
+    },
+    {
+        "Id": 81,
+        "ItemId": 5200081,
+        "Name": "S \u0026 B Mounted Light R1 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 1.8,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 27,
+                "MinTT": 0.81,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/81"
+        }
+    },
+    {
+        "Id": 82,
+        "ItemId": 5200082,
+        "Name": "S \u0026 B Mounted Light R2 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 14,
+            "SkillBonus": 1.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 20,
+                "MinTT": 0.6,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/82"
+        }
+    },
+    {
+        "Id": 83,
+        "ItemId": 5200083,
+        "Name": "S \u0026 B Mounted Light R3 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 16,
+            "SkillBonus": 1.6,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 22,
+                "MinTT": 0.66,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/83"
+        }
+    },
+    {
+        "Id": 84,
+        "ItemId": 5200084,
+        "Name": "S \u0026 B Mounted Light R4 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 18,
+            "SkillBonus": 1.7,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 25,
+                "MinTT": 0.75,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/84"
+        }
+    },
+    {
+        "Id": 87,
+        "ItemId": 5200087,
+        "Name": "Seizzt Laser Sight 2000L",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 1,
+            "SkillModification": 4,
+            "SkillBonus": 0.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 15,
+                "MinTT": 0.45,
+                "Decay": 0.02
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/87"
+        }
+    },
+    {
+        "Id": 88,
+        "ItemId": 5200088,
+        "Name": "Seizzt Laser Sight 2000L+",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 1,
+            "SkillModification": 5,
+            "SkillBonus": 0.3,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 65,
+                "MaxTT": 30,
+                "MinTT": 0.9,
+                "Decay": 0.017
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/88"
+        }
+    },
+    {
+        "Id": 89,
+        "ItemId": 5200089,
+        "Name": "Terrus Laser Sight SE600",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.6,
+            "SkillModification": 12,
+            "SkillBonus": 0.6,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 100,
+                "MinTT": 3,
+                "Decay": 0.03
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/89"
+        }
+    },
+    {
+        "Id": 90,
+        "ItemId": 5200090,
+        "Name": "Terrus Laser Sight SE700",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.5,
+            "SkillModification": 12.5,
+            "SkillBonus": 0.7,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 130,
+                "MinTT": 3.9,
+                "Decay": 0.036
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/90"
+        }
+    },
+    {
+        "Id": 91,
+        "ItemId": 5200091,
+        "Name": "Terrus Laser Sight SE800",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.3,
+            "SkillModification": 13,
+            "SkillBonus": 0.7,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 160,
+                "MinTT": 4.8,
+                "Decay": 0.037
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/91"
+        }
+    },
+    {
+        "Id": 92,
+        "ItemId": 5200092,
+        "Name": "Terrus Laser Sight SE900",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.2,
+            "SkillModification": 15,
+            "SkillBonus": 0.8,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 70,
+                "MaxTT": 170,
+                "MinTT": 5.1,
+                "Decay": 0.04
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/92"
+        }
+    },
+    {
+        "Id": 93,
+        "ItemId": 5200093,
+        "Name": "ZX R-Dod",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 1,
+            "SkillModification": 4,
+            "SkillBonus": 0.4,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 100,
+                "MaxTT": 0.3,
+                "MinTT": 0,
+                "Decay": 0.02
+            }
+        },
+        "EffectsOnEquip": [],
+        "Links": {
+            "$Url": "/weaponvisionattachments/93"
+        }
+    },
+    {
+        "Id": 97,
+        "ItemId": 5200097,
+        "Name": "Sight of Cthylla",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 80,
+                "MaxTT": 250,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 5,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/97"
+        }
+    },
+    {
+        "Id": 98,
+        "ItemId": 5200098,
+        "Name": "Mayhem Laser Sight Mk.1",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 200,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 10,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/98"
+        }
+    },
+    {
+        "Id": 100,
+        "ItemId": 5200100,
+        "Name": "Exceptional Mayhem Laser Sight Mk.2 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 85,
+                "MaxTT": 400,
+                "MinTT": 0,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 20,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/100"
+        }
+    },
+    {
+        "Id": 86,
+        "ItemId": 5200086,
+        "Name": "Salafa Laser Sight MK 3 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 2.5,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 80,
+                "MaxTT": 85,
+                "MinTT": 0,
+                "Decay": 0.07
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 20,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/86"
+        }
+    },
+    {
+        "Id": 85,
+        "ItemId": 5200085,
+        "Name": "Salafa Laser Sight MK 1 (L)",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": 0.1,
+            "SkillModification": 20,
+            "SkillBonus": 1,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": 75,
+                "MaxTT": 15,
+                "MinTT": null,
+                "Decay": 0.041
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 5,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/85"
+        }
+    },
+    {
+        "Id": 102,
+        "ItemId": 5200102,
+        "Name": "Salafa Laser Sight MK 2",
+        "Properties": {
+            "Description": null,
+            "Type": "Sight",
+            "Weight": null,
+            "SkillModification": null,
+            "SkillBonus": null,
+            "Zoom": null,
+            "Economy": {
+                "Efficiency": null,
+                "MaxTT": null,
+                "MinTT": null,
+                "Decay": null
+            }
+        },
+        "EffectsOnEquip": [
+            {
+                "Name": "Added Critical Damage",
+                "Values": {
+                    "Strength": 10,
+                    "Unit": "%",
+                    "Description": null
+                },
+                "Links": {
+                    "$Url": "/effects/4"
+                }
+            }
+        ],
+        "Links": {
+            "$Url": "/weaponvisionattachments/102"
+        }
+    }
+]

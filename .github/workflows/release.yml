@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate icons
+        run: npm run generate-icons
+
+      - name: Build & Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by electron-builder to publish to GitHub Releases
+          CSC_LINK: ${{ secrets.CSC_LINK }}     # optional: mac signing certificate (base64 zipped)
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          WINDOWS_CERTIFICATE_FILE: ${{ secrets.WINDOWS_CERTIFICATE_FILE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          npm run build:electron
+
+      - name: Upload built artifacts (debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/**
+
+# Notes:
+# - This workflow triggers on tag pushes like 'v1.2.3'.
+# - GitHub's provided GITHUB_TOKEN is available as a secret and is sufficient for creating/publishing releases.
+# - For code signing (macOS, Windows), set appropriate repo secrets (CSC_LINK, CSC_KEY_PASSWORD, WINDOWS_CERTIFICATE_*).
+# - Test by creating a tag locally and pushing: git tag vX.Y.Z && git push origin vX.Y.Z

@@ -1,0 +1,7252 @@
+[
+  {
+    "Id": 155,
+    "ItemId": 5500155,
+    "Name": "Augmented Imperium Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 2400
+      },
+      "Defense": {
+        "Block": 4,
+        "Stab": 7,
+        "Cut": 17,
+        "Impact": 20,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 17,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/155"
+    }
+  },
+  {
+    "Id": 179,
+    "ItemId": 5500179,
+    "Name": "Improved Imperium Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.9,
+      "Economy": {
+        "MaxTT": 41,
+        "MinTT": null,
+        "Durability": 1600
+      },
+      "Defense": {
+        "Block": 2,
+        "Stab": 5,
+        "Cut": 12,
+        "Impact": 12,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 12,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/179"
+    }
+  },
+  {
+    "Id": 181,
+    "ItemId": 5500181,
+    "Name": "Incision Plate Adjusted",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 1400
+      },
+      "Defense": {
+        "Block": 1,
+        "Stab": 23,
+        "Cut": 5,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/181"
+    }
+  },
+  {
+    "Id": 182,
+    "ItemId": 5500182,
+    "Name": "Incision Plate Augmented",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 64,
+        "MinTT": null,
+        "Durability": 2600
+      },
+      "Defense": {
+        "Block": 4,
+        "Stab": 30,
+        "Cut": 8.5,
+        "Impact": 8.5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/182"
+    }
+  },
+  {
+    "Id": 183,
+    "ItemId": 5500183,
+    "Name": "Incision Plate Improved",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 53,
+        "MinTT": null,
+        "Durability": 1800
+      },
+      "Defense": {
+        "Block": 2,
+        "Stab": 25,
+        "Cut": 6,
+        "Impact": 6,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/183"
+    }
+  },
+  {
+    "Id": 184,
+    "ItemId": 5500184,
+    "Name": "Incision Plate Modified",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 64,
+        "MinTT": null,
+        "Durability": 2200
+      },
+      "Defense": {
+        "Block": 3,
+        "Stab": 27,
+        "Cut": 7,
+        "Impact": 7,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/184"
+    }
+  },
+  {
+    "Id": 185,
+    "ItemId": 5500185,
+    "Name": "Incision Plate Perfected",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 85,
+        "MinTT": null,
+        "Durability": 3500
+      },
+      "Defense": {
+        "Block": 5,
+        "Stab": 33,
+        "Cut": 10,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/185"
+    }
+  },
+  {
+    "Id": 192,
+    "ItemId": 5500192,
+    "Name": "Lunar Plate Adjusted",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 1700
+      },
+      "Defense": {
+        "Block": 1,
+        "Stab": 10,
+        "Cut": 10,
+        "Impact": 4,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 12,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/192"
+    }
+  },
+  {
+    "Id": 193,
+    "ItemId": 5500193,
+    "Name": "Lunar Plate Augmented",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 2600
+      },
+      "Defense": {
+        "Block": 4,
+        "Stab": 16,
+        "Cut": 16,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 21,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/193"
+    }
+  },
+  {
+    "Id": 194,
+    "ItemId": 5500194,
+    "Name": "Lunar Plate Improved",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 2000
+      },
+      "Defense": {
+        "Block": 2,
+        "Stab": 12,
+        "Cut": 12,
+        "Impact": 6,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 15,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/194"
+    }
+  },
+  {
+    "Id": 195,
+    "ItemId": 5500195,
+    "Name": "Lunar Plate Modified",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 2400
+      },
+      "Defense": {
+        "Block": 3,
+        "Stab": 14,
+        "Cut": 14,
+        "Impact": 8,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 18,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/195"
+    }
+  },
+  {
+    "Id": 196,
+    "ItemId": 5500196,
+    "Name": "Lunar Plate Perfected",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 3500
+      },
+      "Defense": {
+        "Block": 5,
+        "Stab": 18,
+        "Cut": 18,
+        "Impact": 12,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 24,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/196"
+    }
+  },
+  {
+    "Id": 197,
+    "ItemId": 5500197,
+    "Name": "Modified Imperium Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.9,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 2200
+      },
+      "Defense": {
+        "Block": 3,
+        "Stab": 6,
+        "Cut": 14,
+        "Impact": 16,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/197"
+    }
+  },
+  {
+    "Id": 208,
+    "ItemId": 5500208,
+    "Name": "Perfected Imperium Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 72,
+        "MinTT": null,
+        "Durability": 3000
+      },
+      "Defense": {
+        "Block": 5,
+        "Stab": 8,
+        "Cut": 20,
+        "Impact": 24,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 20,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/208"
+    }
+  },
+  {
+    "Id": 3,
+    "ItemId": 5500003,
+    "Name": "A.R.C. Laceration Plate Base",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 15,
+        "MinTT": null,
+        "Durability": 925
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 5,
+        "Cut": 15,
+        "Impact": 9,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/3"
+    }
+  },
+  {
+    "Id": 8,
+    "ItemId": 5500008,
+    "Name": "AP-6 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 6,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/8"
+    }
+  },
+  {
+    "Id": 9,
+    "ItemId": 5500009,
+    "Name": "AP-6 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 6,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/9"
+    }
+  },
+  {
+    "Id": 10,
+    "ItemId": 5500010,
+    "Name": "AP-6 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 6,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/10"
+    }
+  },
+  {
+    "Id": 11,
+    "ItemId": 5500011,
+    "Name": "AP-6 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 6,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/11"
+    }
+  },
+  {
+    "Id": 12,
+    "ItemId": 5500012,
+    "Name": "AP-6 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 6
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/12"
+    }
+  },
+  {
+    "Id": 83,
+    "ItemId": 5500083,
+    "Name": "AP-54 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 54
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/83"
+    }
+  },
+  {
+    "Id": 84,
+    "ItemId": 5500084,
+    "Name": "AP-54 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 54,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/84"
+    }
+  },
+  {
+    "Id": 85,
+    "ItemId": 5500085,
+    "Name": "AP-54 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 54,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/85"
+    }
+  },
+  {
+    "Id": 86,
+    "ItemId": 5500086,
+    "Name": "AP-54 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 54,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/86"
+    }
+  },
+  {
+    "Id": 87,
+    "ItemId": 5500087,
+    "Name": "AP-60 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 60,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/87"
+    }
+  },
+  {
+    "Id": 88,
+    "ItemId": 5500088,
+    "Name": "AP-60 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 60,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/88"
+    }
+  },
+  {
+    "Id": 233,
+    "ItemId": 5500233,
+    "Name": "Serpent's Scale Adjusted",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.5,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 1450
+      },
+      "Defense": {
+        "Block": 1,
+        "Stab": 6,
+        "Cut": 6,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 11,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/233"
+    }
+  },
+  {
+    "Id": 234,
+    "ItemId": 5500234,
+    "Name": "Serpent's Scale Improved",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.5,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 1850
+      },
+      "Defense": {
+        "Block": 2,
+        "Stab": 8,
+        "Cut": 8,
+        "Impact": 12,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 13,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/234"
+    }
+  },
+  {
+    "Id": 235,
+    "ItemId": 5500235,
+    "Name": "Serpent's Scale Modified",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.5,
+      "Economy": {
+        "MaxTT": 49,
+        "MinTT": null,
+        "Durability": 2400
+      },
+      "Defense": {
+        "Block": 3,
+        "Stab": 11,
+        "Cut": 11,
+        "Impact": 14,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 17,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/235"
+    }
+  },
+  {
+    "Id": 236,
+    "ItemId": 5500236,
+    "Name": "Serpent's Scale Perfected",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.5,
+      "Economy": {
+        "MaxTT": 65,
+        "MinTT": null,
+        "Durability": 3600
+      },
+      "Defense": {
+        "Block": 5,
+        "Stab": 15,
+        "Cut": 15,
+        "Impact": 18,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 24,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/236"
+    }
+  },
+  {
+    "Id": 13,
+    "ItemId": 5500013,
+    "Name": "AP-6 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 6,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/13"
+    }
+  },
+  {
+    "Id": 14,
+    "ItemId": 5500014,
+    "Name": "AP-6 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 6,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/14"
+    }
+  },
+  {
+    "Id": 15,
+    "ItemId": 5500015,
+    "Name": "AP-6 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 6,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/15"
+    }
+  },
+  {
+    "Id": 16,
+    "ItemId": 5500016,
+    "Name": "AP-6 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 6,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 6,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/16"
+    }
+  },
+  {
+    "Id": 17,
+    "ItemId": 5500017,
+    "Name": "AP-12 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 12,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/17"
+    }
+  },
+  {
+    "Id": 18,
+    "ItemId": 5500018,
+    "Name": "AP-12 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 12,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/18"
+    }
+  },
+  {
+    "Id": 19,
+    "ItemId": 5500019,
+    "Name": "AP-12 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 12,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/19"
+    }
+  },
+  {
+    "Id": 20,
+    "ItemId": 5500020,
+    "Name": "AP-12 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 12,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/20"
+    }
+  },
+  {
+    "Id": 21,
+    "ItemId": 5500021,
+    "Name": "AP-12 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 12
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/21"
+    }
+  },
+  {
+    "Id": 22,
+    "ItemId": 5500022,
+    "Name": "AP-12 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 12,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/22"
+    }
+  },
+  {
+    "Id": 23,
+    "ItemId": 5500023,
+    "Name": "AP-12 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 12,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/23"
+    }
+  },
+  {
+    "Id": 24,
+    "ItemId": 5500024,
+    "Name": "AP-12 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 12,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/24"
+    }
+  },
+  {
+    "Id": 25,
+    "ItemId": 5500025,
+    "Name": "AP-12 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 12,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 12,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/25"
+    }
+  },
+  {
+    "Id": 26,
+    "ItemId": 5500026,
+    "Name": "AP-18 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 18,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/26"
+    }
+  },
+  {
+    "Id": 27,
+    "ItemId": 5500027,
+    "Name": "AP-18 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 18,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/27"
+    }
+  },
+  {
+    "Id": 28,
+    "ItemId": 5500028,
+    "Name": "AP-18 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 18,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/28"
+    }
+  },
+  {
+    "Id": 29,
+    "ItemId": 5500029,
+    "Name": "AP-18 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 18,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/29"
+    }
+  },
+  {
+    "Id": 30,
+    "ItemId": 5500030,
+    "Name": "AP-18 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 18
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/30"
+    }
+  },
+  {
+    "Id": 31,
+    "ItemId": 5500031,
+    "Name": "AP-18 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 18,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/31"
+    }
+  },
+  {
+    "Id": 32,
+    "ItemId": 5500032,
+    "Name": "AP-18 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 18,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/32"
+    }
+  },
+  {
+    "Id": 33,
+    "ItemId": 5500033,
+    "Name": "AP-18 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 18,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/33"
+    }
+  },
+  {
+    "Id": 34,
+    "ItemId": 5500034,
+    "Name": "AP-18 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 18,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/34"
+    }
+  },
+  {
+    "Id": 35,
+    "ItemId": 5500035,
+    "Name": "AP-24 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 24,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/35"
+    }
+  },
+  {
+    "Id": 36,
+    "ItemId": 5500036,
+    "Name": "AP-24 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 24,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/36"
+    }
+  },
+  {
+    "Id": 37,
+    "ItemId": 5500037,
+    "Name": "AP-24 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 24,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/37"
+    }
+  },
+  {
+    "Id": 38,
+    "ItemId": 5500038,
+    "Name": "AP-24 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 24,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/38"
+    }
+  },
+  {
+    "Id": 39,
+    "ItemId": 5500039,
+    "Name": "AP-24 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 24
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/39"
+    }
+  },
+  {
+    "Id": 40,
+    "ItemId": 5500040,
+    "Name": "AP-24 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 24,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/40"
+    }
+  },
+  {
+    "Id": 41,
+    "ItemId": 5500041,
+    "Name": "AP-24 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 24,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/41"
+    }
+  },
+  {
+    "Id": 42,
+    "ItemId": 5500042,
+    "Name": "AP-24 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 24,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/42"
+    }
+  },
+  {
+    "Id": 43,
+    "ItemId": 5500043,
+    "Name": "AP-24 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 24,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/43"
+    }
+  },
+  {
+    "Id": 44,
+    "ItemId": 5500044,
+    "Name": "AP-30 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 30,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/44"
+    }
+  },
+  {
+    "Id": 45,
+    "ItemId": 5500045,
+    "Name": "AP-30 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 30,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/45"
+    }
+  },
+  {
+    "Id": 46,
+    "ItemId": 5500046,
+    "Name": "AP-30 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 30,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/46"
+    }
+  },
+  {
+    "Id": 47,
+    "ItemId": 5500047,
+    "Name": "AP-30 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 30,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/47"
+    }
+  },
+  {
+    "Id": 48,
+    "ItemId": 5500048,
+    "Name": "AP-30 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 30
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/48"
+    }
+  },
+  {
+    "Id": 49,
+    "ItemId": 5500049,
+    "Name": "AP-30 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 30,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/49"
+    }
+  },
+  {
+    "Id": 50,
+    "ItemId": 5500050,
+    "Name": "AP-30 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 30,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/50"
+    }
+  },
+  {
+    "Id": 51,
+    "ItemId": 5500051,
+    "Name": "AP-30 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 30,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/51"
+    }
+  },
+  {
+    "Id": 52,
+    "ItemId": 5500052,
+    "Name": "AP-30 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 30,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/52"
+    }
+  },
+  {
+    "Id": 53,
+    "ItemId": 5500053,
+    "Name": "AP-36 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 36,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/53"
+    }
+  },
+  {
+    "Id": 54,
+    "ItemId": 5500054,
+    "Name": "AP-36 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 36,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/54"
+    }
+  },
+  {
+    "Id": 55,
+    "ItemId": 5500055,
+    "Name": "AP-36 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 36,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/55"
+    }
+  },
+  {
+    "Id": 56,
+    "ItemId": 5500056,
+    "Name": "AP-36 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 36,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/56"
+    }
+  },
+  {
+    "Id": 57,
+    "ItemId": 5500057,
+    "Name": "AP-36 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 36
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/57"
+    }
+  },
+  {
+    "Id": 231,
+    "ItemId": 5500231,
+    "Name": "RUDOLF Dragon Plate mk3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 16000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 18,
+        "Cut": 18,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/231"
+    }
+  },
+  {
+    "Id": 232,
+    "ItemId": 5500232,
+    "Name": "Serpent's Scale",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 1000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 5,
+        "Cut": 5,
+        "Impact": 8,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 9,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/232"
+    }
+  },
+  {
+    "Id": 237,
+    "ItemId": 5500237,
+    "Name": "Smuggler Armour Plate 1",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 2500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 13,
+        "Cut": 14,
+        "Impact": 13,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/237"
+    }
+  },
+  {
+    "Id": 1,
+    "ItemId": 5500001,
+    "Name": "A.R.C. Laceration Plate Adjusted",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 1400
+      },
+      "Defense": {
+        "Block": 1,
+        "Stab": 5,
+        "Cut": 18,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/1"
+    }
+  },
+  {
+    "Id": 2,
+    "ItemId": 5500002,
+    "Name": "A.R.C. Laceration Plate Augmented",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": null
+      },
+      "Defense": {
+        "Block": 4,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/2"
+    }
+  },
+  {
+    "Id": 4,
+    "ItemId": 5500004,
+    "Name": "A.R.C. Laceration Plate Improved",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 1800
+      },
+      "Defense": {
+        "Block": 2,
+        "Stab": 5,
+        "Cut": 21,
+        "Impact": 11,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/4"
+    }
+  },
+  {
+    "Id": 6,
+    "ItemId": 5500006,
+    "Name": "A.R.C. Laceration Plate Perfected",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": null
+      },
+      "Defense": {
+        "Block": 5,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/6"
+    }
+  },
+  {
+    "Id": 58,
+    "ItemId": 5500058,
+    "Name": "AP-36 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 36,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/58"
+    }
+  },
+  {
+    "Id": 59,
+    "ItemId": 5500059,
+    "Name": "AP-36 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 36,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/59"
+    }
+  },
+  {
+    "Id": 60,
+    "ItemId": 5500060,
+    "Name": "AP-36 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 36,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/60"
+    }
+  },
+  {
+    "Id": 61,
+    "ItemId": 5500061,
+    "Name": "AP-36 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 36,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/61"
+    }
+  },
+  {
+    "Id": 62,
+    "ItemId": 5500062,
+    "Name": "AP-42 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 42,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/62"
+    }
+  },
+  {
+    "Id": 63,
+    "ItemId": 5500063,
+    "Name": "AP-42 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 42,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/63"
+    }
+  },
+  {
+    "Id": 64,
+    "ItemId": 5500064,
+    "Name": "AP-42 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 42,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/64"
+    }
+  },
+  {
+    "Id": 65,
+    "ItemId": 5500065,
+    "Name": "AP-42 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 42,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/65"
+    }
+  },
+  {
+    "Id": 66,
+    "ItemId": 5500066,
+    "Name": "AP-42 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 42
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/66"
+    }
+  },
+  {
+    "Id": 67,
+    "ItemId": 5500067,
+    "Name": "AP-42 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 42,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/67"
+    }
+  },
+  {
+    "Id": 68,
+    "ItemId": 5500068,
+    "Name": "AP-42 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 42,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/68"
+    }
+  },
+  {
+    "Id": 69,
+    "ItemId": 5500069,
+    "Name": "AP-42 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 42,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/69"
+    }
+  },
+  {
+    "Id": 70,
+    "ItemId": 5500070,
+    "Name": "AP-42 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 42,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/70"
+    }
+  },
+  {
+    "Id": 71,
+    "ItemId": 5500071,
+    "Name": "AP-48 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 48,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/71"
+    }
+  },
+  {
+    "Id": 72,
+    "ItemId": 5500072,
+    "Name": "AP-48 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 48,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/72"
+    }
+  },
+  {
+    "Id": 73,
+    "ItemId": 5500073,
+    "Name": "AP-48 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 48,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/73"
+    }
+  },
+  {
+    "Id": 74,
+    "ItemId": 5500074,
+    "Name": "AP-48 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 48,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/74"
+    }
+  },
+  {
+    "Id": 75,
+    "ItemId": 5500075,
+    "Name": "AP-48 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 48
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/75"
+    }
+  },
+  {
+    "Id": 76,
+    "ItemId": 5500076,
+    "Name": "AP-48 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 48,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/76"
+    }
+  },
+  {
+    "Id": 77,
+    "ItemId": 5500077,
+    "Name": "AP-48 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 48,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/77"
+    }
+  },
+  {
+    "Id": 78,
+    "ItemId": 5500078,
+    "Name": "AP-48 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 48,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/78"
+    }
+  },
+  {
+    "Id": 79,
+    "ItemId": 5500079,
+    "Name": "AP-54 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 54,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/79"
+    }
+  },
+  {
+    "Id": 80,
+    "ItemId": 5500080,
+    "Name": "AP-54 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 54,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/80"
+    }
+  },
+  {
+    "Id": 81,
+    "ItemId": 5500081,
+    "Name": "AP-54 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 54,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/81"
+    }
+  },
+  {
+    "Id": 82,
+    "ItemId": 5500082,
+    "Name": "AP-54 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 54,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 54,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/82"
+    }
+  },
+  {
+    "Id": 89,
+    "ItemId": 5500089,
+    "Name": "AP-60 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 60,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/89"
+    }
+  },
+  {
+    "Id": 90,
+    "ItemId": 5500090,
+    "Name": "AP-60 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 60,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/90"
+    }
+  },
+  {
+    "Id": 91,
+    "ItemId": 5500091,
+    "Name": "AP-60 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 60
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/91"
+    }
+  },
+  {
+    "Id": 92,
+    "ItemId": 5500092,
+    "Name": "AP-60 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 60,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/92"
+    }
+  },
+  {
+    "Id": 93,
+    "ItemId": 5500093,
+    "Name": "AP-60 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 60,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/93"
+    }
+  },
+  {
+    "Id": 94,
+    "ItemId": 5500094,
+    "Name": "AP-60 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 60,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 60,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/94"
+    }
+  },
+  {
+    "Id": 95,
+    "ItemId": 5500095,
+    "Name": "AP-66 Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 66,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/95"
+    }
+  },
+  {
+    "Id": 96,
+    "ItemId": 5500096,
+    "Name": "AP-66 Burn (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 66,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/96"
+    }
+  },
+  {
+    "Id": 97,
+    "ItemId": 5500097,
+    "Name": "AP-66 Cold (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 66,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/97"
+    }
+  },
+  {
+    "Id": 98,
+    "ItemId": 5500098,
+    "Name": "AP-66 Cut (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 66,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/98"
+    }
+  },
+  {
+    "Id": 99,
+    "ItemId": 5500099,
+    "Name": "AP-66 Electric (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 66
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/99"
+    }
+  },
+  {
+    "Id": 100,
+    "ItemId": 5500100,
+    "Name": "AP-66 Impact (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 66,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/100"
+    }
+  },
+  {
+    "Id": 101,
+    "ItemId": 5500101,
+    "Name": "AP-66 Penetration (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 66,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/101"
+    }
+  },
+  {
+    "Id": 102,
+    "ItemId": 5500102,
+    "Name": "AP-66 Shrapnel (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 66,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/102"
+    }
+  },
+  {
+    "Id": 103,
+    "ItemId": 5500103,
+    "Name": "AP-66 Stab (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 66,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 66,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/103"
+    }
+  },
+  {
+    "Id": 104,
+    "ItemId": 5500104,
+    "Name": "Armor Plate Acid (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 6,
+        "Cut": 7,
+        "Impact": 7,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 12,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/104"
+    }
+  },
+  {
+    "Id": 105,
+    "ItemId": 5500105,
+    "Name": "Armor Plate Arctic (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 6,
+        "Cut": 7,
+        "Impact": 7,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 12,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/105"
+    }
+  },
+  {
+    "Id": 106,
+    "ItemId": 5500106,
+    "Name": "Armor Plate Ignis (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 6,
+        "Cut": 7,
+        "Impact": 7,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 12,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/106"
+    }
+  },
+  {
+    "Id": 107,
+    "ItemId": 5500107,
+    "Name": "Armor Plate Tempest (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 6,
+        "Cut": 7,
+        "Impact": 7,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 12
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/107"
+    }
+  },
+  {
+    "Id": 108,
+    "ItemId": 5500108,
+    "Name": "Armor Plating Mk. 1A",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 3.2,
+        "MinTT": null,
+        "Durability": 400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 4,
+        "Penetration": 1,
+        "Shrapnel": 0,
+        "Burn": 1,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/108"
+    }
+  },
+  {
+    "Id": 109,
+    "ItemId": 5500109,
+    "Name": "Armor Plating Mk. 1B",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.6,
+      "Economy": {
+        "MaxTT": 3.9,
+        "MinTT": null,
+        "Durability": 450
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 3,
+        "Shrapnel": 0,
+        "Burn": 2,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/109"
+    }
+  },
+  {
+    "Id": 110,
+    "ItemId": 5500110,
+    "Name": "Armor Plating Mk. 1C",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 4.1,
+        "MinTT": null,
+        "Durability": 600
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 4,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 5
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/110"
+    }
+  },
+  {
+    "Id": 111,
+    "ItemId": 5500111,
+    "Name": "Armor Plating Mk. 1D (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 12.1,
+        "MinTT": null,
+        "Durability": 11200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 1,
+        "Cut": 3,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 2,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/111"
+    }
+  },
+  {
+    "Id": 112,
+    "ItemId": 5500112,
+    "Name": "Armor Plating Mk. 2A",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 4.9,
+        "MinTT": null,
+        "Durability": 600
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 3,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 1,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/112"
+    }
+  },
+  {
+    "Id": 113,
+    "ItemId": 5500113,
+    "Name": "Armor Plating Mk. 2B",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 9.7,
+        "MinTT": null,
+        "Durability": 1200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 1,
+        "Impact": 3,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 5,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/113"
+    }
+  },
+  {
+    "Id": 114,
+    "ItemId": 5500114,
+    "Name": "Armor Plating Mk. 2C",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 8.2,
+        "MinTT": null,
+        "Durability": 900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 2,
+        "Impact": 3,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 5,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/114"
+    }
+  },
+  {
+    "Id": 115,
+    "ItemId": 5500115,
+    "Name": "Armor Plating Mk. 2D (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 20.1,
+        "MinTT": null,
+        "Durability": 11990
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 3,
+        "Cut": 4,
+        "Impact": 9,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 2,
+        "Cold": 0,
+        "Acid": 2,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/115"
+    }
+  },
+  {
+    "Id": 116,
+    "ItemId": 5500116,
+    "Name": "Armor Plating Mk. 2E (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 41,
+        "MinTT": null,
+        "Durability": 13200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 6,
+        "Penetration": 3,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 22,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/116"
+    }
+  },
+  {
+    "Id": 117,
+    "ItemId": 5500117,
+    "Name": "Armor Plating Mk. 3A",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 11.3,
+        "MinTT": null,
+        "Durability": 1900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 4,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 1,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/117"
+    }
+  },
+  {
+    "Id": 118,
+    "ItemId": 5500118,
+    "Name": "Armor Plating Mk. 3B",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 12.9,
+        "MinTT": null,
+        "Durability": 1300
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 2,
+        "Penetration": 8,
+        "Shrapnel": 0,
+        "Burn": 3,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/118"
+    }
+  },
+  {
+    "Id": 119,
+    "ItemId": 5500119,
+    "Name": "Armor Plating Mk. 3E (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 46,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 4,
+        "Cut": 5,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 24,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/119"
+    }
+  },
+  {
+    "Id": 120,
+    "ItemId": 5500120,
+    "Name": "Armor Plating Mk. 4A",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 19.5,
+        "MinTT": null,
+        "Durability": 1700
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 2,
+        "Cut": 5,
+        "Impact": 6,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 4,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/120"
+    }
+  },
+  {
+    "Id": 121,
+    "ItemId": 5500121,
+    "Name": "Armor Plating Mk. 4B",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 17.3,
+        "MinTT": null,
+        "Durability": 1800
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 2,
+        "Cut": 2,
+        "Impact": 3,
+        "Penetration": 3,
+        "Shrapnel": 2,
+        "Burn": 4,
+        "Cold": 2,
+        "Acid": 2,
+        "Electric": 2
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/121"
+    }
+  },
+  {
+    "Id": 122,
+    "ItemId": 5500122,
+    "Name": "Armor Plating Mk. 4C",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 19.4,
+        "MinTT": null,
+        "Durability": 2600
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 3,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 9
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/122"
+    }
+  },
+  {
+    "Id": 123,
+    "ItemId": 5500123,
+    "Name": "Armor Plating Mk. 4D (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 29.9,
+        "MinTT": null,
+        "Durability": 13150
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 2,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 7,
+        "Acid": 6,
+        "Electric": 8
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/123"
+    }
+  },
+  {
+    "Id": 124,
+    "ItemId": 5500124,
+    "Name": "Armor Plating Mk. 4E (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": 48,
+        "MinTT": null,
+        "Durability": 14200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 7,
+        "Impact": 0,
+        "Penetration": 2,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 26,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/124"
+    }
+  },
+  {
+    "Id": 125,
+    "ItemId": 5500125,
+    "Name": "Armor Plating Mk. 5A",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 24.3,
+        "MinTT": null,
+        "Durability": 3100
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 4,
+        "Impact": 7,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/125"
+    }
+  },
+  {
+    "Id": 126,
+    "ItemId": 5500126,
+    "Name": "Armor Plating Mk. 5B",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 31.1,
+        "MinTT": null,
+        "Durability": 900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 8,
+        "Cut": 9,
+        "Impact": 12,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/126"
+    }
+  },
+  {
+    "Id": 130,
+    "ItemId": 5500130,
+    "Name": "Armor Plating Mk. 5B, Mentor Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 31.1,
+        "MinTT": null,
+        "Durability": 1000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 9,
+        "Cut": 10,
+        "Impact": 13,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/130"
+    }
+  },
+  {
+    "Id": 133,
+    "ItemId": 5500133,
+    "Name": "Armor Plating Mk. 5B, TWEN Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 2900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 10,
+        "Cut": 11,
+        "Impact": 14,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/133"
+    }
+  },
+  {
+    "Id": 134,
+    "ItemId": 5500134,
+    "Name": "Armor Plating Mk. 5C",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 25.8,
+        "MinTT": null,
+        "Durability": 1600
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 8,
+        "Shrapnel": 0,
+        "Burn": 9,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/134"
+    }
+  },
+  {
+    "Id": 135,
+    "ItemId": 5500135,
+    "Name": "Armor Plating Mk. 5D",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 23.2,
+        "MinTT": null,
+        "Durability": 1900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 2,
+        "Cut": 2,
+        "Impact": 0,
+        "Penetration": 4,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 12,
+        "Acid": 6,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/135"
+    }
+  },
+  {
+    "Id": 136,
+    "ItemId": 5500136,
+    "Name": "Armor Plating Mk. 5D, TWEN Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 3900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 4,
+        "Cut": 4,
+        "Impact": 0,
+        "Penetration": 6,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 14,
+        "Acid": 8,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/136"
+    }
+  },
+  {
+    "Id": 137,
+    "ItemId": 5500137,
+    "Name": "Armor Plating Mk. 5E (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 51,
+        "MinTT": null,
+        "Durability": 14400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 4,
+        "Penetration": 0,
+        "Shrapnel": 5,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 23
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/137"
+    }
+  },
+  {
+    "Id": 138,
+    "ItemId": 5500138,
+    "Name": "Armor Plating Mk. 6A",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 25,
+        "MinTT": null,
+        "Durability": 1400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 11,
+        "Shrapnel": 0,
+        "Burn": 12,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/138"
+    }
+  },
+  {
+    "Id": 139,
+    "ItemId": 5500139,
+    "Name": "Armor Plating Mk. 6A, Adjusted",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 2100
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 13,
+        "Shrapnel": 0,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/139"
+    }
+  },
+  {
+    "Id": 140,
+    "ItemId": 5500140,
+    "Name": "Armor Plating Mk. 6A, Improved",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 47,
+        "MinTT": null,
+        "Durability": 2800
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 15,
+        "Shrapnel": 0,
+        "Burn": 16,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/140"
+    }
+  },
+  {
+    "Id": 141,
+    "ItemId": 5500141,
+    "Name": "Armor Plating Mk. 6A, Mentor Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 28.3,
+        "MinTT": null,
+        "Durability": 1500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 12,
+        "Shrapnel": 0,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/141"
+    }
+  },
+  {
+    "Id": 142,
+    "ItemId": 5500142,
+    "Name": "Armor Plating Mk. 6A, Modified",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 58,
+        "MinTT": null,
+        "Durability": 3500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 17,
+        "Shrapnel": 0,
+        "Burn": 18,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/142"
+    }
+  },
+  {
+    "Id": 143,
+    "ItemId": 5500143,
+    "Name": "Armor Plating Mk. 6A, TWEN Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 3400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 14,
+        "Shrapnel": 0,
+        "Burn": 15,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/143"
+    }
+  },
+  {
+    "Id": 144,
+    "ItemId": 5500144,
+    "Name": "Armor Plating Mk. 6B",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 26,
+        "MinTT": null,
+        "Durability": 1750
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 12
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/144"
+    }
+  },
+  {
+    "Id": 145,
+    "ItemId": 5500145,
+    "Name": "Armor Plating Mk. 6C (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30.2,
+        "MinTT": null,
+        "Durability": 13450
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 13,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/145"
+    }
+  },
+  {
+    "Id": 146,
+    "ItemId": 5500146,
+    "Name": "Armor Plating Mk. 7A (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 41.8,
+        "MinTT": null,
+        "Durability": 12400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 3,
+        "Impact": 2,
+        "Penetration": 13,
+        "Shrapnel": 0,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/146"
+    }
+  },
+  {
+    "Id": 147,
+    "ItemId": 5500147,
+    "Name": "Armor Plating Mk. 7A, SGA Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 41.8,
+        "MinTT": null,
+        "Durability": 2400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 3,
+        "Impact": 2,
+        "Penetration": 15,
+        "Shrapnel": 0,
+        "Burn": 16,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/147"
+    }
+  },
+  {
+    "Id": 148,
+    "ItemId": 5500148,
+    "Name": "Armor Plating Mk. 8A (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 45,
+        "MinTT": null,
+        "Durability": 12990
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 8,
+        "Cut": 11,
+        "Impact": 13,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 2,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/148"
+    }
+  },
+  {
+    "Id": 149,
+    "ItemId": 5500149,
+    "Name": "Armor Plating Mk. 8A, FEN Edition (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 55,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 15,
+        "Cut": 15,
+        "Impact": 15,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 5,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/149"
+    }
+  },
+  {
+    "Id": 150,
+    "ItemId": 5500150,
+    "Name": "Armor Plating Mk. 8A, SGA Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 45,
+        "MinTT": null,
+        "Durability": 2990
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 8,
+        "Cut": 13,
+        "Impact": 15,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 2,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/150"
+    }
+  },
+  {
+    "Id": 151,
+    "ItemId": 5500151,
+    "Name": "Armor Plating Mk. 10A, TEN Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 3160
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 8,
+        "Penetration": 12,
+        "Shrapnel": 6,
+        "Burn": 36,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/151"
+    }
+  },
+  {
+    "Id": 152,
+    "ItemId": 5500152,
+    "Name": "Armor Plating Mk. 10B, TEN Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 3160
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 10,
+        "Impact": 14,
+        "Penetration": 4,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 34,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/152"
+    }
+  },
+  {
+    "Id": 153,
+    "ItemId": 5500153,
+    "Name": "Armor Plating Mk. 10C, TEN Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 3160
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 9,
+        "Penetration": 0,
+        "Shrapnel": 39,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/153"
+    }
+  },
+  {
+    "Id": 154,
+    "ItemId": 5500154,
+    "Name": "Armor Plating Mk. 10C, TEN Edition (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 25,
+        "MinTT": null,
+        "Durability": 14320
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 9,
+        "Penetration": 0,
+        "Shrapnel": 39,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/154"
+    }
+  },
+  {
+    "Id": 166,
+    "ItemId": 5500166,
+    "Name": "Cyrene Acid Armor Plate (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 8,
+        "MinTT": null,
+        "Durability": 1500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 7,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/166"
+    }
+  },
+  {
+    "Id": 167,
+    "ItemId": 5500167,
+    "Name": "Defender Plating of the Sand King",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 65,
+        "MinTT": null,
+        "Durability": 4750
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 35,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/167"
+    }
+  },
+  {
+    "Id": 168,
+    "ItemId": 5500168,
+    "Name": "ELVIS Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 16,
+        "MinTT": null,
+        "Durability": 9000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 12,
+        "Shrapnel": 0,
+        "Burn": 16,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/168"
+    }
+  },
+  {
+    "Id": 169,
+    "ItemId": 5500169,
+    "Name": "ELVIS Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 22,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 14,
+        "Shrapnel": 0,
+        "Burn": 18,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/169"
+    }
+  },
+  {
+    "Id": 170,
+    "ItemId": 5500170,
+    "Name": "ELVIS Dragon Plate mk3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 32,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 16,
+        "Shrapnel": 0,
+        "Burn": 20,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/170"
+    }
+  },
+  {
+    "Id": 171,
+    "ItemId": 5500171,
+    "Name": "GARCIA Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 18,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 12,
+        "Cold": 0,
+        "Acid": 15,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/171"
+    }
+  },
+  {
+    "Id": 172,
+    "ItemId": 5500172,
+    "Name": "GARCIA Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 24,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 20,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/172"
+    }
+  },
+  {
+    "Id": 173,
+    "ItemId": 5500173,
+    "Name": "GARCIA Dragon Plate mk3(L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 34,
+        "MinTT": null,
+        "Durability": 16000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 16,
+        "Cold": 0,
+        "Acid": 24,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/173"
+    }
+  },
+  {
+    "Id": 174,
+    "ItemId": 5500174,
+    "Name": "Guardian Plating of the Sand King",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 65,
+        "MinTT": null,
+        "Durability": 4750
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 14,
+        "Cut": 14,
+        "Impact": 14,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 18,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/174"
+    }
+  },
+  {
+    "Id": 175,
+    "ItemId": 5500175,
+    "Name": "HENDRIX Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 26,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 10,
+        "Acid": 14,
+        "Electric": 14
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/175"
+    }
+  },
+  {
+    "Id": 176,
+    "ItemId": 5500176,
+    "Name": "HENDRIX Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 36,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 12,
+        "Acid": 16,
+        "Electric": 20
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/176"
+    }
+  },
+  {
+    "Id": 177,
+    "ItemId": 5500177,
+    "Name": "Imperium Armor Plating I",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 1,
+        "MinTT": null,
+        "Durability": 400
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 1,
+        "Penetration": 1,
+        "Shrapnel": 0,
+        "Burn": 1,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/177"
+    }
+  },
+  {
+    "Id": 178,
+    "ItemId": 5500178,
+    "Name": "Imperium Officer Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 1000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 3,
+        "Cut": 8,
+        "Impact": 9,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 7,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/178"
+    }
+  },
+  {
+    "Id": 180,
+    "ItemId": 5500180,
+    "Name": "Incision Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 32,
+        "MinTT": null,
+        "Durability": 900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 21,
+        "Cut": 4,
+        "Impact": 4,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/180"
+    }
+  },
+  {
+    "Id": 186,
+    "ItemId": 5500186,
+    "Name": "JOPLIN Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": 10,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 10,
+        "Penetration": 10,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 10,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/186"
+    }
+  },
+  {
+    "Id": 187,
+    "ItemId": 5500187,
+    "Name": "JOPLIN Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 15,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 10,
+        "Penetration": 12,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 12,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/187"
+    }
+  },
+  {
+    "Id": 188,
+    "ItemId": 5500188,
+    "Name": "JOPLIN Dragon Plate mk3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 20,
+        "MinTT": null,
+        "Durability": 16000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": 10,
+        "Penetration": 16,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": 16,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/188"
+    }
+  },
+  {
+    "Id": 189,
+    "ItemId": 5500189,
+    "Name": "LEMMY Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 35,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 15,
+        "Cut": 12,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 10
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/189"
+    }
+  },
+  {
+    "Id": 190,
+    "ItemId": 5500190,
+    "Name": "Lotus Armor Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 1450
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 10,
+        "Shrapnel": 6,
+        "Burn": 22,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 6
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/190"
+    }
+  },
+  {
+    "Id": 191,
+    "ItemId": 5500191,
+    "Name": "Lunar Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 1200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 8,
+        "Cut": 8,
+        "Impact": 2,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 9,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/191"
+    }
+  },
+  {
+    "Id": 198,
+    "ItemId": 5500198,
+    "Name": "Moonshine Armour Plate 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 13,
+        "Cut": 14,
+        "Impact": 13,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/198"
+    }
+  },
+  {
+    "Id": 199,
+    "ItemId": 5500199,
+    "Name": "Moonshine Armour Plate 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 20,
+        "Shrapnel": 0,
+        "Burn": 20,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/199"
+    }
+  },
+  {
+    "Id": 200,
+    "ItemId": 5500200,
+    "Name": "Moonshine Armour Plate Mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 16,
+        "Cut": 17,
+        "Impact": 16,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/200"
+    }
+  },
+  {
+    "Id": 201,
+    "ItemId": 5500201,
+    "Name": "MORRISON Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 20,
+        "MinTT": null,
+        "Durability": 9000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 14,
+        "Cut": 12,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/201"
+    }
+  },
+  {
+    "Id": 202,
+    "ItemId": 5500202,
+    "Name": "MORRISON Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 16,
+        "Cut": 14,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/202"
+    }
+  },
+  {
+    "Id": 203,
+    "ItemId": 5500203,
+    "Name": "MORRISON Dragon Plate mk3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 18,
+        "Cut": 16,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/203"
+    }
+  },
+  {
+    "Id": 204,
+    "ItemId": 5500204,
+    "Name": "NEVERDIE Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 25,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 8,
+        "Cut": 8,
+        "Impact": 8,
+        "Penetration": 8,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/204"
+    }
+  },
+  {
+    "Id": 205,
+    "ItemId": 5500205,
+    "Name": "NEVERDIE Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 35,
+        "MinTT": null,
+        "Durability": 16000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 10,
+        "Cut": 10,
+        "Impact": 10,
+        "Penetration": 10,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/205"
+    }
+  },
+  {
+    "Id": 206,
+    "ItemId": 5500206,
+    "Name": "NEVERDIE Dragon Plate mk3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 12,
+        "Cut": 12,
+        "Impact": 12,
+        "Penetration": 12,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/206"
+    }
+  },
+  {
+    "Id": 207,
+    "ItemId": 5500207,
+    "Name": "Ozpyn Cold Protector (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 8,
+        "MinTT": null,
+        "Durability": 1500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 7,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/207"
+    }
+  },
+  {
+    "Id": 209,
+    "ItemId": 5500209,
+    "Name": "POP Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 10,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 10,
+        "Cut": 10,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/209"
+    }
+  },
+  {
+    "Id": 210,
+    "ItemId": 5500210,
+    "Name": "POP Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 20,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 14,
+        "Cut": 10,
+        "Impact": 14,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/210"
+    }
+  },
+  {
+    "Id": 211,
+    "ItemId": 5500211,
+    "Name": "POP Dragon Plate mk3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 16000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 16,
+        "Cut": 10,
+        "Impact": 16,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/211"
+    }
+  },
+  {
+    "Id": 212,
+    "ItemId": 5500212,
+    "Name": "Protector Plating of the Sand King",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 65,
+        "MinTT": null,
+        "Durability": 4750
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 14,
+        "Shrapnel": 14,
+        "Burn": 14,
+        "Cold": 0,
+        "Acid": 18,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/212"
+    }
+  },
+  {
+    "Id": 213,
+    "ItemId": 5500213,
+    "Name": "Pulsar Armour Plate 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 10,
+        "MinTT": null,
+        "Durability": 10500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 3,
+        "Cut": 3,
+        "Impact": 3,
+        "Penetration": 3,
+        "Shrapnel": 0,
+        "Burn": 3,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/213"
+    }
+  },
+  {
+    "Id": 214,
+    "ItemId": 5500214,
+    "Name": "Pulsar Armour Plate 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 15,
+        "MinTT": null,
+        "Durability": 11000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 5,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 25
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/214"
+    }
+  },
+  {
+    "Id": 215,
+    "ItemId": 5500215,
+    "Name": "Pulsar Armour Plate 3 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 20,
+        "MinTT": null,
+        "Durability": 11500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 5,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 26,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/215"
+    }
+  },
+  {
+    "Id": 216,
+    "ItemId": 5500216,
+    "Name": "Pulsar Armour Plate 4 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 25,
+        "MinTT": null,
+        "Durability": 12000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 27,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/216"
+    }
+  },
+  {
+    "Id": 217,
+    "ItemId": 5500217,
+    "Name": "Pulsar Armour Plate 5 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 12500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 5,
+        "Cut": 0,
+        "Impact": 28,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/217"
+    }
+  },
+  {
+    "Id": 218,
+    "ItemId": 5500218,
+    "Name": "Pulsar Armour Plate 6 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 35,
+        "MinTT": null,
+        "Durability": 13000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 5,
+        "Impact": 0,
+        "Penetration": 29,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/218"
+    }
+  },
+  {
+    "Id": 219,
+    "ItemId": 5500219,
+    "Name": "Pulsar Armour Plate 7 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 40,
+        "MinTT": null,
+        "Durability": 13500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 5,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 30,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/219"
+    }
+  },
+  {
+    "Id": 220,
+    "ItemId": 5500220,
+    "Name": "Pulsar Armour Plate 8 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 45,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 6,
+        "Cut": 19,
+        "Impact": 11,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/220"
+    }
+  },
+  {
+    "Id": 221,
+    "ItemId": 5500221,
+    "Name": "Pulsar Armour Plate 9 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 14500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 15,
+        "Shrapnel": 5,
+        "Burn": 17,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/221"
+    }
+  },
+  {
+    "Id": 222,
+    "ItemId": 5500222,
+    "Name": "Pulsar Armour Plate 10 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 55,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 11,
+        "Cut": 7,
+        "Impact": 20,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/222"
+    }
+  },
+  {
+    "Id": 223,
+    "ItemId": 5500223,
+    "Name": "Pulsar Armour Plate (Official)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 25000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/223"
+    }
+  },
+  {
+    "Id": 224,
+    "ItemId": 5500224,
+    "Name": "Pulsar Armour Plate - Gold Rush Edition",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 41,
+        "MinTT": null,
+        "Durability": 1100
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 5,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 25
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/224"
+    }
+  },
+  {
+    "Id": 225,
+    "ItemId": 5500225,
+    "Name": "Pulsar Armour Plate Trainer (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 0.4,
+        "MinTT": null,
+        "Durability": 10200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 1,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/225"
+    }
+  },
+  {
+    "Id": 226,
+    "ItemId": 5500226,
+    "Name": "Pulsar Armour Plate Trainer MkI (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.2,
+      "Economy": {
+        "MaxTT": 0.2,
+        "MinTT": null,
+        "Durability": 10200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 1,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/226"
+    }
+  },
+  {
+    "Id": 227,
+    "ItemId": 5500227,
+    "Name": "Ripper Hide Armor Plate (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 1,
+      "Economy": {
+        "MaxTT": 75,
+        "MinTT": null,
+        "Durability": 16300
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 10,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 25,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/227"
+    }
+  },
+  {
+    "Id": 228,
+    "ItemId": 5500228,
+    "Name": "Robot Alloy Armor Plate (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 2,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 3,
+        "Penetration": 2,
+        "Shrapnel": 0,
+        "Burn": 5,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/228"
+    }
+  },
+  {
+    "Id": 229,
+    "ItemId": 5500229,
+    "Name": "RUDOLF Dragon Plate mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 10,
+        "MinTT": null,
+        "Durability": 14000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 12,
+        "Cut": 12,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/229"
+    }
+  },
+  {
+    "Id": 230,
+    "ItemId": 5500230,
+    "Name": "RUDOLF Dragon Plate mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": null
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/230"
+    }
+  },
+  {
+    "Id": 5,
+    "ItemId": 5500005,
+    "Name": "A.R.C. Laceration Plate Modified",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.4,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 2200
+      },
+      "Defense": {
+        "Block": 3,
+        "Stab": 5,
+        "Cut": 25,
+        "Impact": 11,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/5"
+    }
+  },
+  {
+    "Id": 7,
+    "ItemId": 5500007,
+    "Name": "Adjusted Imperium Plate",
+    "Properties": {
+      "Description": null,
+      "Weight": null,
+      "Economy": {
+        "MaxTT": null,
+        "MinTT": null,
+        "Durability": 1450
+      },
+      "Defense": {
+        "Block": 1,
+        "Stab": 4,
+        "Cut": 10,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 9,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/7"
+    }
+  },
+  {
+    "Id": 127,
+    "ItemId": 5500127,
+    "Name": "Armor Plating Mk. 5B, Adjusted",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 42,
+        "MinTT": null,
+        "Durability": 1400
+      },
+      "Defense": {
+        "Block": 1,
+        "Stab": 9,
+        "Cut": 10,
+        "Impact": 14,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/127"
+    }
+  },
+  {
+    "Id": 128,
+    "ItemId": 5500128,
+    "Name": "Armor Plating Mk. 5B, Augmented",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 64,
+        "MinTT": null,
+        "Durability": 2600
+      },
+      "Defense": {
+        "Block": 4,
+        "Stab": 14,
+        "Cut": 15,
+        "Impact": 18,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/128"
+    }
+  },
+  {
+    "Id": 129,
+    "ItemId": 5500129,
+    "Name": "Armor Plating Mk. 5B, Improved",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 53,
+        "MinTT": null,
+        "Durability": 1800
+      },
+      "Defense": {
+        "Block": 2,
+        "Stab": 10,
+        "Cut": 12,
+        "Impact": 15,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/129"
+    }
+  },
+  {
+    "Id": 131,
+    "ItemId": 5500131,
+    "Name": "Armor Plating Mk. 5B, Modified",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 64,
+        "MinTT": null,
+        "Durability": 2200
+      },
+      "Defense": {
+        "Block": 3,
+        "Stab": 12,
+        "Cut": 13,
+        "Impact": 16,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/131"
+    }
+  },
+  {
+    "Id": 132,
+    "ItemId": 5500132,
+    "Name": "Armor Plating Mk. 5B, Perfected (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 128,
+        "MinTT": null,
+        "Durability": 15000
+      },
+      "Defense": {
+        "Block": 5,
+        "Stab": 16,
+        "Cut": 17,
+        "Impact": 20,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/132"
+    }
+  },
+  {
+    "Id": 156,
+    "ItemId": 5500156,
+    "Name": "CDF Armor Plate Acidum 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 32,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/156"
+    }
+  },
+  {
+    "Id": 157,
+    "ItemId": 5500157,
+    "Name": "CDF Armor Plate Acidum 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 36,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/157"
+    }
+  },
+  {
+    "Id": 158,
+    "ItemId": 5500158,
+    "Name": "CDF Armor Plate Calidus 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 32,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/158"
+    }
+  },
+  {
+    "Id": 159,
+    "ItemId": 5500159,
+    "Name": "CDF Armor Plate Calidus 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 44,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/159"
+    }
+  },
+  {
+    "Id": 160,
+    "ItemId": 5500160,
+    "Name": "CDF Armor Plate Frigus 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 32,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/160"
+    }
+  },
+  {
+    "Id": 161,
+    "ItemId": 5500161,
+    "Name": "CDF Armor Plate Frigus 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 36,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/161"
+    }
+  },
+  {
+    "Id": 162,
+    "ItemId": 5500162,
+    "Name": "CDF Armor Plate Fulmen 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 0,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 32
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/162"
+    }
+  },
+  {
+    "Id": 163,
+    "ItemId": 5500163,
+    "Name": "CDF Armor Plate Fulmen 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 0,
+        "Burn": 0,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 36
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/163"
+    }
+  },
+  {
+    "Id": 164,
+    "ItemId": 5500164,
+    "Name": "CDF Armor Plate Tellus 1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 30,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 10,
+        "Penetration": 0,
+        "Shrapnel": 38,
+        "Burn": 18,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/164"
+    }
+  },
+  {
+    "Id": 165,
+    "ItemId": 5500165,
+    "Name": "CDF Armor Plate Tellus 2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.3,
+      "Economy": {
+        "MaxTT": 50,
+        "MinTT": null,
+        "Durability": 18000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 0,
+        "Cut": 0,
+        "Impact": 12,
+        "Penetration": 0,
+        "Shrapnel": 41,
+        "Burn": 21,
+        "Cold": 0,
+        "Acid": 0,
+        "Electric": 0
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/165"
+    }
+  },
+  {
+    "Id": 238,
+    "ItemId": 5500238,
+    "Name": "Serpent's Scale Augmented",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.5,
+      "Economy": {
+        "MaxTT": 55,
+        "MinTT": null,
+        "Durability": 3100
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 13,
+        "Cut": 13,
+        "Impact": 16,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": 20,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/238"
+    }
+  },
+  {
+    "Id": 239,
+    "ItemId": 5500239,
+    "Name": "Aegis of the Gorgonforged",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 32,
+        "MinTT": 0,
+        "Durability": 900
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": 10,
+        "Cold": 8,
+        "Acid": 6,
+        "Electric": 8
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/239"
+    }
+  },
+  {
+    "Id": 240,
+    "ItemId": 5500240,
+    "Name": "Precious Aegis of the Gorgonforged",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 53,
+        "MinTT": 0,
+        "Durability": 1800
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": 12,
+        "Cold": 10,
+        "Acid": 8,
+        "Electric": 10
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/240"
+    }
+  },
+  {
+    "Id": 242,
+    "ItemId": 5500242,
+    "Name": "Divine Aegis of the Gorgonforged",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 85,
+        "MinTT": 0,
+        "Durability": 3500
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": 16,
+        "Cold": 14,
+        "Acid": 12,
+        "Electric": 14
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/242"
+    }
+  },
+  {
+    "Id": 241,
+    "ItemId": 5500241,
+    "Name": "Blessed Aegis of the Gorgonforged",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 64,
+        "MinTT": 0,
+        "Durability": 2200
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": 14,
+        "Cold": 12,
+        "Acid": 10,
+        "Electric": 12
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/241"
+    }
+  },
+  {
+    "Id": 243,
+    "ItemId": 5500243,
+    "Name": "Burn Plating, Mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": 1,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/243"
+    }
+  },
+  {
+    "Id": 244,
+    "ItemId": 5500244,
+    "Name": "Electric Plating, Mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": 1
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/244"
+    }
+  },
+  {
+    "Id": 245,
+    "ItemId": 5500245,
+    "Name": "Impact Plating, Mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": 1,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/245"
+    }
+  },
+  {
+    "Id": 246,
+    "ItemId": 5500246,
+    "Name": "Stab Plating, Mk1 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 1,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/246"
+    }
+  },
+  {
+    "Id": 247,
+    "ItemId": 5500247,
+    "Name": "Burn Plating, Mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 2,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/247"
+    }
+  },
+  {
+    "Id": 248,
+    "ItemId": 5500248,
+    "Name": "Electric Plating, Mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": 2
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/248"
+    }
+  },
+  {
+    "Id": 249,
+    "ItemId": 5500249,
+    "Name": "Impact Plating, Mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": null,
+        "Cut": null,
+        "Impact": 2,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/249"
+    }
+  },
+  {
+    "Id": 250,
+    "ItemId": 5500250,
+    "Name": "Stab Plating, Mk2 (L)",
+    "Properties": {
+      "Description": null,
+      "Weight": 0.1,
+      "Economy": {
+        "MaxTT": 0.1,
+        "MinTT": 0,
+        "Durability": 10000
+      },
+      "Defense": {
+        "Block": null,
+        "Stab": 2,
+        "Cut": null,
+        "Impact": null,
+        "Penetration": null,
+        "Shrapnel": null,
+        "Burn": null,
+        "Cold": null,
+        "Acid": null,
+        "Electric": null
+      }
+    },
+    "Links": {
+      "$Url": "/armorplatings/250"
+    }
+  }
+]

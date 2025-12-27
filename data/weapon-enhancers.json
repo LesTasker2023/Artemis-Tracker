@@ -1,0 +1,852 @@
+﻿[
+    {
+        "Id": 1,
+        "ItemId": 5600001,
+        "Name": "Weapon Damage Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/1"
+        }
+    },
+    {
+        "Id": 11,
+        "ItemId": 5600011,
+        "Name": "Weapon Accuracy Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/11"
+        }
+    },
+    {
+        "Id": 21,
+        "ItemId": 5600021,
+        "Name": "Weapon Range Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/21"
+        }
+    },
+    {
+        "Id": 31,
+        "ItemId": 5600031,
+        "Name": "Weapon Economy Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/31"
+        }
+    },
+    {
+        "Id": 41,
+        "ItemId": 5600041,
+        "Name": "Weapon Skill Modification Enhancer 1",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 1,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/41"
+        }
+    },
+    {
+        "Id": 2,
+        "ItemId": 5600002,
+        "Name": "Weapon Damage Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/2"
+        }
+    },
+    {
+        "Id": 12,
+        "ItemId": 5600012,
+        "Name": "Weapon Accuracy Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/12"
+        }
+    },
+    {
+        "Id": 22,
+        "ItemId": 5600022,
+        "Name": "Weapon Range Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/22"
+        }
+    },
+    {
+        "Id": 32,
+        "ItemId": 5600032,
+        "Name": "Weapon Economy Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/32"
+        }
+    },
+    {
+        "Id": 42,
+        "ItemId": 5600042,
+        "Name": "Weapon Skill Modification Enhancer 2",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 2,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/42"
+        }
+    },
+    {
+        "Id": 3,
+        "ItemId": 5600003,
+        "Name": "Weapon Damage Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/3"
+        }
+    },
+    {
+        "Id": 13,
+        "ItemId": 5600013,
+        "Name": "Weapon Accuracy Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/13"
+        }
+    },
+    {
+        "Id": 23,
+        "ItemId": 5600023,
+        "Name": "Weapon Range Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/23"
+        }
+    },
+    {
+        "Id": 33,
+        "ItemId": 5600033,
+        "Name": "Weapon Economy Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/33"
+        }
+    },
+    {
+        "Id": 43,
+        "ItemId": 5600043,
+        "Name": "Weapon Skill Modification Enhancer 3",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 3,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/43"
+        }
+    },
+    {
+        "Id": 4,
+        "ItemId": 5600004,
+        "Name": "Weapon Damage Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/4"
+        }
+    },
+    {
+        "Id": 14,
+        "ItemId": 5600014,
+        "Name": "Weapon Accuracy Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/14"
+        }
+    },
+    {
+        "Id": 24,
+        "ItemId": 5600024,
+        "Name": "Weapon Range Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/24"
+        }
+    },
+    {
+        "Id": 34,
+        "ItemId": 5600034,
+        "Name": "Weapon Economy Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/34"
+        }
+    },
+    {
+        "Id": 44,
+        "ItemId": 5600044,
+        "Name": "Weapon Skill Modification Enhancer 4",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 4,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/44"
+        }
+    },
+    {
+        "Id": 5,
+        "ItemId": 5600005,
+        "Name": "Weapon Damage Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/5"
+        }
+    },
+    {
+        "Id": 15,
+        "ItemId": 5600015,
+        "Name": "Weapon Accuracy Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/15"
+        }
+    },
+    {
+        "Id": 25,
+        "ItemId": 5600025,
+        "Name": "Weapon Range Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/25"
+        }
+    },
+    {
+        "Id": 35,
+        "ItemId": 5600035,
+        "Name": "Weapon Economy Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/35"
+        }
+    },
+    {
+        "Id": 45,
+        "ItemId": 5600045,
+        "Name": "Weapon Skill Modification Enhancer 5",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 5,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/45"
+        }
+    },
+    {
+        "Id": 6,
+        "ItemId": 5600006,
+        "Name": "Weapon Damage Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/6"
+        }
+    },
+    {
+        "Id": 16,
+        "ItemId": 5600016,
+        "Name": "Weapon Accuracy Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/16"
+        }
+    },
+    {
+        "Id": 26,
+        "ItemId": 5600026,
+        "Name": "Weapon Range Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/26"
+        }
+    },
+    {
+        "Id": 36,
+        "ItemId": 5600036,
+        "Name": "Weapon Economy Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/36"
+        }
+    },
+    {
+        "Id": 46,
+        "ItemId": 5600046,
+        "Name": "Weapon Skill Modification Enhancer 6",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 6,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/46"
+        }
+    },
+    {
+        "Id": 7,
+        "ItemId": 5600007,
+        "Name": "Weapon Damage Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/7"
+        }
+    },
+    {
+        "Id": 17,
+        "ItemId": 5600017,
+        "Name": "Weapon Accuracy Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/17"
+        }
+    },
+    {
+        "Id": 27,
+        "ItemId": 5600027,
+        "Name": "Weapon Range Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/27"
+        }
+    },
+    {
+        "Id": 37,
+        "ItemId": 5600037,
+        "Name": "Weapon Economy Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/37"
+        }
+    },
+    {
+        "Id": 47,
+        "ItemId": 5600047,
+        "Name": "Weapon Skill Modification Enhancer 7",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 7,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/47"
+        }
+    },
+    {
+        "Id": 8,
+        "ItemId": 5600008,
+        "Name": "Weapon Damage Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/8"
+        }
+    },
+    {
+        "Id": 18,
+        "ItemId": 5600018,
+        "Name": "Weapon Accuracy Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/18"
+        }
+    },
+    {
+        "Id": 28,
+        "ItemId": 5600028,
+        "Name": "Weapon Range Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/28"
+        }
+    },
+    {
+        "Id": 38,
+        "ItemId": 5600038,
+        "Name": "Weapon Economy Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/38"
+        }
+    },
+    {
+        "Id": 48,
+        "ItemId": 5600048,
+        "Name": "Weapon Skill Modification Enhancer 8",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 8,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/48"
+        }
+    },
+    {
+        "Id": 9,
+        "ItemId": 5600009,
+        "Name": "Weapon Damage Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/9"
+        }
+    },
+    {
+        "Id": 19,
+        "ItemId": 5600019,
+        "Name": "Weapon Accuracy Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/19"
+        }
+    },
+    {
+        "Id": 29,
+        "ItemId": 5600029,
+        "Name": "Weapon Range Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/29"
+        }
+    },
+    {
+        "Id": 39,
+        "ItemId": 5600039,
+        "Name": "Weapon Economy Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/39"
+        }
+    },
+    {
+        "Id": 49,
+        "ItemId": 5600049,
+        "Name": "Weapon Skill Modification Enhancer 9",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 9,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/49"
+        }
+    },
+    {
+        "Id": 10,
+        "ItemId": 5600010,
+        "Name": "Weapon Damage Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Weapon",
+            "Type": "Damage",
+            "Economy": {
+                "MaxTT": 0.8
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/10"
+        }
+    },
+    {
+        "Id": 20,
+        "ItemId": 5600020,
+        "Name": "Weapon Accuracy Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Weapon",
+            "Type": "Accuracy",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/20"
+        }
+    },
+    {
+        "Id": 30,
+        "ItemId": 5600030,
+        "Name": "Weapon Range Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Weapon",
+            "Type": "Range",
+            "Economy": {
+                "MaxTT": 0.4
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/30"
+        }
+    },
+    {
+        "Id": 40,
+        "ItemId": 5600040,
+        "Name": "Weapon Economy Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Weapon",
+            "Type": "Economy",
+            "Economy": {
+                "MaxTT": 1
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/40"
+        }
+    },
+    {
+        "Id": 50,
+        "ItemId": 5600050,
+        "Name": "Weapon Skill Modification Enhancer 10",
+        "Properties": {
+            "Weight": 0.01,
+            "Socket": 10,
+            "Tool": "Weapon",
+            "Type": "Skill Modification",
+            "Economy": {
+                "MaxTT": 0.6
+            }
+        },
+        "Links": {
+            "$Url": "/enhancers/50"
+        }
+    }
+]

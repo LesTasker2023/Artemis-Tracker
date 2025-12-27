@@ -1,0 +1,115 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* Tell Tailwind v4 where to find classes */
+@source "../index.html";
+@source "./**/*.{js,ts,jsx,tsx}";
+
+/* Project Delta Design Tokens */
+:root {
+  /* Surface tokens */
+  --surface-primary: 220 13% 8%;
+  --surface-secondary: 220 13% 12%;
+  --surface-neutral: 220 13% 14%;
+  --surface-interactive: 217 91% 68%;
+  --surface-clickable: 33 100% 50%;
+  --surface-accent: 280 100% 70%;
+
+  /* Content tokens */
+  --content-primary: 0 0% 95%;
+  --content-secondary: 220 13% 70%;
+  --content-muted: 220 13% 45%;
+
+  /* Border tokens */
+  --border-default: 220 13% 25%;
+  --border-interactive: 192 100% 50%;
+  --border-muted: 220 13% 18%;
+
+  /* Status tokens */
+  --status-success: 142 76% 36%;
+  --status-warning: 45 100% 55%;
+  --status-error: 0 84% 60%;
+  --status-info: 192 100% 50%;
+
+  /* Typography */
+  --font-family-base: "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-mono: "JetBrains Mono", "Fira Code", monospace;
+}
+
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: #090d13;
+  color: hsl(var(--content-primary));
+  font-family: var(--font-family-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+}
+
+/* Selection styling */
+::selection {
+  background: hsl(var(--surface-interactive) / 0.3);
+  color: white;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--surface-secondary));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--surface-interactive) / 0.4);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--surface-interactive) / 0.6);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px hsl(var(--surface-interactive) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 16px hsl(var(--surface-interactive) / 0.5);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
