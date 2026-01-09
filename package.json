@@ -57,6 +57,7 @@
         "directories": {
             "buildResources": "build"
         },
+        "asar": true,
         "files": [
             "dist/**",
             "dist-electron/**",

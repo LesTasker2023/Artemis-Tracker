@@ -8,6 +8,19 @@ const path = require('path');
 import fs from 'fs';
 const os = require('os');
 
+// Global error handlers to catch crashes and unhandled rejections
+process.on('uncaughtException', (err: any) => {
+  console.error('[Main] Uncaught Exception:', err && err.stack ? err.stack : err);
+});
+process.on('unhandledRejection', (reason: any) => {
+  console.error('[Main] Unhandled Rejection:', reason);
+});
+
+// Renderer error forwarding
+ipcMain.on('renderer:error', (_event: any, payload: any) => {
+  console.error('[Renderer] Error forwarded:', payload);
+});
+
 let mainWindow: typeof BrowserWindow | null = null;
 let popoutWindow: typeof BrowserWindow | null = null;
 let logWatcher: fs.FSWatcher | null = null;
@@ -533,6 +546,13 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
+  // Diagnostic: log the renderer webContents id so we can correlate IPC calls
+  try {
+    console.log('[Main] Main window webContents id:', mainWindow.webContents.id);
+  } catch (e) {
+    console.warn('[Main] Failed to log mainWindow.webContents id:', e);
+  }
+
   mainWindow.on('closed', () => {
     mainWindow = null;
     // Close popout when main window closes
@@ -542,29 +562,8 @@ function createWindow() {
   });
 }
 
-// Set dock icon on macOS (useful in dev)
-app.whenReady().then(() => {
-  if (process.platform === 'darwin') {
-    const icns = getIconPath();
-    if (fs.existsSync(icns)) {
-      try {
-        // app.dock.setIcon accepts nativeImage or path
-        app.dock.setIcon(icns);
-        console.log('[Main] Dock icon set:', icns);
-      } catch (e) {
-        console.warn('[Main] Failed to set dock icon:', e);
-      }
-    }
-  }
-
-  createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
-});
+// App ready handler consolidated at end of file to avoid duplicate windows
+// (See final `app.whenReady()` block which also performs setup and update checks)
 
 // ==================== Popout Window ====================
 
@@ -613,6 +612,11 @@ function createPopoutWindow() {
   });
 
   console.log('[Main] Popout window created');
+  try {
+    console.log('[Main] Popout window webContents id:', popoutWindow?.webContents?.id);
+  } catch (e) {
+    console.warn('[Main] Failed to log popout webContents id:', e);
+  }
 
   // Keep the popout always on top and visible over fullscreen applications/games
   try {
@@ -655,7 +659,15 @@ function getAsteroidsPath(): string {
 
 // ==================== IPC Handlers ====================
 
-ipcMain.handle('log:start', (_event: unknown, manualPath?: string) => {
+ipcMain.handle('log:start', (event: any, manualPath?: string) => {
+  // Diagnostic: log the caller's webContents id to help find which window invoked start
+  try {
+    const senderId = event?.sender?.id || (event?.sender?.webContents?.id ?? 'unknown');
+    console.log('[Main] IPC log:start invoked by webContents id:', senderId, 'manualPath:', manualPath);
+  } catch (e) {
+    console.log('[Main] IPC log:start invoked (failed to read sender id)');
+  }
+
   let logPath = manualPath;
   
   if (!logPath) {
@@ -669,7 +681,12 @@ ipcMain.handle('log:start', (_event: unknown, manualPath?: string) => {
   return { success: false, error: manualPath ? 'Specified log file not found' : 'chat.log not found' };
 });
 
-ipcMain.handle('log:select-file', async () => {
+ipcMain.handle('log:select-file', async (event: any) => {
+  try {
+    const senderId = event?.sender?.id || (event?.sender?.webContents?.id ?? 'unknown');
+    console.log('[Main] IPC log:select-file invoked by webContents id:', senderId);
+  } catch (_) {}
+
   const result = await dialog.showOpenDialog(mainWindow!, {
     title: 'Select Entropia Universe chat.log file',
     properties: ['openFile'],
@@ -687,7 +704,13 @@ ipcMain.handle('log:select-file', async () => {
   return { success: false, error: 'No file selected' };
 });
 
-ipcMain.handle('log:stop', () => {
+ipcMain.handle('log:stop', (event: any) => {
+  try {
+    const senderId = event?.sender?.id || (event?.sender?.webContents?.id ?? 'unknown');
+    console.log('[Main] IPC log:stop invoked by webContents id:', senderId);
+    console.log('[Main] Stack trace (caller):', new Error().stack?.split('\n').slice(2,6).join('\n'));
+  } catch (_) {}
+
   if (logWatcher) {
     logWatcher.close();
     logWatcher = null;
@@ -711,6 +734,19 @@ ipcMain.handle('log:status', () => {
     watching: logWatcher !== null,
     position: lastPosition,
   };
+});
+
+// Diagnostic probe: return detected path and file stats (exists/size)
+ipcMain.handle('log:probe', () => {
+  const detected = detectLogPath();
+  if (!detected) return { path: null, exists: false };
+
+  try {
+    const stats = fs.statSync(detected);
+    return { path: detected, exists: true, size: stats.size, mtime: stats.mtime };
+  } catch (e) {
+    return { path: detected, exists: false };
+  }
 });
 
 // ==================== Equipment Data Loading ====================

@@ -19,6 +19,7 @@ Quick steps to enable releases and updates:
 6. `electron-updater` (in `electron/main.ts`) will use GitHub Releases to detect and download updates. On app startup it runs `checkForUpdatesAndNotify()`; the renderer receives update events via IPC (`update:checking`, `update:available`, `update:progress`, `update:downloaded`, etc.).
 
 Notes:
+
 - This two-step approach (build then optional publish) lets you inspect artifacts before releasing them publicly — a safer, best-practice flow.
 - For testing, prefer publishing to a **prerelease** or use a separate test repo until you're confident the pipeline, signing, and artifacts are correct.
 

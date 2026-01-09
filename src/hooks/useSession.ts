@@ -136,6 +136,7 @@ export function useSession(): UseSessionReturn {
   }, []);
   
   const start = useCallback(async (name?: string) => {
+    console.log('[useSession] start invoked, name:', name);
     // End any existing active session first
     if (session && !session.endedAt) {
       const ended = endSession(session);
@@ -158,9 +159,11 @@ export function useSession(): UseSessionReturn {
     }
     
     setSession(newSession);
+    return newSession;
   }, [session]);
   
   const stop = useCallback(async () => {
+    console.log('[useSession] stop invoked');
     if (session) {
       const ended = endSession(session);
       
@@ -185,6 +188,7 @@ export function useSession(): UseSessionReturn {
   
   // Resume a previous session - reopen it for recording
   const resume = useCallback(async (sessionToResume: Session) => {
+    console.log('[useSession] resume invoked:', sessionToResume?.id);
     // End any existing active session first
     if (session && !session.endedAt) {
       const ended = endSession(session);
@@ -211,9 +215,11 @@ export function useSession(): UseSessionReturn {
     }
     
     setSession(resumed);
+    return resumed;
   }, [session]);
   
   const addEvent = useCallback((event: LogEvent) => {
+    console.log('[useSession] addEvent:', event.type, event.timestamp);
     setSession(prev => {
       if (!prev || prev.endedAt) return prev;
       // Convert LogEvent to ParsedEvent format

@@ -17,6 +17,9 @@ import { EquipmentAutocomplete } from "./EquipmentAutocomplete";
 // import { ArmorAutocomplete } from "./ArmorAutocomplete";
 // import { ArmorPlateAutocomplete } from "./ArmorPlateAutocomplete";
 import { EquipmentRecord } from "../core/equipment-db";
+import { createPortal } from "react-dom";
+// @ts-ignore: CSS module declaration
+import styles from "./LoadoutManager.module.css";
 
 // ==================== Helper: Create Equipment from Record ====================
 
@@ -104,85 +107,38 @@ function EquipmentRow({ label, type, equipment, onChange }: EquipmentRowProps) {
   };
 
   return (
-    <div style={{ marginBottom: "16px" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 90px 90px",
-          gap: "16px",
-          alignItems: "end",
-        }}
-      >
-        <EquipmentAutocomplete
-          label={label}
-          type={type}
-          value={equipment?.name ?? ""}
-          onChange={handleAutocomplete}
-        />
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "11px",
-              color: "#9ca3af",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              marginBottom: "8px",
-            }}
-          >
-            Decay
-          </label>
+    <div>
+      <div className={styles.equipmentRow}>
+        <div className={styles.autocompleteWrap}>
+          <EquipmentAutocomplete
+            label={label}
+            type={type}
+            value={equipment?.name ?? ""}
+            onChange={handleAutocomplete}
+          />
+        </div>
+        <div className={styles.field}>
+          <label className={styles.fieldLabel}>Decay</label>
           <input
+            className={styles.smallInput}
             type="number"
             value={decay}
             onChange={(e) => setDecay(e.target.value)}
             onBlur={handleManualChange}
             placeholder="0"
             step="0.001"
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              backgroundColor: "#1f2937",
-              border: "1px solid #374151",
-              borderRadius: "8px",
-              fontSize: "14px",
-              color: "white",
-              fontFamily: "monospace",
-              textAlign: "right",
-            }}
           />
         </div>
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "11px",
-              color: "#9ca3af",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              marginBottom: "8px",
-            }}
-          >
-            Ammo
-          </label>
+        <div className={styles.field}>
+          <label className={styles.fieldLabel}>Ammo</label>
           <input
+            className={styles.smallInput}
             type="number"
             value={ammoBurn}
             onChange={(e) => setAmmoBurn(e.target.value)}
             onBlur={handleManualChange}
             placeholder="0"
             step="1"
-            style={{
-              width: "100%",
-              padding: "10px 12px",
-              backgroundColor: "#1f2937",
-              border: "1px solid #374151",
-              borderRadius: "8px",
-              fontSize: "14px",
-              color: "white",
-              fontFamily: "monospace",
-              textAlign: "right",
-            }}
           />
         </div>
       </div>
@@ -211,113 +167,24 @@ function LoadoutCard({
   const effective = getEffectiveCostPerShot(loadout);
 
   return (
-    <div
-      style={{
-        padding: "12px",
-        borderRadius: "8px",
-        border: isActive ? "1px solid #22c55e" : "1px solid #374151",
-        backgroundColor: isActive
-          ? "rgba(34,197,94,0.2)"
-          : "rgba(31,41,55,0.5)",
-        cursor: "pointer",
-      }}
-      onClick={onSelect}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h4
-            style={{
-              fontWeight: 500,
-              color: "white",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {loadout.name}
-          </h4>
-          <p style={{ fontSize: "14px", color: "#9ca3af", marginTop: "2px" }}>
-            {loadout.weapon?.name ?? "No weapon"}
-            {loadout.amp && ` + ${loadout.amp.name}`}
-          </p>
+    <div className={`${styles.loadoutCard} ${isActive ? styles.loadoutActive : ""}`} data-is-active={isActive ? "1" : "0"} onClick={onSelect}>
+      <div className={styles.loadoutCardHeader}>
+        <div>
+          <div className={styles.cardTitle}>{loadout.name}</div>
+          <div className={styles.cardSubtitle}>{loadout.weapon?.name ?? "No weapon"}{loadout.amp && ` + ${loadout.amp.name}`}</div>
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            marginLeft: "8px",
-          }}
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            style={{
-              padding: "6px",
-              color: "#9ca3af",
-              background: "transparent",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-            title="Edit"
-          >
-            <Edit2 size={14} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-            style={{
-              padding: "6px",
-              color: "#9ca3af",
-              background: "transparent",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-            title="Delete"
-          >
-            <Trash2 size={14} />
-          </button>
+        <div className={styles.cardActions}>
+          <button onClick={(e) => { e.stopPropagation(); onEdit(); }} title="Edit"><Edit2 size={14} /></button>
+          <button onClick={(e) => { e.stopPropagation(); onDelete(); }} title="Delete"><Trash2 size={14} /></button>
         </div>
       </div>
-      <div
-        style={{
-          marginTop: "8px",
-          paddingTop: "8px",
-          borderTop: "1px solid rgba(55,65,81,0.5)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: "12px",
-          }}
-        >
-          <span style={{ color: "#6b7280" }}>Cost/Shot</span>
-          <span style={{ fontFamily: "monospace", color: "#22d3ee" }}>
-            {effective.toFixed(5)} PED
-            {loadout.useManualCost && " (manual)"}
-          </span>
-        </div>
-        {!loadout.useManualCost && (
-          <div style={{ fontSize: "10px", color: "#4b5563", marginTop: "4px" }}>
-            W:{costs.weaponCost.toFixed(4)} A:{costs.ampCost.toFixed(4)}
-          </div>
-        )}
+      <div className={styles.loadoutCostRow}>
+        <div>Cost/Shot</div>
+        <div>{effective.toFixed(5)} PED{loadout.useManualCost && " (manual)"}</div>
       </div>
+      {!loadout.useManualCost && (
+        <div className={styles.loadoutCostRow}>W: {costs.weaponCost.toFixed(4)} A: {costs.ampCost.toFixed(4)}</div>
+      )}
     </div>
   );
 }
@@ -339,76 +206,31 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
 
   const costs = calculateLoadoutCosts(draft);
 
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.8)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 50,
-        padding: "16px",
-      }}
-    >
-      <div className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div
-          className="sticky top-0 bg-gray-900 border-b border-gray-700 flex items-center justify-between"
-          style={{ padding: "16px 20px" }}
-        >
-          <h3 className="text-lg font-semibold text-white">
-            {loadout.id ? "Edit Loadout" : "New Loadout"}
-          </h3>
-          <button
-            onClick={onCancel}
-            className="p-1 text-gray-400 hover:text-white"
-          >
-            <X size={20} />
-          </button>
-        </div>
+  return createPortal(
+    <div className={styles.overlay}>
+      <div className={styles.panel}>
+        <div className={styles.container}>
+          <header className={styles.header}>
+            <h3 className={styles.title}>{loadout.id ? "Edit Loadout" : "New Loadout"}</h3>
+            <button onClick={onCancel} className={styles.closeButton}><X size={20} /></button>
+          </header>
 
-        <div
-          style={{
-            padding: "24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "24px",
-          }}
-        >
+        <main className={styles.main}>
           {/* Name */}
           <div>
-            <label
-              className="block text-xs text-gray-400 uppercase tracking-wide"
-              style={{ marginBottom: "8px" }}
-            >
-              Name
-            </label>
+            <label className={styles.label}>Name</label>
             <input
               type="text"
               value={draft.name}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, name: e.target.value }))
-              }
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg text-white focus:border-cyan-500 focus:outline-none"
-              style={{ padding: "12px 14px" }}
+              onChange={(e) => setDraft((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="Loadout name..."
+              className={styles.input}
             />
           </div>
 
           {/* Equipment Section */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <div
-              style={{
-                fontSize: "11px",
-                color: "#9ca3af",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "12px",
-              }}
-            >
-              Equipment
-            </div>
+          <section>
+            <div className={styles.sectionHeader}>Equipment</div>
             <EquipmentRow
               label="Weapon"
               type="weapon"
@@ -433,7 +255,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               equipment={draft.sight}
               onChange={(eq) => updateEquipment("sight", eq)}
             />
-          </div>
+          </section>
 
           {/* Armor Section - DISABLED: Decay calculation needs work
           <div style={{ paddingTop: "20px", borderTop: "1px solid #374151" }}>
@@ -456,115 +278,42 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
           */}
 
           {/* Enhancers Section */}
-          <div style={{ paddingTop: "20px", borderTop: "1px solid #374151" }}>
-            <div
-              style={{
-                fontSize: "11px",
-                color: "#9ca3af",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "16px",
-              }}
-            >
-              Enhancers
-            </div>
+          <div>
+            <div>Enhancers</div>
 
             {/* Weapon Enhancers */}
-            <div
-              style={{
-                backgroundColor: "rgba(31,41,55,0.4)",
-                borderRadius: "8px",
-                padding: "16px",
-                marginBottom: "16px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "12px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#e5e7eb",
-                  }}
-                >
-                  Weapon Enhancers
-                </span>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "#22d3ee",
-                    fontFamily: "monospace",
-                  }}
-                >
-                  {calculateWeaponEnhancerCost(
-                    draft.weaponEnhancerSlots || 0
-                  ).toFixed(4)}{" "}
-                  PED/shot
-                </span>
+            <div>
+              <div>
+                <span>Weapon Enhancers</span>
+                <span>{calculateWeaponEnhancerCost(draft.weaponEnhancerSlots || 0).toFixed(4)} PED/shot</span>
               </div>
 
               {/* Slot Selector */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  marginBottom: "12px",
-                }}
-              >
-                {[...Array(10)].map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() =>
-                      setDraft((prev) => ({
-                        ...prev,
-                        weaponEnhancerSlots:
-                          i + 1 === prev.weaponEnhancerSlots ? i : i + 1,
-                      }))
-                    }
-                    style={{
-                      flex: 1,
-                      height: "28px",
-                      borderRadius: "4px",
-                      fontSize: "12px",
-                      fontFamily: "monospace",
-                      border: "none",
-                      cursor: "pointer",
-                      backgroundColor:
-                        i < (draft.weaponEnhancerSlots || 0)
-                          ? "#16a34a"
-                          : "#374151",
-                      color:
-                        i < (draft.weaponEnhancerSlots || 0)
-                          ? "white"
-                          : "#6b7280",
-                    }}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
+              <div className={styles.slotContainer}>
+                {[...Array(10)].map((_, i) => {
+                  const selected = i < (draft.weaponEnhancerSlots || 0);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          weaponEnhancerSlots:
+                            i + 1 === prev.weaponEnhancerSlots ? i : i + 1,
+                        }))
+                      }
+                      className={`${styles.slotButton} ${selected ? styles.slotSelected : styles.slotUnselected}`}
+                    >
+                      {i + 1}
+                    </button>
+                  );
+                })}
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: "12px",
-                }}
-              >
-                <span style={{ color: "#6b7280" }}>
-                  {draft.weaponEnhancerSlots || 0}/10 slots
-                </span>
-                <span style={{ color: "#4ade80" }}>
-                  +{(draft.weaponEnhancerSlots || 0) * 10}% damage
-                </span>
+              <div className={styles.enhancerSummary}>
+                <span>{draft.weaponEnhancerSlots || 0}/10 slots</span>
+                <span>+{(draft.weaponEnhancerSlots || 0) * 10}% damage</span>
               </div>
             </div>
 
@@ -657,265 +406,63 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
           </div>
 
           {/* Manual Override */}
-          <div style={{ paddingTop: "20px", borderTop: "1px solid #374151" }}>
-            <label
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                cursor: "pointer",
-                padding: "4px 0",
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={draft.useManualCost}
-                onChange={(e) =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    useManualCost: e.target.checked,
-                  }))
-                }
-                style={{ width: "16px", height: "16px" }}
-              />
-              <span style={{ fontSize: "14px", color: "#d1d5db" }}>
-                Use manual cost override
-              </span>
+          <div className={styles.field}>
+            <label className={styles.checkboxLabel}>
+              <input className={styles.checkboxInput} type="checkbox" checked={draft.useManualCost} onChange={(e) => setDraft((prev) => ({ ...prev, useManualCost: e.target.checked }))} />
+              <span className={styles.fieldLabel}>Use manual cost override</span>
             </label>
             {draft.useManualCost && (
               <input
+                className={styles.smallInput}
                 type="number"
                 value={draft.manualCostPerShot ?? ""}
-                onChange={(e) =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    manualCostPerShot: parseFloat(e.target.value) || undefined,
-                  }))
-                }
+                onChange={(e) => setDraft((prev) => ({ ...prev, manualCostPerShot: parseFloat(e.target.value) || undefined }))}
                 step="0.00001"
                 placeholder="0.00000"
-                style={{
-                  width: "100%",
-                  marginTop: "12px",
-                  padding: "10px 12px",
-                  backgroundColor: "#1f2937",
-                  border: "1px solid #374151",
-                  borderRadius: "8px",
-                  color: "white",
-                  fontFamily: "monospace",
-                }}
               />
             )}
           </div>
 
           {/* Cost Summary */}
-          <div
-            style={{
-              padding: "16px",
-              backgroundColor: "rgba(31,41,55,0.5)",
-              borderRadius: "8px",
-              fontSize: "14px",
-            }}
-          >
-            <div
-              style={{
-                color: "#9ca3af",
-                fontSize: "11px",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "16px",
-              }}
-            >
-              Cost Breakdown (PED/shot)
+          <div>
+            <div className={styles.detailsBlock}>
+            <div className={styles.sectionHeader}>Cost Breakdown (PED/shot)</div>
+            <div className={styles.costGrid}>
+              <div><span>Weapon</span><span>{costs.weaponCost.toFixed(4)}</span></div>
+              <div><span>Amp</span><span>{costs.ampCost.toFixed(4)}</span></div>
+              <div><span>Scope</span><span>{costs.scopeCost.toFixed(4)}</span></div>
+              <div><span>Sight</span><span>{costs.sightCost.toFixed(4)}</span></div>
+              <div><span>Enhancers</span><span>{costs.weaponEnhancerCost.toFixed(4)}</span></div>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "8px 24px",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#6b7280" }}>Weapon</span>
-                <span style={{ fontFamily: "monospace", color: "#d1d5db" }}>
-                  {costs.weaponCost.toFixed(4)}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#6b7280" }}>Amp</span>
-                <span style={{ fontFamily: "monospace", color: "#d1d5db" }}>
-                  {costs.ampCost.toFixed(4)}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#6b7280" }}>Scope</span>
-                <span style={{ fontFamily: "monospace", color: "#d1d5db" }}>
-                  {costs.scopeCost.toFixed(4)}
-                </span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#6b7280" }}>Sight</span>
-                <span style={{ fontFamily: "monospace", color: "#d1d5db" }}>
-                  {costs.sightCost.toFixed(4)}
-                </span>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gridColumn: "span 2",
-                }}
-              >
-                <span style={{ color: "#6b7280" }}>Enhancers</span>
-                <span style={{ fontFamily: "monospace", color: "#d1d5db" }}>
-                  {costs.weaponEnhancerCost.toFixed(4)}
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                paddingTop: "12px",
-                marginTop: "12px",
-                borderTop: "1px solid #374151",
-                fontWeight: 500,
-              }}
-            >
-              <span style={{ color: "white" }}>Total/Shot</span>
-              <span
-                style={{
-                  fontFamily: "monospace",
-                  color: "#22d3ee",
-                  fontSize: "16px",
-                }}
-              >
-                {costs.totalPerShot.toFixed(4)} PED
-              </span>
-            </div>
+            <div className={styles.detailRow}><span>Total/Shot</span><span>{costs.totalPerShot.toFixed(4)} PED</span></div>
+          </div>
           </div>
 
           {/* Damage & DPP Summary */}
           {draft.weapon && (
-            <div
-              style={{
-                padding: "16px",
-                backgroundColor: "rgba(31,41,55,0.5)",
-                borderRadius: "8px",
-                fontSize: "14px",
-              }}
-            >
-              <div
-                style={{
-                  color: "#9ca3af",
-                  fontSize: "11px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "16px",
-                }}
-              >
-                Damage & Efficiency
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px 24px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span style={{ color: "#6b7280" }}>Min Damage</span>
-                  <span style={{ fontFamily: "monospace", color: "#fb923c" }}>
-                    {calculateEnhancedDamage(draft).min.toFixed(1)}
-                  </span>
-                </div>
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <span style={{ color: "#6b7280" }}>Max Damage</span>
-                  <span style={{ fontFamily: "monospace", color: "#fb923c" }}>
-                    {calculateEnhancedDamage(draft).max.toFixed(1)}
-                  </span>
-                </div>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  paddingTop: "12px",
-                  marginTop: "12px",
-                  borderTop: "1px solid #374151",
-                  fontWeight: 500,
-                }}
-              >
-                <span style={{ color: "white" }}>DPP (Dmg/PEC)</span>
-                <span
-                  style={{
-                    fontFamily: "monospace",
-                    color: "#4ade80",
-                    fontSize: "16px",
-                  }}
-                >
-                  {(calculateDPP(draft) / 100).toFixed(2)}
-                </span>
-              </div>
+            <div className={styles.detailsBlock}>
+              <div className={styles.sectionHeader}>Damage & Efficiency</div>
+              <div className={styles.detailRow}><span>Min Damage</span><span>{calculateEnhancedDamage(draft).min.toFixed(1)}</span></div>
+              <div className={styles.detailRow}><span>Max Damage</span><span>{calculateEnhancedDamage(draft).max.toFixed(1)}</span></div>
+              <div className={styles.detailRow}><span>DPP (Dmg/PEC)</span><span>{(calculateDPP(draft) / 100).toFixed(2)}</span></div>
             </div>
           )}
-        </div>
+        </main>
 
         {/* Actions */}
-        <div
-          style={{
-            position: "sticky",
-            bottom: 0,
-            backgroundColor: "#111827",
-            borderTop: "1px solid #374151",
-            padding: "20px 24px",
-            display: "flex",
-            gap: "12px",
-          }}
-        >
-          <button
-            onClick={onCancel}
-            style={{
-              flex: 1,
-              padding: "12px 16px",
-              backgroundColor: "#1f2937",
-              color: "#d1d5db",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
-          >
-            Cancel
-          </button>
+        <footer className={styles.footer}>
+          <button onClick={onCancel} className={styles.cancelButton}>Cancel</button>
           <button
             onClick={() => onSave(draft)}
             disabled={!draft.name.trim()}
-            style={{
-              flex: 1,
-              padding: "12px 16px",
-              backgroundColor: draft.name.trim() ? "#0891b2" : "#374151",
-              color: draft.name.trim() ? "white" : "#6b7280",
-              border: "none",
-              borderRadius: "8px",
-              cursor: draft.name.trim() ? "pointer" : "not-allowed",
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-            }}
+            className={`${styles.saveButton} ${draft.name.trim() ? styles.saveEnabled : styles.saveDisabled}`}
           >
-            <Save size={16} />
-            Save
+            <Save size={16} /> Save
           </button>
+        </footer>
         </div>
       </div>
-    </div>
+    </div>, document.body
   );
 }
 
@@ -948,61 +495,21 @@ export function LoadoutManager() {
   };
 
   return (
-    <div
-      style={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: "#111827",
-        color: "white",
-      }}
-    >
+    <div>
       {/* Header */}
-      <div style={{ padding: "16px", borderBottom: "1px solid #374151" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <h2 style={{ fontSize: "18px", fontWeight: 600 }}>Loadouts</h2>
-          <button
-            onClick={handleNew}
-            style={{
-              padding: "8px",
-              backgroundColor: "#0891b2",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              color: "white",
-            }}
-            title="New Loadout"
-          >
-            <Plus size={18} />
-          </button>
-        </div>
+      <div className={styles.listSection}>
+        <header className={styles.listHeader}>
+          <h2 className={styles.listTitle}>Loadouts</h2>
+          <button onClick={handleNew} title="New Loadout" className={styles.newButton}><Plus size={18} /></button>
+        </header>
       </div>
 
       {/* Loadout List */}
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-        }}
-      >
+      <div className={styles.listContainer}>
         {loadouts.length === 0 ? (
-          <div
-            style={{ textAlign: "center", padding: "32px 0", color: "#6b7280" }}
-          >
-            <p>No loadouts yet</p>
-            <p style={{ fontSize: "14px", marginTop: "4px" }}>
-              Create one to track cost per shot
-            </p>
+          <div className={styles.emptyState}>
+            <div className={styles.emptyTitle}>No loadouts yet</div>
+            <div className={styles.emptySub}>Create one to track cost per shot</div>
           </div>
         ) : (
           loadouts.map((loadout) => (

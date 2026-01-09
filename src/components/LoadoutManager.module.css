@@ -1,0 +1,331 @@
+:root {
+  /* fallback, tokens are defined in global CSS */
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  z-index: 5000;
+}
+
+.panel {
+  background: hsl(var(--surface-primary));
+  border: 1px solid hsl(var(--border-default));
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  background: hsl(var(--surface-primary));
+  border-bottom: 1px solid hsl(var(--border-default));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: hsl(var(--content-primary));
+}
+
+.closeButton {
+  padding: 4px;
+  color: hsl(var(--content-secondary));
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: hsl(var(--content-primary));
+}
+
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  color: hsl(var(--content-secondary));
+  margin-bottom: 8px;
+}
+
+.input {
+  width: 100%;
+  background: hsl(var(--surface-secondary));
+  border: 1px solid hsl(var(--border-default));
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: hsl(var(--content-primary));
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: hsl(var(--content-secondary));
+  font-weight: 500;
+}
+
+.slotContainer {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.slotButton {
+  flex: 1;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: var(--font-family-mono);
+  border: none;
+  cursor: pointer;
+}
+
+.slotSelected {
+  background: hsl(var(--status-success));
+  color: hsl(var(--content-primary));
+}
+
+.slotUnselected {
+  background: hsl(var(--surface-secondary));
+  color: hsl(var(--content-secondary));
+}
+
+.enhancerSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: hsl(var(--content-secondary));
+}
+
+.costGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 24px;
+  row-gap: 8px;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  background: hsl(var(--surface-primary));
+  border-top: 1px solid hsl(var(--border-default));
+  padding: 16px 24px;
+  display: flex;
+  gap: 12px;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 8px 16px;
+  background: hsl(var(--surface-secondary));
+  border-radius: 6px;
+  color: hsl(var(--content-primary));
+  border: none;
+  cursor: pointer;
+}
+
+.saveButton {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.saveEnabled {
+  background: hsl(var(--surface-interactive));
+  color: hsl(var(--content-primary));
+}
+
+.saveDisabled {
+  background: hsl(var(--surface-secondary));
+  color: hsl(var(--content-secondary));
+}
+
+/* Loadout list and empty state */
+.listSection {
+  margin-bottom: 16px;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.listTitle {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: hsl(var(--content-primary));
+}
+
+.newButton {
+  background: hsl(var(--surface-interactive));
+  color: hsl(var(--content-primary));
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emptyState {
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px dashed hsl(var(--border-muted));
+  color: hsl(var(--content-secondary));
+}
+
+.emptyTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: hsl(var(--content-primary));
+}
+
+.emptySub {
+  color: hsl(var(--content-secondary));
+}
+
+/* Loadout card */
+.loadoutCard {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: hsl(var(--surface-secondary));
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border-default));
+  cursor: pointer;
+}
+
+.loadoutCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardTitle {
+  font-weight: 600;
+  color: hsl(var(--content-primary));
+}
+
+.cardSubtitle {
+  font-size: 0.875rem;
+  color: hsl(var(--content-secondary));
+}
+
+.cardActions {
+  display: flex;
+  gap: 8px;
+}
+
+.loadoutCostRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: hsl(var(--content-secondary));
+  font-size: 0.875rem;
+}
+
+.loadoutActive {
+  box-shadow: 0 0 0 2px hsl(var(--surface-interactive) / 0.26);
+  border-color: hsl(var(--surface-interactive));
+}
+
+/* Details and summary rows */
+.detailsBlock {
+  background: hsl(var(--surface-secondary));
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid hsl(var(--border-default));
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: hsl(var(--content-secondary));
+  font-size: 0.9rem;
+  padding: 6px 0;
+}
+
+/* Form fields and small inputs */
+.equipmentRow {
+  display: grid;
+  grid-template-columns: 1fr 120px 120px;
+  gap: 12px;
+  align-items: start;
+}
+
+.autocompleteWrap {
+  min-width: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldLabel {
+  font-size: 0.85rem;
+  color: hsl(var(--content-secondary));
+  margin-bottom: 6px;
+}
+
+.smallInput {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid hsl(var(--border-default));
+  background: hsl(var(--surface-secondary));
+  color: hsl(var(--content-primary));
+  font-size: 0.9rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: hsl(var(--content-secondary));
+}
+
+.checkboxInput {
+  width: 16px;
+  height: 16px;
+}

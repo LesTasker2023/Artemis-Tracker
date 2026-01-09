@@ -45,6 +45,7 @@ jobs:
         run: |
           echo "Publishing release because PUBLISH_RELEASE secret is set to true"
           npm run build:electron -- --publish=always
+
 # Notes:
 # - This workflow triggers on tag pushes like 'v1.2.3'.
 # - GitHub's provided GITHUB_TOKEN is available as a secret and is sufficient for creating/publishing releases.

@@ -41,6 +41,19 @@ interface Asteroid {
   timestamp: number;
 }
 
+// Forward uncaught renderer errors to main so they appear in terminal
+window.addEventListener('error', (ev: any) => {
+  try {
+    ipcRenderer.send('renderer:error', { message: ev.message, filename: ev.filename, lineno: ev.lineno, colno: ev.colno, stack: ev.error?.stack });
+  } catch (e) {}
+});
+window.addEventListener('unhandledrejection', (ev: any) => {
+  try {
+    const reason = ev.reason;
+    ipcRenderer.send('renderer:error', { message: reason?.message || String(reason), stack: reason?.stack || null });
+  } catch (e) {}
+});
+
 // Expose protected APIs to renderer
 contextBridge.exposeInMainWorld('electron', {
   log: {
@@ -48,6 +61,7 @@ contextBridge.exposeInMainWorld('electron', {
     selectFile: () => ipcRenderer.invoke('log:select-file'),
     stop: () => ipcRenderer.invoke('log:stop'),
     status: () => ipcRenderer.invoke('log:status'),
+    probe: () => ipcRenderer.invoke('log:probe'),
     onEvent: (callback: (event: LogEvent) => void) => {
       const handler = (_: unknown, data: LogEvent) => callback(data);
       ipcRenderer.on('log-event', handler);

@@ -202,8 +202,18 @@ function App() {
     // Clear any viewed session first
     setViewedSession(null);
     setViewedStats(null);
-    await startLog();
-    startSession();
+    try {
+      const res = await startLog();
+      console.log("[App] startLog result:", res);
+    } catch (e) {
+      console.error("[App] startLog failed:", e);
+    }
+    try {
+      startSession();
+      console.log("[App] startSession invoked");
+    } catch (e) {
+      console.error("[App] startSession failed:", e);
+    }
     // Switch to live tab
     setActiveTab("live");
     console.log("[App] start() complete");
@@ -213,8 +223,8 @@ function App() {
   const stop = async () => {
     console.log("[App] stop() called");
     try {
-      await stopLog();
-      console.log("[App] stop() - log watcher stopped");
+      const res = await stopLog();
+      console.log("[App] stopLog result:", res);
     } catch (e) {
       console.error("[App] Failed to stop log watcher:", e);
     }
@@ -235,49 +245,17 @@ function App() {
   const [popoutOpen, setPopoutOpen] = useState<boolean>(false);
 
   // Auto-update state
-  const [updateStatus, setUpdateStatus] = useState<'idle'|'checking'|'available'|'downloading'|'downloaded'|'not-available'|'error'>('idle');
-  const [updateProgress, setUpdateProgress] = useState<number | null>(null);
-  const [updateInfo, setUpdateInfo] = useState<any | null>(null);
-  const [updateError, setUpdateError] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Subscribe to updater events
-    const unsubChecking = window.electron?.updater?.onChecking?.(() => { setUpdateStatus('checking'); setUpdateProgress(null); setUpdateError(null); });
-    const unsubAvailable = window.electron?.updater?.onAvailable?.((info: any) => { setUpdateStatus('available'); setUpdateInfo(info); });
-    const unsubNotAvailable = window.electron?.updater?.onNotAvailable?.(() => { setUpdateStatus('not-available'); setUpdateProgress(null); });
-    const unsubProgress = window.electron?.updater?.onProgress?.((p: any) => { setUpdateStatus('downloading'); setUpdateProgress(Math.round(p.percent || 0)); });
-    const unsubDownloaded = window.electron?.updater?.onDownloaded?.((_info: any) => { setUpdateStatus('downloaded'); setUpdateProgress(100); });
-    const unsubError = window.electron?.updater?.onError?.((err: string) => { setUpdateStatus('error'); setUpdateError(err); });
-
-    return () => {
-      try { unsubChecking?.(); } catch (_) {}
-      try { unsubAvailable?.(); } catch (_) {}
-      try { unsubNotAvailable?.(); } catch (_) {}
-      try { unsubProgress?.(); } catch (_) {}
-      try { unsubDownloaded?.(); } catch (_) {}
-      try { unsubError?.(); } catch (_) {}
-    };
-  }, []);
-
-  const checkForUpdates = async () => {
-    setUpdateStatus('checking');
-    setUpdateError(null);
-    try {
-      await window.electron?.updater?.check();
-    } catch (e) {
-      setUpdateStatus('error');
-      setUpdateError(String(e));
-    }
-  };
-
-  const installUpdate = async () => {
-    try {
-      await window.electron?.updater?.install();
-    } catch (e) {
-      setUpdateStatus('error');
-      setUpdateError(String(e));
-    }
-  };
+  const [updateStatus] = useState<
+    | "idle"
+    | "checking"
+    | "available"
+    | "downloading"
+    | "downloaded"
+    | "not-available"
+    | "error"
+  >("idle");
+  const [updateProgress] = useState<number | null>(null);
+  const [updateError] = useState<string | null>(null);
 
   useEffect(() => {
     // Query initial popout state on mount
@@ -337,13 +315,24 @@ function App() {
 
   // Resume a session (called from SessionsPage)
   const handleResumeSession = async (sessionToResume: Session) => {
+    console.log("[App] handleResumeSession called:", sessionToResume.id);
     // Clear any viewing state
     setViewedSession(null);
     setViewedStats(null);
 
     // Resume the session and start log watching
-    resumeSession(sessionToResume);
-    await startLog();
+    try {
+      resumeSession(sessionToResume);
+      console.log("[App] resumeSession invoked");
+    } catch (e) {
+      console.error("[App] resumeSession failed:", e);
+    }
+    try {
+      const res = await startLog();
+      console.log("[App] startLog (resume) result:", res);
+    } catch (e) {
+      console.error("[App] startLog (resume) failed:", e);
+    }
 
     // Switch to live tab
     setActiveTab("live");
@@ -386,20 +375,26 @@ function App() {
           )}
 
           {/* Update controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={checkForUpdates} style={styles.buttonSecondary} title='Check for updates'>
-              <Activity size={14} style={{ marginRight: 6 }} /> Check
-            </button>
-
-            {updateStatus === 'checking' && <span style={{ color: 'hsl(220 13% 45%)' }}>Checking…</span>}
-            {updateStatus === 'available' && <span style={{ color: 'hsl(217 91% 68%)' }}>Update available</span>}
-            {updateStatus === 'downloading' && <span style={{ color: 'hsl(217 91% 68%)' }}>{updateProgress}%</span>}
-            {updateStatus === 'downloaded' && (
-              <button onClick={installUpdate} style={styles.buttonPrimary} title='Install update'>
-                Install
-              </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {updateStatus === "checking" && (
+              <span style={{ color: "hsl(220 13% 45%)" }}>Checking…</span>
             )}
-            {updateStatus === 'error' && <span style={{ color: 'hsl(0 84% 60%)' }}>{updateError || 'Update error'}</span>}
+            {updateStatus === "available" && (
+              <span style={{ color: "hsl(217 91% 68%)" }}>
+                Update available
+              </span>
+            )}
+            {updateStatus === "downloading" && (
+              <span style={{ color: "hsl(217 91% 68%)" }}>
+                {updateProgress}%
+              </span>
+            )}
+
+            {updateStatus === "error" && (
+              <span style={{ color: "hsl(0 84% 60%)" }}>
+                {updateError || "Update error"}
+              </span>
+            )}
           </div>
 
           {/* Popout / HUD toggle button */}
@@ -584,15 +579,45 @@ function App() {
                 />
                 <button
                   onClick={async () => {
+                    console.log("[App] Select File button clicked");
                     const selectedPath = await selectFile();
+                    console.log("[App] selectFile returned:", selectedPath);
                     if (selectedPath) {
                       // Clear any viewed session first
                       if (viewedSession) {
                         setViewedSession(null);
                         setViewedStats(null);
                       }
-                      await startLog(selectedPath);
-                      startSession();
+
+                      // If already watching the same file, avoid re-starting the watcher
+                      if (isWatching && logPath === selectedPath) {
+                        console.log(
+                          "[App] Already watching selected file; skipping start"
+                        );
+                      } else {
+                        try {
+                          const res = await startLog(selectedPath);
+                          console.log(
+                            "[App] startLog (select file) result:",
+                            res
+                          );
+                        } catch (e) {
+                          console.error(
+                            "[App] startLog (select file) failed:",
+                            e
+                          );
+                        }
+                      }
+
+                      try {
+                        startSession();
+                        console.log("[App] startSession invoked (select file)");
+                      } catch (e) {
+                        console.error(
+                          "[App] startSession failed (select file):",
+                          e
+                        );
+                      }
                     }
                   }}
                   style={{ ...styles.buttonSecondary, flexShrink: 0 }}

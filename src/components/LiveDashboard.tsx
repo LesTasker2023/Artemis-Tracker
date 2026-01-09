@@ -113,7 +113,7 @@ export function LiveDashboard({ stats, isActive }: LiveDashboardProps) {
         <HeroCard
           icon={DollarSign}
           label="PROFIT"
-          value={`${stats.profit >= 0 ? "+" : ""}${stats.profit.toFixed(
+          value={`${stats.profit >= 0 ? "+" : ""}${stats.netProfit.toFixed(
             2
           )} PED`}
           color={profitColor}

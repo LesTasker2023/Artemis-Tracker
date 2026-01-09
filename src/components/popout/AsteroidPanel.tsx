@@ -128,54 +128,82 @@ export function AsteroidPanel() {
   // Listen for position and loot events from main process
   useEffect(() => {
     const handleEvent = (...args: unknown[]) => {
-      console.log("[Asteroid] Raw args:", args.length, args);
-      const event = args[1] as ParsedEvent;
-      if (!event) {
-        console.log("[Asteroid] No event in args[1]");
-        return;
-      }
-
-      console.log(
-        "[Asteroid] Event received:",
-        event.category,
-        event.type,
-        event.data
-      );
-
-      // Handle POSITION events - auto-fill coordinates
-      if (event.category === "position" && event.type === "POSITION") {
-        const { x, y, z } = event.data as { x: number; y: number; z: number };
-        const coordString = `${x}, ${y}, ${z}`;
-        setCoordinates(coordString);
-        lastPositionTimeRef.current = Date.now();
-        setStatusMessage(`📍 ${x}, ${y}, ${z}`);
-        console.log("[Asteroid] Position captured:", coordString);
-      }
-
-      // Handle LOOT events - capture if within window of position
-      if (event.category === "loot" && event.type === "LOOT") {
-        const now = Date.now();
-        const { item, quantity, value } = event.data as {
-          item: string;
-          quantity: number;
-          value: number;
-        };
-
-        // Only capture if we have coordinates and within the time window
-        if (
-          lastPositionTimeRef.current &&
-          now - lastPositionTimeRef.current <= LOOT_CAPTURE_WINDOW
-        ) {
-          const lootItem: AsteroidLoot = {
-            itemName: item,
-            quantity: quantity || 1,
-            value: value || 0,
-            timestamp: now,
-          };
-          setCurrentLoot((prev) => [...prev, lootItem]);
-          setStatusMessage(`💎 ${item}`);
-          console.log("[Asteroid] Loot captured:", lootItem);
+      try {
+        console.log("[Asteroid] Raw args:", args.length, args);
+        const event = args[1] as ParsedEvent;
+        if (!event) {
+          console.log("[Asteroid] No event in args[1]");
+          return;
         }
+
+        console.log(
+          "[Asteroid] Event received:",
+          event.category,
+          event.type,
+          event.data
+        );
+
+        // Handle POSITION events - auto-fill coordinates
+        if (event.category === "position" && event.type === "POSITION") {
+          const d = event.data as any;
+          if (
+            typeof d.x !== "number" ||
+            typeof d.y !== "number" ||
+            typeof d.z !== "number"
+          ) {
+            console.warn("[Asteroid] Position event with unexpected data:", d);
+          } else {
+            const { x, y, z } = d as { x: number; y: number; z: number };
+            const coordString = `${x}, ${y}, ${z}`;
+            setCoordinates(coordString);
+            lastPositionTimeRef.current = Date.now();
+            setStatusMessage(`📍 ${x}, ${y}, ${z}`);
+            console.log("[Asteroid] Position captured:", coordString);
+          }
+        }
+
+        // Handle LOOT events - capture if within window of position
+        if (event.category === "loot" && event.type === "LOOT") {
+          const now = Date.now();
+          const d = event.data as any;
+
+          // Defensive checks
+          if (!d || typeof d !== "object") {
+            console.warn("[Asteroid] Loot event with unexpected data:", d);
+            return;
+          }
+
+          const item = d.item ?? d.itemName ?? "Unknown";
+          const quantity =
+            typeof d.quantity === "number" ? d.quantity : d.count ?? 1;
+          const value =
+            typeof d.value === "number" ? d.value : d.totalValue ?? 0;
+
+          // Only capture if we have coordinates and within the time window
+          if (
+            lastPositionTimeRef.current &&
+            now - lastPositionTimeRef.current <= LOOT_CAPTURE_WINDOW
+          ) {
+            const lootItem: AsteroidLoot = {
+              itemName: item,
+              quantity: quantity || 1,
+              value: value || 0,
+              timestamp: now,
+            };
+            setCurrentLoot((prev) => [...prev, lootItem]);
+            setStatusMessage(`💎 ${item}`);
+            console.log("[Asteroid] Loot captured:", lootItem);
+          }
+        }
+      } catch (e) {
+        console.error("[Asteroid] Error handling event:", e, args);
+        // Forward to main so it appears in terminal
+        try {
+          (window.electron as any).ipcRenderer?.send?.("renderer:error", {
+            message: String(e),
+            stack: (e as Error).stack,
+          });
+        } catch (_) {}
       }
     };
 

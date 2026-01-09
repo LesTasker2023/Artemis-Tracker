@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const outDir = join(__dirname, "..", "dist-electron");
+const isProd = process.env.NODE_ENV === 'production';
 
 // Ensure output directory exists
 if (!existsSync(outDir)) {
@@ -27,7 +28,8 @@ async function buildElectron() {
     format: "cjs",
     // Keep runtime-only modules external so esbuild doesn't try to resolve them
     external: ["electron", "electron-updater", "electron-log"],
-    sourcemap: true,
+    sourcemap: !isProd,
+    minify: isProd,
   });
 
   // Build preload script
@@ -39,7 +41,8 @@ async function buildElectron() {
     outfile: join(outDir, "preload.cjs"),
     format: "cjs",
     external: ["electron"],
-    sourcemap: true,
+    sourcemap: !isProd,
+    minify: isProd,
   });
 
   console.log("✅ Electron build complete");
