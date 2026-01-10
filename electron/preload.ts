@@ -56,6 +56,8 @@ contextBridge.exposeInMainWorld('electron', {
   },
   equipment: {
     load: (type: string) => ipcRenderer.invoke('equipment:load', type),
+    checkUpdates: () => ipcRenderer.invoke('equipment:check-updates'),
+    update: () => ipcRenderer.invoke('equipment:update'),
   },
   session: {
     save: (session: unknown) => ipcRenderer.invoke('session:save', session),

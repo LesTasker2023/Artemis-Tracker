@@ -7,6 +7,7 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('path');
 import fs from 'fs';
 const os = require('os');
+import { updateEquipmentDatabase, checkForUpdates } from './equipment-updater';
 
 let mainWindow: typeof BrowserWindow | null = null;
 let popoutWindow: typeof BrowserWindow | null = null;
@@ -715,6 +716,34 @@ ipcMain.handle('equipment:load', (_event: unknown, type: string) => {
     return [];
   }
   return loadEquipmentData(type);
+});
+
+// ==================== Equipment Database Updater ====================
+
+function getDataDir(): string {
+  return process.env.VITE_DEV_SERVER_URL
+    ? path.join(__dirname, '..', 'data')
+    : path.join(__dirname, '..', 'data');
+}
+
+ipcMain.handle('equipment:check-updates', async () => {
+  try {
+    const dataDir = getDataDir();
+    const updateAvailable = await checkForUpdates(dataDir);
+    return { success: true, updateAvailable };
+  } catch (error) {
+    return { success: false, error: String(error), updateAvailable: false };
+  }
+});
+
+ipcMain.handle('equipment:update', async () => {
+  try {
+    const dataDir = getDataDir();
+    const result = await updateEquipmentDatabase(dataDir, false);
+    return { success: true, result };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
 });
 
 // ==================== Session Storage ====================

@@ -13,8 +13,17 @@ interface LogAPI {
   onEvent: (callback: (event: LogEvent) => void) => () => void;
 }
 
+interface UpdateResult {
+  updated: string[];
+  failed: string[];
+  skipped: string[];
+  total: number;
+}
+
 interface EquipmentAPI {
   load: (type: string) => Promise<unknown[]>;
+  checkUpdates: () => Promise<{ success: boolean; updateAvailable: boolean; error?: string }>;
+  update: () => Promise<{ success: boolean; result?: UpdateResult; error?: string }>;
 }
 
 interface SessionMeta {
