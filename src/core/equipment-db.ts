@@ -83,10 +83,8 @@ class EquipmentDB {
       this.scopes = this.parseEquipment(scopesData, 'scope');
       this.sights = this.parseEquipment(sightsData, 'sight');
       this.loaded = true;
-
-      console.log(`[EquipmentDB] Loaded: ${this.weapons.length} weapons, ${this.amps.length} amps, ${this.scopes.length} scopes, ${this.sights.length} sights`);
     } catch (err) {
-      console.error('[EquipmentDB] Failed to load equipment data:', err);
+      // Failed to load equipment data
     }
   }
 
