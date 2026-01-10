@@ -542,30 +542,6 @@ function createWindow() {
   });
 }
 
-// Set dock icon on macOS (useful in dev)
-app.whenReady().then(() => {
-  if (process.platform === 'darwin') {
-    const icns = getIconPath();
-    if (fs.existsSync(icns)) {
-      try {
-        // app.dock.setIcon accepts nativeImage or path
-        app.dock.setIcon(icns);
-        console.log('[Main] Dock icon set:', icns);
-      } catch (e) {
-        console.warn('[Main] Failed to set dock icon:', e);
-      }
-    }
-  }
-
-  createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
-});
-
 // ==================== Popout Window ====================
 
 function createPopoutWindow() {
