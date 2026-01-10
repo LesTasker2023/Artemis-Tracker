@@ -19,11 +19,12 @@
         "test:watch": "vitest"
     },
     "dependencies": {
-        "electron-updater": "^6.7.3",
         "electron-log": "^5.4.3",
+        "electron-updater": "^6.7.3",
         "lucide-react": "^0.561.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-is": "^19.2.3",
         "recharts": "^3.5.1",
         "zod": "^3.22.0",
         "zustand": "^4.4.0"
@@ -64,7 +65,9 @@
             "package.json"
         ],
         "publish": [
-          { "provider": "github" }
+            {
+                "provider": "github"
+            }
         ],
         "icon": "build/icon",
         "win": {
