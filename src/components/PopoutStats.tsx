@@ -18,7 +18,12 @@ import {
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius } from "./ui";
 import { ConfigurableTile } from "./popout/ConfigurableTile";
-import { DEFAULT_TILE_CONFIG, type StatData } from "./popout/stat-definitions";
+import {
+  DEFAULT_TILE_CONFIG,
+  DEFAULT_EXPANDED_HERO,
+  DEFAULT_EXPANDED_GRID,
+  type StatData,
+} from "./popout/stat-definitions";
 import { ExpandedDashboard } from "./popout/ExpandedDashboard";
 import { AsteroidPanel } from "./popout/AsteroidPanel";
 
@@ -32,15 +37,21 @@ const EXPANDED_HEIGHT_THRESHOLD = 400;
 type PopoutMode = "stats" | "asteroid";
 
 interface PopoutConfig {
-  tiles: string[]; // stat keys for each tile
+  tiles: string[]; // stat keys for each tile (compact view)
   showCharts: boolean;
   mode: PopoutMode;
+  expandedHero: string[]; // stat keys for hero row (expanded view)
+  expandedGrid: string[]; // stat keys for stats grid (expanded view)
+  showExpandedCharts: boolean; // show/hide charts in expanded view
 }
 
 const DEFAULT_CONFIG: PopoutConfig = {
   tiles: DEFAULT_TILE_CONFIG,
   showCharts: true,
   mode: "stats",
+  expandedHero: DEFAULT_EXPANDED_HERO,
+  expandedGrid: DEFAULT_EXPANDED_GRID,
+  showExpandedCharts: true,
 };
 
 // Load config from localStorage
@@ -209,11 +220,34 @@ export function PopoutStats() {
     setConfig((prev) => ({ ...prev, mode }));
   };
 
+  const handleChangeExpandedHeroStat = (index: number, newStatKey: string) => {
+    setConfig((prev) => {
+      const newHero = [...prev.expandedHero];
+      newHero[index] = newStatKey;
+      return { ...prev, expandedHero: newHero };
+    });
+  };
+
+  const handleChangeExpandedGridStat = (index: number, newStatKey: string) => {
+    setConfig((prev) => {
+      const newGrid = [...prev.expandedGrid];
+      newGrid[index] = newStatKey;
+      return { ...prev, expandedGrid: newGrid };
+    });
+  };
+
+  const handleToggleExpandedCharts = () => {
+    setConfig((prev) => ({
+      ...prev,
+      showExpandedCharts: !prev.showExpandedCharts,
+    }));
+  };
+
   // Expanded dashboard view
   if (isExpanded) {
     return (
       <div style={styles.container}>
-        {/* Drag Handle */}
+        {/* Drag Handle + Settings */}
         <div style={styles.header}>
           <div style={styles.modeTabs}>
             <button
@@ -231,14 +265,57 @@ export function PopoutStats() {
               <Activity size={10} />
             </button>
           </div>
-          <div style={styles.duration}>
-            <Clock size={10} />
-            <span>{formatDuration(stats.duration)}</span>
-          </div>
+          {config.mode === "stats" && (
+            <div style={styles.duration}>
+              <Clock size={10} />
+              <span>{formatDuration(stats.duration)}</span>
+            </div>
+          )}
           <div style={styles.dragHandle}>
             <GripHorizontal size={14} style={{ color: colors.textMuted }} />
           </div>
+          {config.mode === "stats" && (
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              style={{
+                ...styles.settingsButton,
+                backgroundColor: showSettings ? colors.bgCard : "transparent",
+              }}
+            >
+              <Settings size={12} />
+            </button>
+          )}
         </div>
+
+        {/* Settings Panel - expanded view */}
+        {config.mode === "stats" && showSettings && (
+          <div style={styles.settingsPanel}>
+            <div style={styles.settingsRow}>
+              <span style={styles.settingsLabel}>Charts</span>
+              <button
+                onClick={handleToggleExpandedCharts}
+                style={styles.toggleButton}
+              >
+                {config.showExpandedCharts ? "On" : "Off"}
+              </button>
+            </div>
+            <div style={styles.settingsRow}>
+              <button
+                onClick={handleResetConfig}
+                style={styles.resetButton}
+              >
+                <RotateCcw size={12} />
+                Reset
+              </button>
+            </div>
+            <div style={{ ...styles.settingsRow, marginTop: spacing.xs }}>
+              <span style={{ ...styles.settingsLabel, fontSize: "9px" }}>
+                Click stat labels to change
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Always render AsteroidPanel so it keeps listening for events */}
         <div
           style={{
@@ -253,6 +330,12 @@ export function PopoutStats() {
             stats={stats}
             history={historyRef.current}
             formatDuration={formatDuration}
+            heroStats={config.expandedHero}
+            gridStats={config.expandedGrid}
+            showCharts={config.showExpandedCharts}
+            onChangeHeroStat={handleChangeExpandedHeroStat}
+            onChangeGridStat={handleChangeExpandedGridStat}
+            settingsMode={showSettings}
           />
         )}
       </div>
