@@ -492,7 +492,7 @@ function LoadoutCard({
   onDelete,
 }: LoadoutCardProps) {
   const effective = getEffectiveCostPerShot(loadout);
-  const costs = calculateLoadoutCosts(loadout);
+  // const costs = calculateLoadoutCosts(loadout);
 
   return (
     <div
