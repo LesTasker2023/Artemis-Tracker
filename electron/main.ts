@@ -7,7 +7,7 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('path');
 import fs from 'fs';
 const os = require('os');
-import { updateEquipmentDatabase, checkForUpdates } from './equipment-updater';
+import { updateEquipmentDatabase, checkForUpdates, needsInitialization } from './equipment-updater';
 
 // Global error handlers to catch crashes and unhandled rejections
 process.on('uncaughtException', (err: any) => {
@@ -1083,6 +1083,23 @@ app.whenReady().then(() => {
   }
 
   createWindow();
+
+  // Initialize equipment database if needed
+  try {
+    const dataDir = getDataDir();
+    if (needsInitialization(dataDir)) {
+      console.log('[Main] Equipment data missing or empty, fetching from API...');
+      updateEquipmentDatabase(dataDir, true).then((result) => {
+        console.log('[Main] Equipment database initialized:', result);
+      }).catch((err) => {
+        console.error('[Main] Failed to initialize equipment database:', err);
+      });
+    } else {
+      console.log('[Main] Equipment database already initialized');
+    }
+  } catch (e) {
+    console.warn('[Main] Equipment database initialization check failed:', e);
+  }
 
   // Initialize and check for updates
   try {
