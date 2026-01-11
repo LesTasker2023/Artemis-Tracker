@@ -1,72 +1,69 @@
 /**
- * PopoutStats - Minimal, focused overlay for hunting and economy stats
- * Clean layout with hero stat, primary/secondary metrics, and skills
+ * ARTEMIS PopoutStats V2 - Complete Rebuild
+ * Clean, modern design using proper UI components and design tokens
  */
 
-import React, { useEffect, useState, useCallback } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { GripHorizontal, Settings, RotateCcw, Activity, TrendingUp, TrendingDown } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
-import { colors, spacing, radius } from "./ui";
+import { colors, spacing, radius, typography } from "./ui";
 import { STAT_MAP, type StatData } from "./popout/stat-definitions";
-import { AsteroidPanel } from "./popout/AsteroidPanel";
 import { LoadoutDropdown } from "./LoadoutManager";
 import { useLoadouts } from "../hooks/useLoadouts";
+import { AsteroidPanel } from "./popout/AsteroidPanel";
 
-// Storage key for persisted config
-const STORAGE_KEY = "artemis-popout-config";
+// Storage keys
+const CONFIG_KEY = "artemis-popout-v2-config";
+const VERSION_KEY = "artemis-popout-version";
 
 type PopoutMode = "stats" | "asteroid";
 
-interface PopoutConfig {
+interface PopoutConfigV2 {
   mode: PopoutMode;
-  hero: string; // single hero stat key
-  primary: string[]; // 3 primary stats
-  secondary: string[]; // 3 secondary stats
-  skills: string[]; // 2 skill stats
+  hero: string;
+  stats: string[]; // 6 stat tiles
 }
 
-const DEFAULT_CONFIG: PopoutConfig = {
+const DEFAULT_CONFIG: PopoutConfigV2 = {
   mode: "stats",
   hero: "netProfit",
-  primary: ["returnRate", "kills", "hitRate"],
-  secondary: ["lootValue", "totalSpend", "damageDealt"],
-  skills: ["skillGains", "skillEvents"],
+  stats: ["returnRate", "kills", "hitRate", "lootValue", "totalSpend", "damageDealt"],
 };
 
 // Load config from localStorage
-function loadConfig(): PopoutConfig {
+function loadConfig(): PopoutConfigV2 {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(CONFIG_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
       return { ...DEFAULT_CONFIG, ...parsed };
     }
   } catch {
-    // Ignore errors
+    // Ignore
   }
   return DEFAULT_CONFIG;
 }
 
 // Save config to localStorage
-function saveConfig(config: PopoutConfig) {
+function saveConfig(config: PopoutConfigV2) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
   } catch {
-    // Ignore errors
+    // Ignore
   }
 }
 
-// Format duration as HH:MM:SS or MM:SS
+// Format duration
 function formatDuration(seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
-  if (h > 0)
-    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export function PopoutStats() {
+export function PopoutStatsV2() {
   const [stats, setStats] = useState<LiveStats>({
     profit: 0,
     netProfit: 0,
@@ -89,10 +86,10 @@ export function PopoutStats() {
     duration: 0,
   });
 
-  const [config, setConfig] = useState<PopoutConfig>(loadConfig);
+  const [config, setConfig] = useState<PopoutConfigV2>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Loadout state management
+  // Loadout management
   const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
 
   // Listen for stats updates
@@ -101,66 +98,50 @@ export function PopoutStats() {
       setStats(data);
     });
     window.electron?.popout?.requestStats();
-    return () => {
-      unsubscribe?.();
-    };
+    return () => unsubscribe?.();
   }, []);
 
-  // Save config whenever it changes
+  // Save config on change
   useEffect(() => {
     saveConfig(config);
   }, [config]);
 
+  const statData: StatData = stats;
+
   const handleModeChange = (mode: PopoutMode) => {
     setConfig((prev) => ({ ...prev, mode }));
-  };
-
-  const handleResetConfig = () => {
-    setConfig(DEFAULT_CONFIG);
-  };
-
-  const handleSwitchVersion = () => {
-    localStorage.setItem("artemis-popout-version", "v2");
-    window.location.reload();
   };
 
   const handleChangeHero = (newStatKey: string) => {
     setConfig((prev) => ({ ...prev, hero: newStatKey }));
   };
 
-  const handleChangePrimary = (index: number, newStatKey: string) => {
+  const handleChangeStat = (index: number, newStatKey: string) => {
     setConfig((prev) => {
-      const newPrimary = [...prev.primary];
-      newPrimary[index] = newStatKey;
-      return { ...prev, primary: newPrimary };
+      const newStats = [...prev.stats];
+      newStats[index] = newStatKey;
+      return { ...prev, stats: newStats };
     });
   };
 
-  const handleChangeSecondary = (index: number, newStatKey: string) => {
-    setConfig((prev) => {
-      const newSecondary = [...prev.secondary];
-      newSecondary[index] = newStatKey;
-      return { ...prev, secondary: newSecondary };
-    });
+  const handleReset = () => {
+    setConfig(DEFAULT_CONFIG);
   };
 
-  const handleChangeSkills = (index: number, newStatKey: string) => {
-    setConfig((prev) => {
-      const newSkills = [...prev.skills];
-      newSkills[index] = newStatKey;
-      return { ...prev, skills: newSkills };
-    });
+  const handleSwitchVersion = () => {
+    localStorage.setItem(VERSION_KEY, "v1");
+    window.location.reload();
   };
 
-  const statData: StatData = stats;
-
-  // Calculate kills per hour
+  // Calculate efficiency metrics
   const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
+  const lootPerHour = stats.duration > 0 ? (stats.lootValue / stats.duration) * 3600 : 0;
 
   return (
     <div style={styles.container}>
-      {/* Header */}
+      {/* Draggable Header */}
       <div style={styles.header}>
+        {/* Mode Tabs */}
         <div style={styles.modeTabs}>
           <button
             onClick={() => handleModeChange("stats")}
@@ -169,12 +150,15 @@ export function PopoutStats() {
               backgroundColor: config.mode === "stats" ? colors.bgCard : "transparent",
               color: config.mode === "stats" ? colors.textPrimary : colors.textMuted,
             }}
+            title="Stats Mode"
           >
             <Activity size={10} />
           </button>
         </div>
+
+        {/* Loadout Dropdown */}
         {config.mode === "stats" && (
-          <div style={styles.loadoutDropdownContainer}>
+          <div style={styles.loadoutContainer}>
             <LoadoutDropdown
               loadouts={loadouts}
               activeLoadout={activeLoadout}
@@ -183,9 +167,13 @@ export function PopoutStats() {
             />
           </div>
         )}
+
+        {/* Drag Handle */}
         <div style={styles.dragHandle}>
           <GripHorizontal size={14} style={{ color: colors.textMuted }} />
         </div>
+
+        {/* Settings Button */}
         {config.mode === "stats" && (
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -193,6 +181,7 @@ export function PopoutStats() {
               ...styles.settingsButton,
               backgroundColor: showSettings ? colors.bgCard : "transparent",
             }}
+            title="Settings"
           >
             <Settings size={12} />
           </button>
@@ -203,104 +192,62 @@ export function PopoutStats() {
       {config.mode === "stats" && showSettings && (
         <div style={styles.settingsPanel}>
           <div style={styles.settingsRow}>
-            <button onClick={handleResetConfig} style={styles.resetButton}>
+            <button onClick={handleReset} style={styles.resetButton}>
               <RotateCcw size={12} />
-              Reset to Defaults
+              Reset
             </button>
             <button onClick={handleSwitchVersion} style={styles.versionButton}>
-              Switch to V2
+              Switch to V1
             </button>
           </div>
-          <div style={{ ...styles.settingsRow, marginTop: spacing.xs }}>
-            <span style={{ ...styles.settingsLabel, fontSize: "9px" }}>
-              Click stat labels to change
-            </span>
-          </div>
+          <div style={styles.settingsHint}>Click stat labels to change</div>
         </div>
       )}
 
-      {/* Always render AsteroidPanel so it keeps listening for events */}
+      {/* Asteroid Mode */}
       <div style={{ display: config.mode === "asteroid" ? "block" : "none", flex: 1 }}>
         <AsteroidPanel />
       </div>
 
       {/* Stats Mode */}
       {config.mode === "stats" && (
-        <div style={styles.statsContent}>
+        <div style={styles.content}>
           {/* Hero Stat */}
-          <HeroStat
+          <HeroStatCard
             statKey={config.hero}
             data={statData}
             onChange={handleChangeHero}
             settingsMode={showSettings}
           />
 
-          {/* Primary Stats Row */}
-          <div style={styles.statsRow}>
-            {config.primary.map((statKey, index) => (
-              <StatTile
-                key={`primary-${index}`}
+          {/* Stats Grid */}
+          <div style={styles.statsGrid}>
+            {config.stats.map((statKey, index) => (
+              <StatCard
+                key={`stat-${index}`}
                 statKey={statKey}
                 data={statData}
-                onChange={(newKey) => handleChangePrimary(index, newKey)}
+                onChange={(newKey) => handleChangeStat(index, newKey)}
                 settingsMode={showSettings}
-                size="medium"
               />
             ))}
           </div>
 
-          {/* Secondary Stats Row */}
-          <div style={styles.statsRow}>
-            {config.secondary.map((statKey, index) => (
-              <StatTile
-                key={`secondary-${index}`}
-                statKey={statKey}
-                data={statData}
-                onChange={(newKey) => handleChangeSecondary(index, newKey)}
-                settingsMode={showSettings}
-                size="small"
-              />
-            ))}
-          </div>
-
-          {/* Skills Row */}
-          <div style={styles.skillsRow}>
-            {config.skills.map((statKey, index) => {
-              const stat = STAT_MAP.get(statKey);
-              if (!stat) return null;
-              const value = stat.getValue(statData);
-              return (
-                <div key={`skill-${index}`} style={styles.skillItem}>
-                  {showSettings ? (
-                    <StatSelector
-                      currentKey={statKey}
-                      onSelect={(newKey) => handleChangeSkills(index, newKey)}
-                    />
-                  ) : (
-                    <>
-                      <span style={styles.skillLabel}>{stat.label}:</span>
-                      <span style={styles.skillValue}>
-                        {value.value}
-                        {value.unit && ` ${value.unit}`}
-                      </span>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Footer */}
+          {/* Footer - Efficiency Metrics */}
           <div style={styles.footer}>
-            <div style={styles.footerItem}>
-              <span style={styles.footerLabel}>Duration:</span>
+            <div style={styles.footerMetric}>
+              <span style={styles.footerLabel}>Duration</span>
               <span style={styles.footerValue}>{formatDuration(stats.duration)}</span>
             </div>
-            <div style={styles.footerSeparator} />
-            <div style={styles.footerItem}>
-              <span style={styles.footerValue}>
-                {killsPerHour.toFixed(0)} kills/hr
-              </span>
+            <div style={styles.footerDivider} />
+            <div style={styles.footerMetric}>
+              <span style={styles.footerLabel}>Kills/hr</span>
+              <span style={styles.footerValue}>{killsPerHour.toFixed(0)}</span>
+            </div>
+            <div style={styles.footerDivider} />
+            <div style={styles.footerMetric}>
+              <span style={styles.footerLabel}>Loot/hr</span>
+              <span style={styles.footerValue}>{lootPerHour.toFixed(0)} PEC</span>
             </div>
           </div>
         </div>
@@ -309,8 +256,8 @@ export function PopoutStats() {
   );
 }
 
-// Hero Stat Component
-function HeroStat({
+// Hero Stat Card Component
+function HeroStatCard({
   statKey,
   data,
   onChange,
@@ -328,25 +275,19 @@ function HeroStat({
   const Icon = stat.icon;
 
   return (
-    <div style={styles.heroStat}>
-      <Icon
-        size={40}
-        style={{
-          position: "absolute",
-          right: 16,
-          top: "50%",
-          transform: "translateY(-50%)",
-          opacity: 0.1,
-          color: colors.textMuted,
-        }}
-      />
+    <div style={styles.heroCard}>
+      {/* Background Icon */}
+      <div style={styles.heroIcon}>
+        <Icon size={60} />
+      </div>
+
       {settingsMode ? (
-        <div style={{ width: "100%" }}>
+        <div style={{ width: "100%", zIndex: 1 }}>
           <StatSelector currentKey={statKey} onSelect={onChange} />
         </div>
       ) : (
         <>
-          <div style={styles.heroLabel}>{stat.label}</div>
+          <div style={styles.heroLabel}>{stat.label.toUpperCase()}</div>
           <div style={{ ...styles.heroValue, color: value.color }}>
             {value.value}
             {value.unit && <span style={styles.heroUnit}> {value.unit}</span>}
@@ -357,19 +298,17 @@ function HeroStat({
   );
 }
 
-// Stat Tile Component
-function StatTile({
+// Stat Card Component
+function StatCard({
   statKey,
   data,
   onChange,
   settingsMode,
-  size,
 }: {
   statKey: string;
   data: StatData;
   onChange: (newKey: string) => void;
   settingsMode: boolean;
-  size: "medium" | "small";
 }) {
   const stat = STAT_MAP.get(statKey);
   if (!stat) return null;
@@ -377,31 +316,23 @@ function StatTile({
   const value = stat.getValue(data);
   const Icon = stat.icon;
 
-  const isMedium = size === "medium";
-
   return (
-    <div style={isMedium ? styles.statTileMedium : styles.statTileSmall}>
-      <Icon
-        size={isMedium ? 24 : 20}
-        style={{
-          position: "absolute",
-          right: 8,
-          top: "50%",
-          transform: "translateY(-50%)",
-          opacity: 0.08,
-          color: colors.textMuted,
-        }}
-      />
+    <div style={styles.statCard}>
+      {/* Background Icon */}
+      <div style={styles.statIcon}>
+        <Icon size={32} />
+      </div>
+
       {settingsMode ? (
-        <StatSelector currentKey={statKey} onSelect={onChange} />
+        <div style={{ zIndex: 1 }}>
+          <StatSelector currentKey={statKey} onSelect={onChange} />
+        </div>
       ) : (
         <>
-          <div style={isMedium ? styles.tileLabel : styles.tileLabelSmall}>
-            {stat.label}
-          </div>
-          <div style={isMedium ? styles.tileValue : styles.tileValueSmall}>
+          <div style={styles.statLabel}>{stat.label}</div>
+          <div style={{ ...styles.statValue, color: value.color }}>
             {value.value}
-            {value.unit && <span style={styles.tileUnit}> {value.unit}</span>}
+            {value.unit && <span style={styles.statUnit}> {value.unit}</span>}
           </div>
         </>
       )}
@@ -409,7 +340,7 @@ function StatTile({
   );
 }
 
-// Stat Selector Component (for settings mode)
+// Stat Selector Dropdown
 function StatSelector({
   currentKey,
   onSelect,
@@ -422,18 +353,12 @@ function StatSelector({
 
   return (
     <div style={{ position: "relative" }}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={styles.selectorButton}
-      >
+      <button onClick={() => setIsOpen(!isOpen)} style={styles.selectorButton}>
         {currentStat?.label || "Select..."}
       </button>
       {isOpen && (
         <>
-          <div
-            style={styles.selectorOverlay}
-            onClick={() => setIsOpen(false)}
-          />
+          <div style={styles.selectorOverlay} onClick={() => setIsOpen(false)} />
           <div style={styles.selectorDropdown}>
             {Array.from(STAT_MAP.values()).map((stat) => (
               <button
@@ -445,11 +370,10 @@ function StatSelector({
                 style={{
                   ...styles.selectorOption,
                   backgroundColor:
-                    stat.key === currentKey
-                      ? "hsl(217 91% 68% / 0.15)"
-                      : "transparent",
+                    stat.key === currentKey ? "hsl(217 91% 68% / 0.15)" : "transparent",
                 }}
               >
+                <span style={styles.selectorCategory}>{stat.category}</span>
                 {stat.label}
               </button>
             ))}
@@ -466,7 +390,7 @@ const styles: Record<string, React.CSSProperties> = {
     background: colors.bgBase,
     display: "flex",
     flexDirection: "column",
-    fontFamily: "'Inter', system-ui, sans-serif",
+    fontFamily: typography.sans,
   },
   header: {
     position: "relative",
@@ -494,11 +418,11 @@ const styles: Record<string, React.CSSProperties> = {
     width: 20,
     height: 16,
     border: "none",
-    borderRadius: radius.sm,
+    borderRadius: radius.xs,
     cursor: "pointer",
     transition: "all 0.15s ease",
   },
-  loadoutDropdownContainer: {
+  loadoutContainer: {
     position: "absolute",
     left: 32,
     // @ts-expect-error Electron specific
@@ -538,84 +462,93 @@ const styles: Record<string, React.CSSProperties> = {
   settingsRow: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.sm,
-  },
-  settingsLabel: {
-    fontSize: 10,
-    fontWeight: 600,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
   },
   resetButton: {
     display: "flex",
     alignItems: "center",
-    gap: 4,
+    gap: spacing.xs,
     padding: `${spacing.xs}px ${spacing.sm}px`,
     border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
+    borderRadius: radius.xs,
     backgroundColor: "transparent",
     color: colors.textMuted,
     fontSize: 10,
+    fontWeight: 600,
     cursor: "pointer",
+    transition: "all 0.15s ease",
   },
   versionButton: {
     padding: `${spacing.xs}px ${spacing.sm}px`,
     border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
+    borderRadius: radius.xs,
     backgroundColor: colors.bgCard,
-    color: "#06b6d4",
+    color: colors.info,
     fontSize: 10,
     fontWeight: 600,
     cursor: "pointer",
     marginLeft: "auto",
   },
-  statsContent: {
+  settingsHint: {
+    fontSize: 9,
+    color: colors.textMuted,
+    textAlign: "center",
+  },
+  content: {
     flex: 1,
     display: "flex",
     flexDirection: "column",
     padding: spacing.sm,
     gap: spacing.sm,
   },
-  heroStat: {
+  heroCard: {
     position: "relative",
     backgroundColor: colors.bgCard,
-    border: `1px solid ${colors.border}`,
+    border: `2px solid ${colors.border}`,
     borderRadius: radius.md,
-    padding: spacing.md,
+    padding: spacing.lg,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 80,
+    minHeight: 90,
     overflow: "hidden",
+  },
+  heroIcon: {
+    position: "absolute",
+    right: spacing.sm,
+    top: "50%",
+    transform: "translateY(-50%)",
+    opacity: 0.06,
+    color: colors.iconWatermark,
+    pointerEvents: "none",
   },
   heroLabel: {
     fontSize: 10,
-    fontWeight: 600,
-    color: colors.textMuted,
-    textTransform: "uppercase",
+    fontWeight: 700,
+    color: colors.textSecondary,
     letterSpacing: "0.1em",
     marginBottom: spacing.xs,
+    zIndex: 1,
   },
   heroValue: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 700,
-    fontFamily: "monospace",
+    fontFamily: typography.mono,
     lineHeight: 1,
+    zIndex: 1,
   },
   heroUnit: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 600,
     opacity: 0.7,
   },
-  statsRow: {
+  statsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gap: spacing.xs,
   },
-  statTileMedium: {
+  statCard: {
     position: "relative",
     backgroundColor: colors.bgCard,
     border: `1px solid ${colors.border}`,
@@ -623,116 +556,81 @@ const styles: Record<string, React.CSSProperties> = {
     padding: spacing.sm,
     display: "flex",
     flexDirection: "column",
-    minHeight: 50,
+    minHeight: 58,
     overflow: "hidden",
   },
-  statTileSmall: {
-    position: "relative",
-    backgroundColor: colors.bgCard,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    padding: spacing.xs,
-    display: "flex",
-    flexDirection: "column",
-    minHeight: 40,
-    overflow: "hidden",
+  statIcon: {
+    position: "absolute",
+    right: spacing.xs,
+    top: "50%",
+    transform: "translateY(-50%)",
+    opacity: 0.05,
+    color: colors.iconWatermark,
+    pointerEvents: "none",
   },
-  tileLabel: {
+  statLabel: {
     fontSize: 9,
     fontWeight: 600,
     color: colors.textMuted,
     textTransform: "uppercase",
     letterSpacing: "0.05em",
-    marginBottom: 4,
+    marginBottom: spacing.xs,
+    zIndex: 1,
   },
-  tileLabelSmall: {
-    fontSize: 8,
-    fontWeight: 600,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    marginBottom: 2,
-  },
-  tileValue: {
-    fontSize: 18,
+  statValue: {
+    fontSize: 16,
     fontWeight: 700,
-    fontFamily: "monospace",
-    color: colors.textPrimary,
+    fontFamily: typography.mono,
+    zIndex: 1,
   },
-  tileValueSmall: {
-    fontSize: 14,
-    fontWeight: 700,
-    fontFamily: "monospace",
-    color: colors.textPrimary,
-  },
-  tileUnit: {
+  statUnit: {
     fontSize: "0.7em",
     fontWeight: 600,
     opacity: 0.7,
   },
-  skillsRow: {
-    display: "flex",
-    gap: spacing.sm,
-    backgroundColor: colors.bgCard,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-  },
-  skillItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: 6,
-    flex: 1,
-  },
-  skillLabel: {
-    fontSize: 10,
-    fontWeight: 600,
-    color: colors.textMuted,
-  },
-  skillValue: {
-    fontSize: 12,
-    fontWeight: 700,
-    fontFamily: "monospace",
-    color: colors.textPrimary,
-  },
   footer: {
     display: "flex",
     alignItems: "center",
-    gap: spacing.sm,
-    padding: `${spacing.xs}px ${spacing.sm}px`,
+    justifyContent: "space-around",
+    gap: spacing.xs,
+    padding: spacing.sm,
     backgroundColor: colors.bgPanel,
+    border: `1px solid ${colors.borderSubtle}`,
     borderRadius: radius.sm,
     marginTop: "auto",
   },
-  footerItem: {
+  footerMetric: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    gap: 6,
+    gap: 2,
   },
   footerLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 600,
     color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
   },
   footerValue: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    fontFamily: "monospace",
+    fontFamily: typography.mono,
     color: colors.textPrimary,
   },
-  footerSeparator: {
+  footerDivider: {
     width: 1,
-    height: 12,
-    backgroundColor: colors.border,
+    height: 20,
+    backgroundColor: colors.borderSubtle,
   },
   selectorButton: {
     width: "100%",
-    padding: "6px 8px",
-    backgroundColor: "hsl(220 13% 12%)",
-    border: "1px solid hsl(220 13% 25%)",
-    borderRadius: radius.sm,
+    padding: `${spacing.xs}px ${spacing.sm}px`,
+    backgroundColor: colors.bgBase,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.xs,
     color: colors.textPrimary,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 600,
     cursor: "pointer",
     textAlign: "left",
@@ -757,10 +655,11 @@ const styles: Record<string, React.CSSProperties> = {
     maxHeight: 200,
     overflowY: "auto",
     zIndex: 1000,
+    boxShadow: `0 4px 12px ${colors.bgBase}80`,
   },
   selectorOption: {
     width: "100%",
-    padding: "6px 8px",
+    padding: `${spacing.xs}px ${spacing.sm}px`,
     border: "none",
     backgroundColor: "transparent",
     color: colors.textPrimary,
@@ -768,8 +667,17 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
     cursor: "pointer",
     textAlign: "left",
+    display: "flex",
+    alignItems: "center",
+    gap: spacing.xs,
     transition: "background-color 0.1s ease",
+  },
+  selectorCategory: {
+    fontSize: 8,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    minWidth: 50,
   },
 };
 
-export default PopoutStats;
+export default PopoutStatsV2;
