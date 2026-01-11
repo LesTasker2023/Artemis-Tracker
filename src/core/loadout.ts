@@ -114,21 +114,21 @@ const WEAPON_ENHANCER_COST_PED = WEAPON_ENHANCER_AMMOBURN_PEC * AMMOBURN_TO_PED;
 // ==================== Pure Functions ====================
 
 /**
- * Calculate weapon/amp cost per shot (decay + ammo burn)
- * Note: decay is already in PED (converted at source), ammoBurn needs conversion
+ * Calculate weapon/amp cost per shot (ammo burn ONLY - decay calculated separately)
+ * Note: ammoBurn needs conversion to PED (multiply by 0.0001)
  */
 export function calculateWeaponCost(equipment?: Equipment): number {
   if (!equipment) return 0;
-  const { decay, ammoBurn } = equipment.economy;
-  return decay + ammoBurn * AMMOBURN_TO_PED;
+  const { ammoBurn } = equipment.economy;
+  return ammoBurn * AMMOBURN_TO_PED;
 }
 
 /**
- * Calculate scope/sight cost per shot (decay only - no ammo burn)
+ * Calculate scope/sight cost per shot (no per-shot cost - decay calculated separately)
  */
 export function calculateAttachmentCost(equipment?: Equipment): number {
-  if (!equipment) return 0;
-  return equipment.economy.decay;
+  // Scopes and sights have no per-shot cost (only decay, which is calculated separately)
+  return 0;
 }
 
 /**
@@ -183,13 +183,15 @@ export function isLimitedItem(name: string): boolean {
 
 /**
  * Calculate full loadout costs breakdown
+ * NOTE: This only returns ammo burn and enhancer costs.
+ * Equipment decay is calculated separately in session stats.
  */
 export function calculateLoadoutCosts(loadout: Loadout): LoadoutCosts {
-  // Weapon and amp use decay + ammo burn
+  // Weapon and amp ammo burn (decay calculated separately)
   const weaponCost = calculateWeaponCost(loadout.weapon);
   const ampCost = calculateWeaponCost(loadout.amp);
-  
-  // Scope and sight use decay only
+
+  // Scope and sight have no per-shot cost (decay calculated separately)
   const scopeCost = calculateAttachmentCost(loadout.scope);
   const sightCost = calculateAttachmentCost(loadout.sight);
   

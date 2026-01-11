@@ -91,11 +91,11 @@ export interface SessionStats {
   // Economy
   lootCount: number;
   lootValue: number;
-  totalSpend: number;
-  profit: number;        // lootValue - ammo/weapon spend (without decay estimate)
-  netProfit: number;     // lootValue - totalSpend - decay (true profit after all costs)
-  returnRate: number;    // lootValue / spend as percentage
-  decay: number;         // Total estimated decay (weapon + armor, L and UL)
+  totalSpend: number;    // Ammo burn + enhancer costs only (NO decay)
+  profit: number;        // lootValue - totalSpend (gross profit before decay)
+  netProfit: number;     // lootValue - totalSpend - decay (net profit after all costs)
+  returnRate: number;    // lootValue / totalSpend as percentage
+  decay: number;         // Total equipment decay (weapon + armor, L and UL)
   repairBill: number;    // Repair cost for UL items only (L items = TT loss, not repair)
   
   // Gains (backwards compatible)
