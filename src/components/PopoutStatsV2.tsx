@@ -8,12 +8,10 @@ import {
   GripHorizontal,
   Settings,
   RotateCcw,
-  Activity,
   X,
   Clock,
   Edit2,
   ChevronDown,
-  ChevronUp,
   Play,
   Square,
 } from "lucide-react";
@@ -111,6 +109,7 @@ export function PopoutStatsV2() {
   const [config, setConfig] = useState<PopoutConfigV2>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [sessionActive, setSessionActive] = useState(false);
 
   // Loadout management
@@ -124,6 +123,7 @@ export function PopoutStatsV2() {
   useEffect(() => {
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
+      setWindowHeight(window.innerHeight);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -196,18 +196,6 @@ export function PopoutStatsV2() {
     window.electron?.popout?.close();
   };
 
-  const handleToggleCollapsed = () => {
-    setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
-  };
-
-  const handleStartSession = () => {
-    window.electron?.popout?.startSession();
-  };
-
-  const handleStopSession = () => {
-    window.electron?.popout?.stopSession();
-  };
-
   // Calculate responsive columns based on window width
   const getColumns = () => {
     if (windowWidth < 220) return 1;
@@ -217,21 +205,68 @@ export function PopoutStatsV2() {
 
   const columns = getColumns();
 
-  // Collapsed minimal mode
-  if (config.collapsed) {
+  const MIN_CONTENT_HEIGHT = 120;
+  const isMinified = config.collapsed || windowHeight < MIN_CONTENT_HEIGHT;
+
+  // When minified, remove page margins/padding and force a small document height so
+  // the native window can shrink without showing any blank area around the bar.
+  useEffect(() => {
+    try {
+      const html = document.documentElement as any;
+      const body = document.body as any;
+
+      if (isMinified) {
+        // Save previous styles so we can restore them
+        html.__prevStyle = {
+          height: html.style.height,
+          margin: html.style.margin,
+          padding: html.style.padding,
+          overflow: html.style.overflow,
+        };
+        body.__prevStyle = {
+          height: body.style.height,
+          margin: body.style.margin,
+          padding: body.style.padding,
+          overflow: body.style.overflow,
+        };
+
+        html.style.height = "20px";
+        html.style.margin = "0";
+        html.style.padding = "0";
+        html.style.overflow = "hidden";
+
+        body.style.height = "20px";
+        body.style.margin = "0";
+        body.style.padding = "0";
+        body.style.overflow = "hidden";
+      } else {
+        // Restore previous styles if present
+        if (html.__prevStyle) {
+          html.style.height = html.__prevStyle.height || "";
+          html.style.margin = html.__prevStyle.margin || "";
+          html.style.padding = html.__prevStyle.padding || "";
+          html.style.overflow = html.__prevStyle.overflow || "";
+          delete html.__prevStyle;
+        }
+        if (body.__prevStyle) {
+          body.style.height = body.__prevStyle.height || "";
+          body.style.margin = body.__prevStyle.margin || "";
+          body.style.padding = body.__prevStyle.padding || "";
+          body.style.overflow = body.__prevStyle.overflow || "";
+          delete body.__prevStyle;
+        }
+      }
+    } catch (e) {
+      // ignore DOM errors
+    }
+  }, [isMinified]);
+
+  // Collapsed/minified minimal mode (automatic on small heights)
+  if (isMinified) {
     return (
       <div style={styles.collapsedContainer}>
         {/* Collapsed Header Bar */}
         <div style={styles.collapsedBar}>
-          {/* Expand Button */}
-          <button
-            onClick={handleToggleCollapsed}
-            style={styles.collapseButton}
-            title="Expand"
-          >
-            <ChevronDown size={12} />
-          </button>
-
           {/* Minimal Stats Display */}
           <div style={styles.collapsedStats}>
             {/* User-configured stats in order */}
@@ -279,22 +314,8 @@ export function PopoutStatsV2() {
     <div style={styles.container}>
       {/* Draggable Header */}
       <div style={styles.header}>
-        {/* Mode Tabs */}
-        <div style={styles.modeTabs}>
-          <button
-            onClick={() => handleModeChange("stats")}
-            style={{
-              ...styles.modeTab,
-              backgroundColor:
-                config.mode === "stats" ? colors.bgCard : "transparent",
-              color:
-                config.mode === "stats" ? colors.textPrimary : colors.textMuted,
-            }}
-            title="Stats Mode"
-          >
-            <Activity size={10} />
-          </button>
-        </div>
+        {/* Mode Tabs (hidden) */}
+        <div style={styles.modeTabs} />
 
         {/* Duration Display */}
         {config.mode === "stats" && (
@@ -315,13 +336,6 @@ export function PopoutStatsV2() {
         <div style={styles.headerActions}>
           {config.mode === "stats" && (
             <>
-              <button
-                onClick={handleToggleCollapsed}
-                style={styles.headerButton}
-                title="Collapse to minimal mode"
-              >
-                <ChevronUp size={12} />
-              </button>
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 style={{
@@ -468,7 +482,7 @@ function StatCard({
       {settingsMode && (
         <div style={styles.cardActions}>
           <button
-            onClick={() => setShowSelector(!showSelector)}
+            onClick={() => setShowSelector(true)}
             style={styles.editButtonSmall}
             title="Change stat"
           >
@@ -486,13 +500,18 @@ function StatCard({
         </div>
       )}
 
-      <StatSelector
-        currentKey={statKey}
-        onSelect={(newKey) => {
-          onChange(newKey);
-          setShowSelector(false);
-        }}
-      />
+      {showSelector && (
+        <StatSelector
+          currentKey={statKey}
+          onSelect={(newKey) => {
+            onChange(newKey);
+            setShowSelector(false);
+          }}
+          open={true}
+          modal
+          onClose={() => setShowSelector(false)}
+        />
+      )}
 
       {/* Always show stat value */}
       <div style={styles.statLabel}>{stat.label}</div>
@@ -508,13 +527,73 @@ function StatCard({
 function StatSelector({
   currentKey,
   onSelect,
+  open,
+  modal,
+  onClose,
 }: {
   currentKey: string;
   onSelect: (key: string) => void;
+  open?: boolean;
+  modal?: boolean;
+  onClose?: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const currentStat = STAT_MAP.get(currentKey);
+  const controlled = open !== undefined;
+  const visible = controlled ? !!open : isOpen;
 
+  const statsList = Array.from(STAT_MAP.values());
+  const groups = statsList.reduce((acc: any, stat) => {
+    const last = acc[acc.length - 1];
+    if (!last || last.category !== stat.category)
+      acc.push({ category: stat.category, items: [stat] });
+    else last.items.push(stat);
+    return acc;
+  }, [] as Array<{ category: string; items: any[] }>);
+
+  // Modal mode: render a centered modal with overlay
+  if (modal) {
+    if (!visible) return null;
+    return (
+      <>
+        <div
+          style={styles.selectorOverlay}
+          onClick={() => (onClose ? onClose() : setIsOpen(false))}
+        />
+        <div style={styles.selectorModal}>
+          <div style={styles.selectorDropdown}>
+            {groups.map((group: { category: string; items: any[] }) => (
+              <div key={group.category}>
+                <div style={styles.selectorGroupHeader}>{group.category}</div>
+                {group.items.map((stat: any) => (
+                  <button
+                    key={stat.key}
+                    onClick={() => {
+                      onSelect(stat.key);
+                      if (onClose) onClose();
+                      else setIsOpen(false);
+                    }}
+                    style={{
+                      ...styles.selectorOption,
+                      backgroundColor:
+                        stat.key === currentKey
+                          ? "hsl(217 91% 68% / 0.15)"
+                          : "transparent",
+                    }}
+                  >
+                    {stat.label}
+                  </button>
+                ))}
+                <div style={styles.selectorGroupDivider} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Default dropdown behavior (unchanged)
   return (
     <div style={{ position: "relative" }}>
       <button onClick={() => setIsOpen(!isOpen)} style={styles.selectorButton}>
@@ -527,24 +606,29 @@ function StatSelector({
             onClick={() => setIsOpen(false)}
           />
           <div style={styles.selectorDropdown}>
-            {Array.from(STAT_MAP.values()).map((stat) => (
-              <button
-                key={stat.key}
-                onClick={() => {
-                  onSelect(stat.key);
-                  setIsOpen(false);
-                }}
-                style={{
-                  ...styles.selectorOption,
-                  backgroundColor:
-                    stat.key === currentKey
-                      ? "hsl(217 91% 68% / 0.15)"
-                      : "transparent",
-                }}
-              >
-                <span style={styles.selectorCategory}>{stat.category}</span>
-                {stat.label}
-              </button>
+            {groups.map((group: { category: string; items: any[] }) => (
+              <div key={group.category}>
+                <div style={styles.selectorGroupHeader}>{group.category}</div>
+                {group.items.map((stat: any) => (
+                  <button
+                    key={stat.key}
+                    onClick={() => {
+                      onSelect(stat.key);
+                      setIsOpen(false);
+                    }}
+                    style={{
+                      ...styles.selectorOption,
+                      backgroundColor:
+                        stat.key === currentKey
+                          ? "hsl(217 91% 68% / 0.15)"
+                          : "transparent",
+                    }}
+                  >
+                    {stat.label}
+                  </button>
+                ))}
+                <div style={styles.selectorGroupDivider} />
+              </div>
             ))}
           </div>
         </>
@@ -555,7 +639,6 @@ function StatSelector({
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    minHeight: "100vh",
     background: colors.bgBase,
     display: "flex",
     flexDirection: "column",
@@ -659,6 +742,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: typography.mono,
     color: colors.textSecondary,
     pointerEvents: "none",
+    marginRight: "auto",
   },
   durationText: {
     fontWeight: 600,
@@ -839,7 +923,6 @@ const styles: Record<string, React.CSSProperties> = {
     padding: spacing.sm,
     display: "flex",
     flexDirection: "column",
-    minHeight: 58,
     overflow: "hidden",
   },
   statIcon: {
@@ -891,6 +974,16 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: 0,
     zIndex: 9999,
   },
+  selectorModal: {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    zIndex: 10001,
+    width: "90%",
+    maxWidth: 420,
+    padding: spacing.xs,
+  },
   selectorDropdown: {
     position: "absolute",
     top: "100%",
@@ -925,6 +1018,19 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.textMuted,
     textTransform: "uppercase",
     minWidth: 50,
+    display: "none",
+  },
+  selectorGroupHeader: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: colors.textSecondary,
+    textTransform: "uppercase",
+    padding: `${spacing.xs}px ${spacing.sm}px`,
+  },
+  selectorGroupDivider: {
+    height: 1,
+    backgroundColor: colors.borderSubtle,
+    margin: `${spacing.xs}px 0`,
   },
 };
 
