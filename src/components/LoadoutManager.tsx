@@ -32,7 +32,6 @@ import { EquipmentAutocomplete } from "./EquipmentAutocomplete";
 import { ArmorAutocomplete } from "./ArmorAutocomplete";
 import { ArmorPlateAutocomplete } from "./ArmorPlateAutocomplete";
 import { EquipmentRecord } from "../core/equipment-db";
-import { createPortal } from "react-dom";
 // @ts-ignore: CSS module declaration
 import styles from "./LoadoutManager.module.css";
 
@@ -275,6 +274,7 @@ function LoadoutCard({
   onDelete,
 }: LoadoutCardProps) {
   const effective = getEffectiveCostPerShot(loadout);
+  const costs = calculateLoadoutCosts(loadout);
 
   return (
     <div
@@ -1095,10 +1095,9 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             <Save size={18} />
             Save Loadout
           </button>
-        </footer>
         </div>
       </div>
-    </div>, document.body
+    </div>
   );
 }
 
