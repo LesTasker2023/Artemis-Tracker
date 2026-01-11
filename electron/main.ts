@@ -750,19 +750,37 @@ ipcMain.handle('log:probe', () => {
 // ==================== Equipment Data Loading ====================
 
 function loadEquipmentData(type: string): unknown[] {
-  const dataPath = process.env.VITE_DEV_SERVER_URL
-    ? path.join(__dirname, '..', 'data', `${type}.json`)
-    : path.join(__dirname, '..', 'data', `${type}.json`);
-  
+  // Try writable userData directory first (for updated data)
+  const userDataDir = getDataDir();
+  const userDataPath = path.join(userDataDir, `${type}.json`);
+
   try {
-    if (fs.existsSync(dataPath)) {
-      const content = fs.readFileSync(dataPath, 'utf-8');
-      return JSON.parse(content);
+    if (fs.existsSync(userDataPath)) {
+      const content = fs.readFileSync(userDataPath, 'utf-8');
+      const data = JSON.parse(content);
+      if (Array.isArray(data) && data.length > 0) {
+        console.log(`[Main] Loaded ${type} from userData (${data.length} items)`);
+        return data;
+      }
     }
-    console.log(`[Main] Equipment file not found: ${dataPath}`);
+  } catch (err) {
+    console.error(`[Main] Failed to load ${type} from userData:`, err);
+  }
+
+  // Fallback to bundled data (from ASAR or dev folder)
+  const bundledPath = path.join(__dirname, '..', 'data', `${type}.json`);
+
+  try {
+    if (fs.existsSync(bundledPath)) {
+      const content = fs.readFileSync(bundledPath, 'utf-8');
+      const data = JSON.parse(content);
+      console.log(`[Main] Loaded ${type} from bundled data (${Array.isArray(data) ? data.length : 0} items)`);
+      return Array.isArray(data) ? data : [];
+    }
+    console.log(`[Main] Equipment file not found: ${bundledPath}`);
     return [];
   } catch (err) {
-    console.error(`[Main] Failed to load ${type}:`, err);
+    console.error(`[Main] Failed to load ${type} from bundled data:`, err);
     return [];
   }
 }
@@ -778,9 +796,21 @@ ipcMain.handle('equipment:load', (_event: unknown, type: string) => {
 // ==================== Equipment Database Updater ====================
 
 function getDataDir(): string {
-  return process.env.VITE_DEV_SERVER_URL
-    ? path.join(__dirname, '..', 'data')
-    : path.join(__dirname, '..', 'data');
+  if (process.env.VITE_DEV_SERVER_URL) {
+    // Development: use local data folder
+    return path.join(__dirname, '..', 'data');
+  } else {
+    // Production: use writable userData directory
+    const userDataPath = app.getPath('userData');
+    const dataDir = path.join(userDataPath, 'equipment-data');
+
+    // Ensure directory exists
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    return dataDir;
+  }
 }
 
 ipcMain.handle('equipment:check-updates', async () => {
