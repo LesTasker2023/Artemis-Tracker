@@ -136,6 +136,20 @@ export function PopoutStatsV2() {
     });
   };
 
+  const handleAddStat = () => {
+    setConfig((prev) => ({
+      ...prev,
+      stats: [...prev.stats, "kills"], // Default to kills when adding
+    }));
+  };
+
+  const handleRemoveStat = (index: number) => {
+    setConfig((prev) => ({
+      ...prev,
+      stats: prev.stats.filter((_, i) => i !== index),
+    }));
+  };
+
   const handleReset = () => {
     setConfig(DEFAULT_CONFIG);
   };
@@ -362,10 +376,19 @@ export function PopoutStatsV2() {
                 statKey={statKey}
                 data={statData}
                 onChange={(newKey) => handleChangeStat(index, newKey)}
+                onRemove={() => handleRemoveStat(index)}
                 settingsMode={showSettings}
+                canRemove={config.stats.length > 1}
               />
             ))}
           </div>
+
+          {/* Add Card Button */}
+          {showSettings && (
+            <button onClick={handleAddStat} style={styles.addCardButton}>
+              + Add Stat Card
+            </button>
+          )}
 
           {/* Footer - Efficiency Metrics */}
           <div style={styles.footer}>
@@ -455,12 +478,16 @@ function StatCard({
   statKey,
   data,
   onChange,
+  onRemove,
   settingsMode,
+  canRemove,
 }: {
   statKey: string;
   data: StatData;
   onChange: (newKey: string) => void;
+  onRemove: () => void;
   settingsMode: boolean;
+  canRemove: boolean;
 }) {
   const [showSelector, setShowSelector] = useState(false);
   const stat = STAT_MAP.get(statKey);
@@ -476,15 +503,26 @@ function StatCard({
         <Icon size={32} />
       </div>
 
-      {/* Edit Button (only in settings mode) */}
+      {/* Card Actions (only in settings mode) */}
       {settingsMode && (
-        <button
-          onClick={() => setShowSelector(!showSelector)}
-          style={styles.editButtonSmall}
-          title="Change stat"
-        >
-          <Edit2 size={10} />
-        </button>
+        <div style={styles.cardActions}>
+          <button
+            onClick={() => setShowSelector(!showSelector)}
+            style={styles.editButtonSmall}
+            title="Change stat"
+          >
+            <Edit2 size={10} />
+          </button>
+          {canRemove && (
+            <button
+              onClick={onRemove}
+              style={styles.removeButton}
+              title="Remove card"
+            >
+              <X size={10} />
+            </button>
+          )}
+        </div>
       )}
 
       {/* Stat Selector Dropdown */}
@@ -812,10 +850,15 @@ const styles: Record<string, React.CSSProperties> = {
     // @ts-expect-error Electron specific
     WebkitAppRegion: "no-drag",
   },
-  editButtonSmall: {
+  cardActions: {
     position: "absolute",
     top: spacing.xs,
     right: spacing.xs,
+    display: "flex",
+    gap: spacing.xs,
+    zIndex: 2,
+  },
+  editButtonSmall: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -827,10 +870,41 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.textMuted,
     cursor: "pointer",
     transition: "all 0.15s ease",
-    zIndex: 2,
     fontSize: 9,
     // @ts-expect-error Electron specific
     WebkitAppRegion: "no-drag",
+  },
+  removeButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 20,
+    height: 20,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.xs,
+    backgroundColor: colors.bgPanel,
+    color: colors.danger,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    fontSize: 9,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
+  },
+  addCardButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    padding: `${spacing.sm}px ${spacing.md}px`,
+    border: `1px dashed ${colors.border}`,
+    borderRadius: radius.sm,
+    backgroundColor: "transparent",
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    width: "100%",
   },
   statsGrid: {
     display: "grid",
