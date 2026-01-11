@@ -67,6 +67,7 @@
             "dist/**",
             "dist-electron/**",
             "node_modules/**",
+            "data/**",
             "package.json"
         ],
         "publish": [
