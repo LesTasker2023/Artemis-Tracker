@@ -1,11 +1,15 @@
 {
     "name": "artemis-v3",
-    "version": "3.0.0-alpha.1",
+    "version": "0.3.1",
     "description": "ARTEMIS v3 - Entropia Universe Activity Tracker",
     "type": "module",
     "main": "dist-electron/main.cjs",
     "author": "Les Tasker",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/LesTasker2023/Artemis-Tracker.git"
+    },
     "scripts": {
         "dev": "vite",
         "dev:electron": "concurrently -k \"vite\" \"npm run electron:dev\"",
@@ -66,7 +70,9 @@
         ],
         "publish": [
             {
-                "provider": "github"
+                "provider": "github",
+                "owner": "LesTasker2023",
+                "repo": "Artemis-Tracker"
             }
         ],
         "icon": "build/icon",
