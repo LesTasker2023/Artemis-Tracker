@@ -1,6 +1,6 @@
 {
     "name": "artemis",
-    "version": "0.3.5",
+    "version": "0.3.6",
     "description": "ARTEMIS - Hunt Smarter, Not Harder.",
     "type": "module",
     "main": "dist-electron/main.cjs",
@@ -58,7 +58,7 @@
     },
     "build": {
         "appId": "com.lest.artemis",
-        "productName": "Artemis v3",
+        "productName": "Artemis",
         "directories": {
             "buildResources": "build"
         },
