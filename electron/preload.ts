@@ -102,6 +102,20 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.on('popout:closed', handler);
       return () => ipcRenderer.removeListener('popout:closed', handler);
     },
+    startSession: () => ipcRenderer.send('popout:session-start'),
+    stopSession: () => ipcRenderer.send('popout:session-stop'),
+    sendSessionStatus: (isActive: boolean) => ipcRenderer.send('popout:session-status', isActive),
+    requestSessionStatus: () => ipcRenderer.send('popout:request-session-status'),
+    onSessionStatusUpdate: (callback: (isActive: boolean) => void) => {
+      const handler = (_: unknown, isActive: boolean) => callback(isActive);
+      ipcRenderer.on('popout:session-status', handler);
+      return () => ipcRenderer.removeListener('popout:session-status', handler);
+    },
+    onSessionStatusRequest: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('popout:session-status-requested', handler);
+      return () => ipcRenderer.removeListener('popout:session-status-requested', handler);
+    },
   },
   asteroid: {
     save: (asteroids: Asteroid[]) => ipcRenderer.invoke('asteroid:save', asteroids),

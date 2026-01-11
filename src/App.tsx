@@ -247,6 +247,46 @@ function App() {
     };
   }, [stats, events.length]);
 
+  // Listen for session control requests from popout
+  useEffect(() => {
+    const handleSessionStart = () => {
+      console.log("[App] Session start requested from popout");
+      startSession();
+    };
+
+    const handleSessionStop = () => {
+      console.log("[App] Session stop requested from popout");
+      stopSession();
+    };
+
+    window.electron?.ipcRenderer?.on('popout:session-start-requested', handleSessionStart);
+    window.electron?.ipcRenderer?.on('popout:session-stop-requested', handleSessionStop);
+
+    return () => {
+      window.electron?.ipcRenderer?.removeListener('popout:session-start-requested', handleSessionStart);
+      window.electron?.ipcRenderer?.removeListener('popout:session-stop-requested', handleSessionStop);
+    };
+  }, [startSession, stopSession]);
+
+  // Send session status updates to popout
+  useEffect(() => {
+    console.log("[App] Sending session status to popout:", sessionActive);
+    window.electron?.popout?.sendSessionStatus(sessionActive);
+  }, [sessionActive]);
+
+  // Listen for session status requests from popout
+  useEffect(() => {
+    console.log("[App] useEffect - popout session status request listener registered");
+    const unsubscribe = window.electron?.popout?.onSessionStatusRequest(() => {
+      console.log("[App] popout session status request received, sending:", sessionActive);
+      window.electron?.popout?.sendSessionStatus(sessionActive);
+    });
+    return () => {
+      console.log("[App] useEffect cleanup - popout session status request listener removed");
+      unsubscribe?.();
+    };
+  }, [sessionActive]);
+
   // Start both log watcher and session
   const start = async () => {
     console.log("[App] start() called");

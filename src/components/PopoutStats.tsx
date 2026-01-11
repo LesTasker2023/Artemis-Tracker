@@ -14,6 +14,8 @@ import {
   Minus,
   Clock,
   Activity,
+  Play,
+  Square,
 } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius } from "./ui";
@@ -104,6 +106,7 @@ export function PopoutStats() {
   const [showSettings, setShowSettings] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  const [sessionActive, setSessionActive] = useState(false);
 
   // Track window size for responsive layout
   useEffect(() => {
@@ -159,6 +162,16 @@ export function PopoutStats() {
       unsubscribe?.();
     };
   }, [updateHistory]);
+
+  // Listen for session status updates
+  useEffect(() => {
+    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate((isActive: boolean) => {
+      setSessionActive(isActive);
+    });
+    // Request initial session status
+    window.electron?.popout?.requestSessionStatus();
+    return () => unsubscribe?.();
+  }, []);
 
   // Save config whenever it changes
   useEffect(() => {
@@ -220,6 +233,14 @@ export function PopoutStats() {
     setConfig((prev) => ({ ...prev, mode }));
   };
 
+  const handleStartSession = () => {
+    window.electron?.popout?.startSession();
+  };
+
+  const handleStopSession = () => {
+    window.electron?.popout?.stopSession();
+  };
+
   const handleChangeExpandedHeroStat = (index: number, newStatKey: string) => {
     setConfig((prev) => {
       const newHero = [...prev.expandedHero];
@@ -275,15 +296,24 @@ export function PopoutStats() {
             <GripHorizontal size={14} style={{ color: colors.textMuted }} />
           </div>
           {config.mode === "stats" && (
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              style={{
-                ...styles.settingsButton,
-                backgroundColor: showSettings ? colors.bgCard : "transparent",
-              }}
-            >
-              <Settings size={12} />
-            </button>
+            <>
+              <button
+                onClick={sessionActive ? handleStopSession : handleStartSession}
+                style={styles.sessionButton}
+                title={sessionActive ? "Stop Session" : "Start Session"}
+              >
+                {sessionActive ? <Square size={12} /> : <Play size={12} />}
+              </button>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                style={{
+                  ...styles.settingsButton,
+                  backgroundColor: showSettings ? colors.bgCard : "transparent",
+                }}
+              >
+                <Settings size={12} />
+              </button>
+            </>
           )}
         </div>
 
@@ -519,6 +549,21 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     height: 20,
     pointerEvents: "none",
+  },
+  sessionButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 24,
+    height: 20,
+    border: "none",
+    borderRadius: radius.xs,
+    backgroundColor: "transparent",
+    color: colors.textMuted,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
   },
   settingsButton: {
     display: "flex",
