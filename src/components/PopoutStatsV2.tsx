@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity, TrendingUp, TrendingDown } from "lucide-react";
+import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -133,6 +133,10 @@ export function PopoutStatsV2() {
     window.location.reload();
   };
 
+  const handleClose = () => {
+    window.electron?.popout?.close();
+  };
+
   // Calculate efficiency metrics
   const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
   const lootPerHour = stats.duration > 0 ? (stats.lootValue / stats.duration) * 3600 : 0;
@@ -156,15 +160,11 @@ export function PopoutStatsV2() {
           </button>
         </div>
 
-        {/* Loadout Dropdown */}
+        {/* Duration Display */}
         {config.mode === "stats" && (
-          <div style={styles.loadoutContainer}>
-            <LoadoutDropdown
-              loadouts={loadouts}
-              activeLoadout={activeLoadout}
-              onSelect={setActiveLoadout}
-              compact
-            />
+          <div style={styles.durationDisplay}>
+            <Clock size={10} style={{ color: colors.textMuted }} />
+            <span style={styles.durationText}>{formatDuration(stats.duration)}</span>
           </div>
         )}
 
@@ -173,34 +173,49 @@ export function PopoutStatsV2() {
           <GripHorizontal size={14} style={{ color: colors.textMuted }} />
         </div>
 
-        {/* Settings Button */}
-        {config.mode === "stats" && (
+        {/* Header Actions */}
+        <div style={styles.headerActions}>
+          {config.mode === "stats" && (
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              style={{
+                ...styles.headerButton,
+                backgroundColor: showSettings ? colors.bgCard : "transparent",
+              }}
+              title="Settings"
+            >
+              <Settings size={12} />
+            </button>
+          )}
           <button
-            onClick={() => setShowSettings(!showSettings)}
-            style={{
-              ...styles.settingsButton,
-              backgroundColor: showSettings ? colors.bgCard : "transparent",
-            }}
-            title="Settings"
+            onClick={handleClose}
+            style={styles.headerButton}
+            title="Close"
           >
-            <Settings size={12} />
+            <X size={12} />
           </button>
-        )}
+        </div>
       </div>
 
       {/* Settings Panel */}
       {config.mode === "stats" && showSettings && (
         <div style={styles.settingsPanel}>
           <div style={styles.settingsRow}>
-            <button onClick={handleReset} style={styles.resetButton}>
-              <RotateCcw size={12} />
-              Reset
+            <span style={styles.settingsLabel}>Configuration</span>
+          </div>
+          <div style={styles.settingsRow}>
+            <button onClick={handleReset} style={styles.settingsActionButton}>
+              <RotateCcw size={11} />
+              Reset to Defaults
             </button>
-            <button onClick={handleSwitchVersion} style={styles.versionButton}>
+          </div>
+          <div style={styles.settingsRow}>
+            <button onClick={handleSwitchVersion} style={styles.settingsActionButton}>
               Switch to V1
             </button>
           </div>
-          <div style={styles.settingsHint}>Click stat labels to change</div>
+          <div style={styles.settingsDivider} />
+          <div style={styles.settingsHint}>Click any stat label to change it</div>
         </div>
       )}
 
@@ -212,6 +227,16 @@ export function PopoutStatsV2() {
       {/* Stats Mode */}
       {config.mode === "stats" && (
         <div style={styles.content}>
+          {/* Loadout Dropdown */}
+          <div style={styles.loadoutRow}>
+            <LoadoutDropdown
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+              compact
+            />
+          </div>
+
           {/* Hero Stat */}
           <HeroStatCard
             statKey={config.hero}
@@ -396,16 +421,16 @@ const styles: Record<string, React.CSSProperties> = {
     position: "relative",
     display: "flex",
     alignItems: "center",
-    justifyContent: "flex-end",
-    height: 20,
+    justifyContent: "space-between",
+    height: 24,
     backgroundColor: colors.bgPanel,
+    borderBottom: `1px solid ${colors.borderSubtle}`,
     cursor: "grab",
+    padding: `0 ${spacing.xs}px`,
     // @ts-expect-error Electron specific
     WebkitAppRegion: "drag",
   },
   modeTabs: {
-    position: "absolute",
-    left: spacing.xs,
     display: "flex",
     gap: 2,
     // @ts-expect-error Electron specific
@@ -416,17 +441,23 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     width: 20,
-    height: 16,
+    height: 18,
     border: "none",
     borderRadius: radius.xs,
     cursor: "pointer",
     transition: "all 0.15s ease",
   },
-  loadoutContainer: {
-    position: "absolute",
-    left: 32,
-    // @ts-expect-error Electron specific
-    WebkitAppRegion: "no-drag",
+  durationDisplay: {
+    display: "flex",
+    alignItems: "center",
+    gap: spacing.xs,
+    fontSize: 10,
+    fontFamily: typography.mono,
+    color: colors.textSecondary,
+    pointerEvents: "none",
+  },
+  durationText: {
+    fontWeight: 600,
   },
   dragHandle: {
     position: "absolute",
@@ -435,70 +466,84 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    height: 20,
+    height: 24,
     pointerEvents: "none",
   },
-  settingsButton: {
+  headerActions: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 24,
-    height: 20,
-    border: "none",
-    color: colors.textMuted,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
+    gap: 2,
     // @ts-expect-error Electron specific
     WebkitAppRegion: "no-drag",
   },
+  headerButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 22,
+    height: 18,
+    border: "none",
+    borderRadius: radius.xs,
+    color: colors.textMuted,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+  },
   settingsPanel: {
-    padding: spacing.sm,
+    padding: spacing.md,
     backgroundColor: colors.bgPanel,
     borderBottom: `1px solid ${colors.border}`,
     display: "flex",
     flexDirection: "column",
-    gap: spacing.xs,
+    gap: spacing.sm,
   },
   settingsRow: {
     display: "flex",
     alignItems: "center",
     gap: spacing.sm,
   },
-  resetButton: {
+  settingsLabel: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: colors.textSecondary,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+  },
+  settingsActionButton: {
     display: "flex",
     alignItems: "center",
     gap: spacing.xs,
-    padding: `${spacing.xs}px ${spacing.sm}px`,
+    padding: `${spacing.xs}px ${spacing.md}px`,
     border: `1px solid ${colors.border}`,
-    borderRadius: radius.xs,
-    backgroundColor: "transparent",
-    color: colors.textMuted,
-    fontSize: 10,
-    fontWeight: 600,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgCard,
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: 500,
     cursor: "pointer",
     transition: "all 0.15s ease",
+    width: "100%",
+    justifyContent: "center",
   },
-  versionButton: {
-    padding: `${spacing.xs}px ${spacing.sm}px`,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.xs,
-    backgroundColor: colors.bgCard,
-    color: colors.info,
-    fontSize: 10,
-    fontWeight: 600,
-    cursor: "pointer",
-    marginLeft: "auto",
+  settingsDivider: {
+    height: 1,
+    backgroundColor: colors.borderSubtle,
+    margin: `${spacing.xs}px 0`,
   },
   settingsHint: {
     fontSize: 9,
     color: colors.textMuted,
     textAlign: "center",
+    fontStyle: "italic",
   },
   content: {
     flex: 1,
     display: "flex",
     flexDirection: "column",
     padding: spacing.sm,
+    gap: spacing.sm,
+  },
+  loadoutRow: {
+    display: "flex",
+    alignItems: "center",
     gap: spacing.sm,
   },
   heroCard: {
@@ -641,7 +686,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 999,
+    zIndex: 9999,
   },
   selectorDropdown: {
     position: "absolute",
@@ -654,7 +699,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: radius.sm,
     maxHeight: 200,
     overflowY: "auto",
-    zIndex: 1000,
+    zIndex: 10000,
     boxShadow: `0 4px 12px ${colors.bgBase}80`,
   },
   selectorOption: {
