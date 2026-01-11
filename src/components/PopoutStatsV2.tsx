@@ -117,6 +117,8 @@ export function PopoutStatsV2() {
     const unsubscribe = window.electron?.popout?.onSessionStatusUpdate((isActive: boolean) => {
       setSessionActive(isActive);
     });
+    // Request initial session status
+    window.electron?.popout?.requestSessionStatus();
     return () => unsubscribe?.();
   }, []);
 

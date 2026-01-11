@@ -1009,6 +1009,13 @@ ipcMain.on('popout:session-status', (_event: unknown, isActive: boolean) => {
   }
 });
 
+// Popout requests session status from main window
+ipcMain.on('popout:request-session-status', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:session-status-requested');
+  }
+});
+
 // ==================== Asteroid IPC ====================
 
 ipcMain.handle('asteroid:save', (_event: unknown, asteroids: unknown[]) => {
