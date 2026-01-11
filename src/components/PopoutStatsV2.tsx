@@ -11,6 +11,8 @@ import {
   X,
   Clock,
   Edit2,
+  Play,
+  Square,
 } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -395,7 +397,7 @@ export function PopoutStatsV2() {
             </div>
 
             {/* Session Controls */}
-            {/* <div style={styles.sessionControls}>
+            <div style={styles.sessionControls}>
               {sessionActive ? (
                 <button
                   onClick={handleStopSession}
@@ -413,7 +415,7 @@ export function PopoutStatsV2() {
                   <Play size={12} />
                 </button>
               )}
-            </div> */}
+            </div>
           </div>
 
           {/* Stats Grid */}
