@@ -3,7 +3,7 @@
  * Clean layout with hero stat, primary/secondary metrics, and skills
  */
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { GripHorizontal, Settings, RotateCcw, Activity } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius } from "./ui";
@@ -62,7 +62,9 @@ function formatDuration(seconds: number) {
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
   if (h > 0)
-    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${h}:${m.toString().padStart(2, "0")}:${s
+      .toString()
+      .padStart(2, "0")}`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
@@ -93,13 +95,19 @@ export function PopoutStats() {
   const [showSettings, setShowSettings] = useState(false);
 
   // Loadout state management
-  const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
+  const {
+    loadouts,
+    activeLoadout,
+    setActive: setActiveLoadout,
+  } = useLoadouts();
 
   // Listen for stats updates
   useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onStatsUpdate((data: LiveStats) => {
-      setStats(data);
-    });
+    const unsubscribe = window.electron?.popout?.onStatsUpdate(
+      (data: LiveStats) => {
+        setStats(data);
+      }
+    );
     window.electron?.popout?.requestStats();
     return () => {
       unsubscribe?.();
@@ -155,7 +163,8 @@ export function PopoutStats() {
   const statData: StatData = stats;
 
   // Calculate kills per hour
-  const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
+  const killsPerHour =
+    stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
 
   return (
     <div style={styles.container}>
@@ -166,8 +175,10 @@ export function PopoutStats() {
             onClick={() => handleModeChange("stats")}
             style={{
               ...styles.modeTab,
-              backgroundColor: config.mode === "stats" ? colors.bgCard : "transparent",
-              color: config.mode === "stats" ? colors.textPrimary : colors.textMuted,
+              backgroundColor:
+                config.mode === "stats" ? colors.bgCard : "transparent",
+              color:
+                config.mode === "stats" ? colors.textPrimary : colors.textMuted,
             }}
           >
             <Activity size={10} />
@@ -220,7 +231,12 @@ export function PopoutStats() {
       )}
 
       {/* Always render AsteroidPanel so it keeps listening for events */}
-      <div style={{ display: config.mode === "asteroid" ? "block" : "none", flex: 1 }}>
+      <div
+        style={{
+          display: config.mode === "asteroid" ? "block" : "none",
+          flex: 1,
+        }}
+      >
         <AsteroidPanel />
       </div>
 
@@ -294,7 +310,9 @@ export function PopoutStats() {
           <div style={styles.footer}>
             <div style={styles.footerItem}>
               <span style={styles.footerLabel}>Duration:</span>
-              <span style={styles.footerValue}>{formatDuration(stats.duration)}</span>
+              <span style={styles.footerValue}>
+                {formatDuration(stats.duration)}
+              </span>
             </div>
             <div style={styles.footerSeparator} />
             <div style={styles.footerItem}>
@@ -422,10 +440,7 @@ function StatSelector({
 
   return (
     <div style={{ position: "relative" }}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        style={styles.selectorButton}
-      >
+      <button onClick={() => setIsOpen(!isOpen)} style={styles.selectorButton}>
         {currentStat?.label || "Select..."}
       </button>
       {isOpen && (

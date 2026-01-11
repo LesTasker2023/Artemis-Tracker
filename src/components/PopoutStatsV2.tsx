@@ -11,21 +11,15 @@ import {
   X,
   Clock,
   Edit2,
-  ChevronDown,
-  Play,
-  Square,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
 import { STAT_MAP, type StatData } from "./popout/stat-definitions";
 import { LoadoutDropdown } from "./LoadoutManager";
 import { useLoadouts } from "../hooks/useLoadouts";
-import { AsteroidPanel } from "./popout/AsteroidPanel";
 
 // Storage keys
 const CONFIG_KEY = "artemis-popout-v2-config";
-const VERSION_KEY = "artemis-popout-version";
 
 type PopoutMode = "stats" | "asteroid";
 
@@ -111,6 +105,7 @@ export function PopoutStatsV2() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [sessionActive, setSessionActive] = useState(false);
+  console.log(sessionActive);
 
   // Loadout management
   const {
@@ -157,10 +152,6 @@ export function PopoutStatsV2() {
 
   const statData: StatData = stats;
 
-  const handleModeChange = (mode: PopoutMode) => {
-    setConfig((prev) => ({ ...prev, mode }));
-  };
-
   const handleChangeStat = (index: number, newStatKey: string) => {
     setConfig((prev) => {
       const newStats = [...prev.stats];
@@ -185,11 +176,6 @@ export function PopoutStatsV2() {
 
   const handleReset = () => {
     setConfig(DEFAULT_CONFIG);
-  };
-
-  const handleSwitchVersion = () => {
-    localStorage.setItem(VERSION_KEY, "v1");
-    window.location.reload();
   };
 
   const handleClose = () => {
