@@ -25,6 +25,7 @@ import { useLogEvents } from "./hooks/useLogEvents";
 import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
 import { LoadingScreen } from "./components/LoadingScreen";
+import { UpdateNotification } from "./components/UpdateNotification";
 import { LoadoutManager } from "./components/LoadoutManager";
 import { SessionsPage } from "./components/SessionsPage";
 import { LiveDashboard } from "./components/LiveDashboard";
@@ -640,6 +641,9 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Update Notification */}
+      <UpdateNotification />
     </div>
   );
 }
