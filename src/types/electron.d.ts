@@ -75,6 +75,9 @@ interface PopoutAPI {
   requestStats: () => void;
   onStatsRequest: (callback: () => void) => () => void;
   onClose: (callback: () => void) => () => void;
+  startSession: () => void;
+  stopSession: () => void;
+  onSessionStatusUpdate: (callback: (isActive: boolean) => void) => () => void;
 }
 
 interface AsteroidLoot {

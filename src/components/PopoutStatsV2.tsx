@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock, Edit2, ChevronDown, ChevronUp } from "lucide-react";
+import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock, Edit2, ChevronDown, ChevronUp, Play, Square } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -21,15 +21,13 @@ type PopoutMode = "stats" | "asteroid";
 
 interface PopoutConfigV2 {
   mode: PopoutMode;
-  hero: string;
-  stats: string[]; // 6 stat tiles
+  stats: string[]; // configurable stat tiles
   collapsed: boolean; // collapsed minimal mode
 }
 
 const DEFAULT_CONFIG: PopoutConfigV2 = {
   mode: "stats",
-  hero: "netProfit",
-  stats: ["returnRate", "kills", "hitRate", "lootValue", "totalSpend", "damageDealt"],
+  stats: ["netProfit", "returnRate", "kills", "hitRate", "lootValue", "totalSpend"],
   collapsed: false,
 };
 
@@ -91,6 +89,7 @@ export function PopoutStatsV2() {
   const [config, setConfig] = useState<PopoutConfigV2>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [sessionActive, setSessionActive] = useState(false);
 
   // Loadout management
   const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
@@ -113,6 +112,14 @@ export function PopoutStatsV2() {
     return () => unsubscribe?.();
   }, []);
 
+  // Listen for session status updates
+  useEffect(() => {
+    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate((isActive: boolean) => {
+      setSessionActive(isActive);
+    });
+    return () => unsubscribe?.();
+  }, []);
+
   // Save config on change
   useEffect(() => {
     saveConfig(config);
@@ -122,10 +129,6 @@ export function PopoutStatsV2() {
 
   const handleModeChange = (mode: PopoutMode) => {
     setConfig((prev) => ({ ...prev, mode }));
-  };
-
-  const handleChangeHero = (newStatKey: string) => {
-    setConfig((prev) => ({ ...prev, hero: newStatKey }));
   };
 
   const handleChangeStat = (index: number, newStatKey: string) => {
@@ -167,9 +170,13 @@ export function PopoutStatsV2() {
     setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
   };
 
-  // Calculate efficiency metrics
-  const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
-  const lootPerHour = stats.duration > 0 ? (stats.lootValue / stats.duration) * 3600 : 0;
+  const handleStartSession = () => {
+    window.electron?.popout?.startSession();
+  };
+
+  const handleStopSession = () => {
+    window.electron?.popout?.stopSession();
+  };
 
   // Calculate responsive columns based on window width
   const getColumns = () => {
@@ -197,31 +204,15 @@ export function PopoutStatsV2() {
 
           {/* Minimal Stats Display */}
           <div style={styles.collapsedStats}>
-            {/* Hero Stat */}
-            {(() => {
-              const heroStat = STAT_MAP.get(config.hero);
-              if (!heroStat) return null;
-              const value = heroStat.getValue(statData);
-              return (
-                <div style={styles.collapsedStat}>
-                  <span style={styles.collapsedLabel}>{heroStat.label}:</span>
-                  <span style={{ ...styles.collapsedValue, color: value.color }}>
-                    {value.value}
-                    {value.unit && ` ${value.unit}`}
-                  </span>
-                </div>
-              );
-            })()}
-
-            {/* Quick Stats */}
-            {config.stats.slice(0, 3).map((statKey) => {
+            {/* User-configured stats in order */}
+            {config.stats.slice(0, 4).map((statKey) => {
               const stat = STAT_MAP.get(statKey);
               if (!stat) return null;
               const value = stat.getValue(statData);
               return (
                 <div key={statKey} style={styles.collapsedStat}>
                   <span style={styles.collapsedLabel}>{stat.label}:</span>
-                  <span style={styles.collapsedValue}>
+                  <span style={{ ...styles.collapsedValue, color: value.color }}>
                     {value.value}
                     {value.unit && ` ${value.unit}`}
                   </span>
@@ -345,9 +336,9 @@ export function PopoutStatsV2() {
       {/* Stats Mode */}
       {config.mode === "stats" && (
         <div style={styles.content}>
-          {/* Loadout Dropdown */}
+          {/* Loadout Dropdown and Session Controls */}
           <div style={styles.loadoutRow}>
-            <div style={{ position: "relative", width: "100%" }}>
+            <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
               <div style={{ width: "100%" }}>
                 <LoadoutDropdown
                   loadouts={loadouts}
@@ -357,15 +348,28 @@ export function PopoutStatsV2() {
                 />
               </div>
             </div>
-          </div>
 
-          {/* Hero Stat */}
-          <HeroStatCard
-            statKey={config.hero}
-            data={statData}
-            onChange={handleChangeHero}
-            settingsMode={showSettings}
-          />
+            {/* Session Controls */}
+            <div style={styles.sessionControls}>
+              {sessionActive ? (
+                <button
+                  onClick={handleStopSession}
+                  style={styles.sessionButton}
+                  title="Stop Session"
+                >
+                  <Square size={12} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleStartSession}
+                  style={styles.sessionButton}
+                  title="Start Session"
+                >
+                  <Play size={12} />
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* Stats Grid */}
           <div
@@ -393,86 +397,8 @@ export function PopoutStatsV2() {
               + Add Stat Card
             </button>
           )}
-
-          {/* Footer - Efficiency Metrics */}
-          <div style={styles.footer}>
-            <div style={styles.footerMetric}>
-              <span style={styles.footerLabel}>Duration</span>
-              <span style={styles.footerValue}>{formatDuration(stats.duration)}</span>
-            </div>
-            <div style={styles.footerDivider} />
-            <div style={styles.footerMetric}>
-              <span style={styles.footerLabel}>Kills/hr</span>
-              <span style={styles.footerValue}>{killsPerHour.toFixed(0)}</span>
-            </div>
-            <div style={styles.footerDivider} />
-            <div style={styles.footerMetric}>
-              <span style={styles.footerLabel}>Loot/hr</span>
-              <span style={styles.footerValue}>{lootPerHour.toFixed(0)} PEC</span>
-            </div>
-          </div>
         </div>
       )}
-    </div>
-  );
-}
-
-// Hero Stat Card Component
-function HeroStatCard({
-  statKey,
-  data,
-  onChange,
-  settingsMode,
-}: {
-  statKey: string;
-  data: StatData;
-  onChange: (newKey: string) => void;
-  settingsMode: boolean;
-}) {
-  const [showSelector, setShowSelector] = useState(false);
-  const stat = STAT_MAP.get(statKey);
-  if (!stat) return null;
-
-  const value = stat.getValue(data);
-  const Icon = stat.icon;
-
-  return (
-    <div style={styles.heroCard}>
-      {/* Background Icon */}
-      <div style={styles.heroIcon}>
-        <Icon size={32} />
-      </div>
-
-      {/* Edit Button (only in settings mode) */}
-      {settingsMode && (
-        <button
-          onClick={() => setShowSelector(!showSelector)}
-          style={styles.editButtonSmall}
-          title="Change stat"
-        >
-          <Edit2 size={10} />
-        </button>
-      )}
-
-      {/* Stat Selector Dropdown */}
-      {showSelector && (
-        <div style={{ position: "absolute", top: spacing.xs, left: spacing.xs, right: spacing.xs, zIndex: 1 }}>
-          <StatSelector
-            currentKey={statKey}
-            onSelect={(newKey) => {
-              onChange(newKey);
-              setShowSelector(false);
-            }}
-          />
-        </div>
-      )}
-
-      {/* Always show stat value */}
-      <div style={styles.heroLabel}>{stat.label.toUpperCase()}</div>
-      <div style={{ ...styles.heroValue, color: value.color }}>
-        {value.value}
-        {value.unit && <span style={styles.heroUnit}> {value.unit}</span>}
-      </div>
     </div>
   );
 }
@@ -791,50 +717,27 @@ const styles: Record<string, React.CSSProperties> = {
   loadoutRow: {
     display: "flex",
     alignItems: "center",
+    gap: spacing.sm,
     width: "100%",
   },
-  heroCard: {
-    position: "relative",
-    backgroundColor: colors.bgCard,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
+  sessionControls: {
     display: "flex",
-    flexDirection: "column",
+    alignItems: "center",
+    gap: spacing.xs,
+    flexShrink: 0,
+  },
+  sessionButton: {
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 58,
-    overflow: "hidden",
-  },
-  heroIcon: {
-    position: "absolute",
-    right: spacing.xs,
-    top: "50%",
-    transform: "translateY(-50%)",
-    opacity: 0.05,
-    color: colors.iconWatermark,
-    pointerEvents: "none",
-  },
-  heroLabel: {
-    fontSize: 9,
-    fontWeight: 600,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    marginBottom: spacing.xs,
-    zIndex: 1,
-  },
-  heroValue: {
-    fontSize: 16,
-    fontWeight: 700,
-    fontFamily: typography.mono,
-    lineHeight: 1,
-    zIndex: 1,
-  },
-  heroUnit: {
-    fontSize: "0.7em",
-    fontWeight: 600,
-    opacity: 0.7,
+    width: 24,
+    height: 24,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgCard,
+    color: colors.textPrimary,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
   },
   cardActions: {
     position: "absolute",
@@ -936,41 +839,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "0.7em",
     fontWeight: 600,
     opacity: 0.7,
-  },
-  footer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-around",
-    gap: spacing.xs,
-    padding: spacing.sm,
-    backgroundColor: colors.bgPanel,
-    border: `1px solid ${colors.borderSubtle}`,
-    borderRadius: radius.sm,
-    marginTop: "auto",
-  },
-  footerMetric: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 2,
-  },
-  footerLabel: {
-    fontSize: 9,
-    fontWeight: 600,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-  },
-  footerValue: {
-    fontSize: 12,
-    fontWeight: 700,
-    fontFamily: typography.mono,
-    color: colors.textPrimary,
-  },
-  footerDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: colors.borderSubtle,
   },
   selectorButton: {
     width: "100%",

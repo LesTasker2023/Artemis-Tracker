@@ -256,6 +256,42 @@ function App() {
     };
   }, [stats, events.length]);
 
+  // Listen for session control requests from popout
+  useEffect(() => {
+    const handleSessionStart = () => {
+      console.log("[App] Session start requested from popout");
+      startSession();
+    };
+
+    const handleSessionStop = () => {
+      console.log("[App] Session stop requested from popout");
+      stopSession();
+    };
+
+    window.electron?.ipcRenderer?.on('popout:session-start-requested', handleSessionStart);
+    window.electron?.ipcRenderer?.on('popout:session-stop-requested', handleSessionStop);
+
+    return () => {
+      window.electron?.ipcRenderer?.removeListener('popout:session-start-requested', handleSessionStart);
+      window.electron?.ipcRenderer?.removeListener('popout:session-stop-requested', handleSessionStop);
+    };
+  }, [startSession, stopSession]);
+
+  // Send session status updates to popout
+  useEffect(() => {
+    console.log("[App] Sending session status to popout:", sessionActive);
+    if (window.electron?.ipcRenderer) {
+      try {
+        const send = (window.electron.ipcRenderer as any).send;
+        if (send) {
+          send('popout:session-status', sessionActive);
+        }
+      } catch (e) {
+        console.error("[App] Failed to send session status to popout:", e);
+      }
+    }
+  }, [sessionActive]);
+
   // Start both log watcher and session
   const start = async () => {
     console.log("[App] start() called");

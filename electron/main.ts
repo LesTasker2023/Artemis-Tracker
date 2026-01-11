@@ -988,6 +988,27 @@ ipcMain.on('popout:request-stats', () => {
   }
 });
 
+// Popout requests session start
+ipcMain.on('popout:session-start', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:session-start-requested');
+  }
+});
+
+// Popout requests session stop
+ipcMain.on('popout:session-stop', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:session-stop-requested');
+  }
+});
+
+// Main window sends session status to popout
+ipcMain.on('popout:session-status', (_event: unknown, isActive: boolean) => {
+  if (popoutWindow && !popoutWindow.isDestroyed()) {
+    popoutWindow.webContents.send('popout:session-status', isActive);
+  }
+});
+
 // ==================== Asteroid IPC ====================
 
 ipcMain.handle('asteroid:save', (_event: unknown, asteroids: unknown[]) => {
