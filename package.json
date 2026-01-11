@@ -1,7 +1,7 @@
 {
-    "name": "artemis-v3",
-    "version": "0.3.1",
-    "description": "ARTEMIS v3 - Entropia Universe Activity Tracker",
+    "name": "artemis",
+    "version": "0.3.2",
+    "description": "ARTEMIS - Hunt Smarter, Not Harder.",
     "type": "module",
     "main": "dist-electron/main.cjs",
     "author": "Les Tasker",
