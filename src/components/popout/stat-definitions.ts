@@ -247,7 +247,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     description: "Total profit/loss (after decay)",
     getValue: (d) => ({
       value: `${d.netProfit >= 0 ? "+" : ""}${formatPed(d.netProfit)}`,
-      unit: "PED",
+      unit: `${formatPed(d.lootValue)}/${formatPed(d.totalSpend)}`,
       color: profitColor(d.netProfit),
       numericValue: d.netProfit,
     }),
