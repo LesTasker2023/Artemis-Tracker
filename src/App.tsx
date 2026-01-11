@@ -27,6 +27,8 @@ import projectLogo from "../data/artemis logo.png";
 import { useLogEvents } from "./hooks/useLogEvents";
 import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
+import { LoadingScreen } from "./components/LoadingScreen";
+import { UpdateNotification } from "./components/UpdateNotification";
 import { LoadoutManager } from "./components/LoadoutManager";
 import { SessionsPage } from "./components/SessionsPage";
 import { LiveDashboard } from "./components/LiveDashboard";
@@ -50,6 +52,55 @@ type Tab =
 
 function App() {
   console.log("[App] Render - function start");
+
+  // Initialization state
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [initMessage, setInitMessage] = useState("Initializing...");
+  const [initProgress, setInitProgress] = useState(0);
+
+  // Check and update equipment database on startup
+  useEffect(() => {
+    async function initialize() {
+      try {
+        setInitMessage("Checking equipment database...");
+        setInitProgress(25);
+
+        const checkResult = await window.electron?.equipment?.checkUpdates();
+
+        if (checkResult?.updateAvailable) {
+          setInitMessage("Updating equipment database...");
+          setInitProgress(50);
+
+          const updateResult = await window.electron?.equipment?.update();
+
+          if (updateResult?.success) {
+            const { updated, failed } = updateResult.result || { updated: [], failed: [] };
+            if (updated.length > 0) {
+              setInitMessage(`Updated ${updated.length} database(s)...`);
+            }
+            if (failed.length > 0) {
+              setInitMessage(`Warning: ${failed.length} update(s) failed`);
+            }
+          }
+        } else {
+          setInitMessage("Equipment database up to date");
+        }
+
+        setInitProgress(100);
+
+        // Small delay to show completion
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error("[App] Initialization error:", error);
+        // Continue anyway - local files may still work
+      } finally {
+        setIsInitializing(false);
+      }
+    }
+
+    initialize();
+  }, []);
+
   const {
     events,
     isWatching,
@@ -350,6 +401,12 @@ function App() {
     eventsLength: events.length,
     statsExists: !!stats,
   });
+
+  // Show loading screen during initialization
+  if (isInitializing) {
+    return <LoadingScreen message={initMessage} progress={initProgress} />;
+  }
+
   return (
     <div style={styles.container}>
       {/* Header */}
@@ -669,6 +726,9 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Update Notification */}
+      <UpdateNotification />
     </div>
   );
 }

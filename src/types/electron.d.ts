@@ -13,8 +13,17 @@ interface LogAPI {
   onEvent: (callback: (event: LogEvent) => void) => () => void;
 }
 
+interface UpdateResult {
+  updated: string[];
+  failed: string[];
+  skipped: string[];
+  total: number;
+}
+
 interface EquipmentAPI {
   load: (type: string) => Promise<unknown[]>;
+  checkUpdates: () => Promise<{ success: boolean; updateAvailable: boolean; error?: string }>;
+  update: () => Promise<{ success: boolean; result?: UpdateResult; error?: string }>;
 }
 
 interface SessionMeta {
@@ -90,6 +99,25 @@ interface AsteroidAPI {
   load: () => Promise<Asteroid[]>;
 }
 
+interface UpdateInfo {
+  version: string;
+}
+
+interface UpdateProgress {
+  percent: number;
+}
+
+interface UpdateAPI {
+  check: () => Promise<{ success: boolean; error?: string }>;
+  install: () => Promise<{ success: boolean; error?: string }>;
+  onChecking: (callback: () => void) => () => void;
+  onAvailable: (callback: (info: UpdateInfo) => void) => () => void;
+  onNotAvailable: (callback: () => void) => () => void;
+  onError: (callback: (error: string) => void) => () => void;
+  onProgress: (callback: (progress: UpdateProgress) => void) => () => void;
+  onDownloaded: (callback: (info: UpdateInfo) => void) => () => void;
+}
+
 interface IpcRendererAPI {
   on: (channel: string, callback: (...args: unknown[]) => void) => void;
   removeListener: (channel: string, callback: (...args: unknown[]) => void) => void;
@@ -103,6 +131,7 @@ declare global {
       session: SessionAPI;
       popout: PopoutAPI;
       asteroid: AsteroidAPI;
+      update: UpdateAPI;
       ipcRenderer: IpcRendererAPI;
     };
   }
@@ -111,4 +140,4 @@ declare global {
 // Re-export for convenience
 export type { LogEvent } from '../core/types';
 
-export type { LogEvent, LogAPI, SessionAPI, SessionMeta, PopoutAPI, LiveStats, AsteroidAPI, Asteroid, AsteroidLoot, IpcRendererAPI };
+export type { LogEvent, LogAPI, SessionAPI, SessionMeta, PopoutAPI, LiveStats, AsteroidAPI, Asteroid, AsteroidLoot, UpdateAPI, UpdateInfo, UpdateProgress, IpcRendererAPI };

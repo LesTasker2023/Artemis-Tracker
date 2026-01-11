@@ -491,8 +491,27 @@ export const STATS_BY_CATEGORY = {
 
 // Default tile configuration
 export const DEFAULT_TILE_CONFIG = [
-  "profit",
+  "netProfit",
   "returnRate",
   "kills",
   "hitRate",
+];
+
+// Default expanded dashboard configuration
+export const DEFAULT_EXPANDED_HERO = [
+  "netProfit",
+  "returnRate",
+  "kills",
+  "hitRate",
+];
+
+export const DEFAULT_EXPANDED_GRID = [
+  "shots",
+  "criticals",
+  "damageDealt",
+  "lootValue",
+  "totalSpend",
+  "decay",
+  "deflects",
+  "skillGains",
 ];

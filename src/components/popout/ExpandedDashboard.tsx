@@ -14,23 +14,25 @@ import {
   Cell,
 } from "recharts";
 import {
-  DollarSign,
-  Target,
-  Skull,
   Crosshair,
   TrendingUp,
   TrendingDown,
-  Zap,
-  Shield,
   Activity,
 } from "lucide-react";
 import { colors, spacing, radius } from "../ui";
 import type { LiveStats } from "../../types/electron";
+import { STAT_MAP, type StatData } from "./stat-definitions";
 
 interface ExpandedDashboardProps {
   stats: LiveStats;
   history: Record<string, number[]>;
   formatDuration: (seconds: number) => string;
+  heroStats: string[]; // configurable hero stat keys
+  gridStats: string[]; // configurable grid stat keys
+  showCharts: boolean; // show/hide charts
+  onChangeHeroStat?: (index: number, newStatKey: string) => void;
+  onChangeGridStat?: (index: number, newStatKey: string) => void;
+  settingsMode?: boolean; // enable stat selection dropdowns
 }
 
 // Color palette
@@ -48,9 +50,14 @@ export function ExpandedDashboard({
   stats,
   history,
   formatDuration,
+  heroStats,
+  gridStats,
+  showCharts,
+  onChangeHeroStat,
+  onChangeGridStat,
+  settingsMode = false,
 }: ExpandedDashboardProps) {
-  const hitRate = stats.shots > 0 ? (stats.hits / stats.shots) * 100 : 0;
-  const critRate = stats.hits > 0 ? (stats.criticals / stats.hits) * 100 : 0;
+  const statData: StatData = stats;
   const misses = Math.max(0, stats.shots - stats.hits);
 
   // Prepare profit history for chart
@@ -72,54 +79,34 @@ export function ExpandedDashboard({
 
   return (
     <div style={styles.container}>
-      {/* Hero Stats Row */}
+      {/* Hero Stats Row - Configurable */}
       <div style={styles.heroRow}>
-        <HeroStat
-          icon={DollarSign}
-          label="NET PROFIT"
-          value={`${stats.netProfit >= 0 ? "+" : ""}${stats.netProfit.toFixed(
-            2
-          )}`}
-          unit="PED"
-          color={stats.netProfit >= 0 ? CHART_COLORS.profit : CHART_COLORS.loss}
-          trend={stats.netProfit >= 0 ? "up" : "down"}
-        />
-        <HeroStat
-          icon={Target}
-          label="RETURN"
-          value={stats.returnRate.toFixed(1)}
-          unit="%"
-          color={
-            stats.returnRate >= 95
-              ? CHART_COLORS.profit
-              : stats.returnRate >= 85
-              ? CHART_COLORS.accent
-              : CHART_COLORS.loss
-          }
-        />
-        <HeroStat
-          icon={Skull}
-          label="KILLS"
-          value={stats.kills}
-          color={CHART_COLORS.accent}
-        />
-        <HeroStat
-          icon={Crosshair}
-          label="ACCURACY"
-          value={hitRate.toFixed(1)}
-          unit="%"
-          color={
-            hitRate >= 70
-              ? CHART_COLORS.profit
-              : hitRate >= 50
-              ? CHART_COLORS.accent
-              : CHART_COLORS.loss
-          }
-        />
+        {heroStats.map((statKey, index) => {
+          const statDef = STAT_MAP.get(statKey);
+          if (!statDef) return null;
+          const statValue = statDef.getValue(statData);
+          return (
+            <HeroStat
+              key={statKey}
+              icon={statDef.icon}
+              label={statDef.label}
+              value={statValue.value}
+              unit={statValue.unit}
+              color={statValue.color}
+              settingsMode={settingsMode}
+              statKey={statKey}
+              onChangeStat={
+                onChangeHeroStat
+                  ? (newKey) => onChangeHeroStat(index, newKey)
+                  : undefined
+              }
+            />
+          );
+        })}
       </div>
 
-      {/* Charts Row */}
-      <div style={styles.chartsRow}>
+      {/* Charts Row - Conditional */}
+      {showCharts && <div style={styles.chartsRow}>
         {/* Profit Timeline */}
         <div style={styles.chartCard}>
           <div style={styles.chartHeader}>
@@ -230,50 +217,32 @@ export function ExpandedDashboard({
             <span style={{ color: CHART_COLORS.muted }}>● Miss: {misses}</span>
           </div>
         </div>
-      </div>
+      </div>}
 
-      {/* Stats Grid */}
+      {/* Stats Grid - Configurable */}
       <div style={styles.statsGrid}>
-        <StatCard label="Shots" value={stats.shots} icon={Zap} />
-        <StatCard
-          label="Criticals"
-          value={stats.criticals}
-          subtext={`${critRate.toFixed(1)}%`}
-          icon={Zap}
-          color={CHART_COLORS.accent}
-        />
-        <StatCard
-          label="Damage"
-          value={stats.damageDealt.toFixed(0)}
-          icon={Target}
-        />
-        <StatCard
-          label="Loot"
-          value={`${stats.lootValue.toFixed(2)}`}
-          subtext="PED"
-          icon={DollarSign}
-          color={CHART_COLORS.profit}
-        />
-        <StatCard
-          label="Spent"
-          value={`${stats.totalSpend.toFixed(2)}`}
-          subtext="PED"
-          icon={DollarSign}
-        />
-        <StatCard
-          label="Decay"
-          value={`${stats.decay.toFixed(2)}`}
-          subtext="PED"
-          icon={Shield}
-          color={CHART_COLORS.loss}
-        />
-        <StatCard label="Deflects" value={stats.deflects} icon={Shield} />
-        <StatCard
-          label="Skills"
-          value={`+${stats.skillGains.toFixed(4)}`}
-          icon={TrendingUp}
-          color={CHART_COLORS.secondary}
-        />
+        {gridStats.map((statKey, index) => {
+          const statDef = STAT_MAP.get(statKey);
+          if (!statDef) return null;
+          const statValue = statDef.getValue(statData);
+          return (
+            <StatCard
+              key={statKey}
+              label={statDef.label}
+              value={statValue.value}
+              subtext={statValue.unit}
+              icon={statDef.icon}
+              color={statValue.color}
+              settingsMode={settingsMode}
+              statKey={statKey}
+              onChangeStat={
+                onChangeGridStat
+                  ? (newKey) => onChangeGridStat(index, newKey)
+                  : undefined
+              }
+            />
+          );
+        })}
       </div>
 
       {/* Session Info Footer */}
@@ -306,6 +275,9 @@ function HeroStat({
   unit,
   color,
   trend,
+  settingsMode,
+  statKey,
+  onChangeStat,
 }: {
   icon: React.ElementType;
   label: string;
@@ -313,6 +285,9 @@ function HeroStat({
   unit?: string;
   color: string;
   trend?: "up" | "down";
+  settingsMode?: boolean;
+  statKey?: string;
+  onChangeStat?: (newStatKey: string) => void;
 }) {
   return (
     <div style={styles.heroStat}>
@@ -320,7 +295,21 @@ function HeroStat({
         <Icon size={16} style={{ color }} />
       </div>
       <div style={styles.heroContent}>
-        <span style={styles.heroLabel}>{label}</span>
+        {settingsMode && onChangeStat ? (
+          <select
+            value={statKey}
+            onChange={(e) => onChangeStat(e.target.value)}
+            style={styles.statSelect}
+          >
+            {Array.from(STAT_MAP.entries()).map(([key, def]) => (
+              <option key={key} value={key}>
+                {def.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span style={styles.heroLabel}>{label}</span>
+        )}
         <div style={styles.heroValue}>
           <span style={{ color, fontSize: "20px", fontWeight: 700 }}>
             {value}
@@ -351,18 +340,38 @@ function StatCard({
   subtext,
   icon: Icon,
   color,
+  settingsMode,
+  statKey,
+  onChangeStat,
 }: {
   label: string;
   value: string | number;
   subtext?: string;
   icon: React.ElementType;
   color?: string;
+  settingsMode?: boolean;
+  statKey?: string;
+  onChangeStat?: (newStatKey: string) => void;
 }) {
   return (
     <div style={styles.statCard}>
       <Icon size={12} style={{ color: color || colors.textMuted }} />
       <div style={styles.statContent}>
-        <span style={styles.statLabel}>{label}</span>
+        {settingsMode && onChangeStat ? (
+          <select
+            value={statKey}
+            onChange={(e) => onChangeStat(e.target.value)}
+            style={styles.statSelectSmall}
+          >
+            {Array.from(STAT_MAP.entries()).map(([key, def]) => (
+              <option key={key} value={key}>
+                {def.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <span style={styles.statLabel}>{label}</span>
+        )}
         <span
           style={{ ...styles.statValue, color: color || CHART_COLORS.text }}
         >
@@ -493,6 +502,29 @@ const styles: Record<string, React.CSSProperties> = {
   statSubtext: {
     fontSize: "10px",
     color: colors.textMuted,
+  },
+  statSelect: {
+    fontSize: "10px",
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    backgroundColor: colors.bgPanel,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: "2px 4px",
+    cursor: "pointer",
+  },
+  statSelectSmall: {
+    fontSize: "9px",
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
+    backgroundColor: colors.bgPanel,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: "1px 2px",
+    cursor: "pointer",
   },
   footer: {
     display: "flex",

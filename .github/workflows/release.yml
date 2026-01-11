@@ -1,53 +1,105 @@
-name: Release
+name: Build and Release
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches:
+      - main
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+          cache: "npm"
+
+      - name: Get version from package.json
+        id: package-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        shell: bash
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate icons
-        run: npm run generate-icons
-
-      - name: Build (no publish)
+      - name: Build app
+        run: npm run build:electron
         env:
-          CSC_LINK: ${{ secrets.CSC_LINK }} # optional: mac signing certificate (base64 zipped)
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          WINDOWS_CERTIFICATE_FILE: ${{ secrets.WINDOWS_CERTIFICATE_FILE }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-        run: |
-          npm run build:electron -- --publish=never
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload built artifacts (debug)
+      - name: Upload Windows artifacts
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: release-artifacts
-          path: dist/**
+          name: windows-build
+          path: |
+            dist/*.exe
+            dist/latest.yml
+          retention-days: 7
 
-      - name: Publish release (conditional)
-        if: ${{ secrets.PUBLISH_RELEASE == 'true' }}
+      - name: Upload macOS artifacts
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            dist/*.dmg
+            dist/latest-mac.yml
+          retention-days: 7
+
+      - name: Upload Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/latest-linux.yml
+          retention-days: 7
+
+  create-release:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get version from package.json
+        id: package-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.package-version.outputs.version }}
+          name: Artemis v${{ steps.package-version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/windows-build/*
+            artifacts/macos-build/*
+            artifacts/linux-build/*
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by electron-builder to publish to GitHub Releases
-        run: |
-          echo "Publishing release because PUBLISH_RELEASE secret is set to true"
-          npm run build:electron -- --publish=always
-
-# Notes:
-# - This workflow triggers on tag pushes like 'v1.2.3'.
-# - GitHub's provided GITHUB_TOKEN is available as a secret and is sufficient for creating/publishing releases.
-# - For code signing (macOS, Windows), set appropriate repo secrets (CSC_LINK, CSC_KEY_PASSWORD, WINDOWS_CERTIFICATE_*).
-# - Test by creating a tag locally and pushing: git tag vX.Y.Z && git push origin vX.Y.Z
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

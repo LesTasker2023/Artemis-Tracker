@@ -67,9 +67,7 @@ function useDebouncedSave(session: Session | null, delay: number = 1000) {
       try {
         await window.electron?.session?.save(session);
         lastSavedRef.current = sessionJson;
-        console.log(`[Session] Auto-saved (${session.events.length} events)`);
       } catch (e) {
-        console.error("[Session] Auto-save failed:", e);
       }
     }, delay);
     
@@ -124,7 +122,6 @@ export function useSession(): UseSessionReturn {
       // Try to load the session from file
       window.electron?.session?.load(activeId).then(loaded => {
         if (loaded && !loaded.endedAt) {
-          console.log(`[Session] Restored active session: ${loaded.id}`);
           setSession(loaded);
         } else {
           localStorage.removeItem(STORAGE_KEY);
@@ -142,9 +139,7 @@ export function useSession(): UseSessionReturn {
       const ended = endSession(session);
       try {
         await window.electron?.session?.save(ended);
-        console.log(`[Session] Auto-ended previous session: ${ended.id}`);
       } catch (e) {
-        console.error("[Session] Failed to end previous session:", e);
       }
     }
     
@@ -153,9 +148,7 @@ export function useSession(): UseSessionReturn {
     // Immediately save to file
     try {
       await window.electron?.session?.save(newSession);
-      console.log(`[Session] Created session: ${newSession.id}`);
     } catch (e) {
-      console.error("[Session] Failed to create session file:", e);
     }
     
     setSession(newSession);
@@ -170,9 +163,7 @@ export function useSession(): UseSessionReturn {
       // Final save with endedAt timestamp
       try {
         await window.electron?.session?.save(ended);
-        console.log(`[Session] Ended session: ${ended.id}`);
       } catch (e) {
-        console.error("[Session] Failed to save ended session:", e);
       }
       
       setSession(ended);
@@ -194,9 +185,7 @@ export function useSession(): UseSessionReturn {
       const ended = endSession(session);
       try {
         await window.electron?.session?.save(ended);
-        console.log(`[Session] Auto-ended previous session: ${ended.id}`);
       } catch (e) {
-        console.error("[Session] Failed to end previous session:", e);
       }
     }
     
@@ -209,9 +198,7 @@ export function useSession(): UseSessionReturn {
     // Save immediately
     try {
       await window.electron?.session?.save(resumed);
-      console.log(`[Session] Resumed session: ${resumed.id}`);
     } catch (e) {
-      console.error("[Session] Failed to resume session:", e);
     }
     
     setSession(resumed);

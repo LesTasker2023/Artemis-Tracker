@@ -70,6 +70,8 @@ contextBridge.exposeInMainWorld('electron', {
   },
   equipment: {
     load: (type: string) => ipcRenderer.invoke('equipment:load', type),
+    checkUpdates: () => ipcRenderer.invoke('equipment:check-updates'),
+    update: () => ipcRenderer.invoke('equipment:update'),
   },
   session: {
     save: (session: unknown) => ipcRenderer.invoke('session:save', session),
@@ -105,38 +107,38 @@ contextBridge.exposeInMainWorld('electron', {
     save: (asteroids: Asteroid[]) => ipcRenderer.invoke('asteroid:save', asteroids),
     load: (): Promise<Asteroid[]> => ipcRenderer.invoke('asteroid:load'),
   },
-  updater: {
+  update: {
     check: () => ipcRenderer.invoke('update:check'),
     install: () => ipcRenderer.invoke('update:install'),
-    onChecking: (cb: () => void) => {
-      const h = () => cb();
-      ipcRenderer.on('update:checking', h);
-      return () => ipcRenderer.removeListener('update:checking', h);
+    onChecking: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('update:checking', handler);
+      return () => ipcRenderer.removeListener('update:checking', handler);
     },
-    onAvailable: (cb: (info: any) => void) => {
-      const h = (_: unknown, info: any) => cb(info);
-      ipcRenderer.on('update:available', h);
-      return () => ipcRenderer.removeListener('update:available', h);
+    onAvailable: (callback: (info: { version: string }) => void) => {
+      const handler = (_: unknown, info: { version: string }) => callback(info);
+      ipcRenderer.on('update:available', handler);
+      return () => ipcRenderer.removeListener('update:available', handler);
     },
-    onNotAvailable: (cb: () => void) => {
-      const h = () => cb();
-      ipcRenderer.on('update:not-available', h);
-      return () => ipcRenderer.removeListener('update:not-available', h);
+    onNotAvailable: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('update:not-available', handler);
+      return () => ipcRenderer.removeListener('update:not-available', handler);
     },
-    onProgress: (cb: (progress: any) => void) => {
-      const h = (_: unknown, p: any) => cb(p);
-      ipcRenderer.on('update:progress', h);
-      return () => ipcRenderer.removeListener('update:progress', h);
+    onError: (callback: (error: string) => void) => {
+      const handler = (_: unknown, error: string) => callback(error);
+      ipcRenderer.on('update:error', handler);
+      return () => ipcRenderer.removeListener('update:error', handler);
     },
-    onDownloaded: (cb: (info: any) => void) => {
-      const h = (_: unknown, info: any) => cb(info);
-      ipcRenderer.on('update:downloaded', h);
-      return () => ipcRenderer.removeListener('update:downloaded', h);
+    onProgress: (callback: (progress: { percent: number }) => void) => {
+      const handler = (_: unknown, progress: { percent: number }) => callback(progress);
+      ipcRenderer.on('update:progress', handler);
+      return () => ipcRenderer.removeListener('update:progress', handler);
     },
-    onError: (cb: (err: string) => void) => {
-      const h = (_: unknown, e: any) => cb(String(e));
-      ipcRenderer.on('update:error', h);
-      return () => ipcRenderer.removeListener('update:error', h);
+    onDownloaded: (callback: (info: { version: string }) => void) => {
+      const handler = (_: unknown, info: { version: string }) => callback(info);
+      ipcRenderer.on('update:downloaded', handler);
+      return () => ipcRenderer.removeListener('update:downloaded', handler);
     },
   },
   ipcRenderer: {

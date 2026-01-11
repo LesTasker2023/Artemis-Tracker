@@ -1,11 +1,15 @@
 {
-    "name": "artemis-v3",
-    "version": "3.0.0-alpha.1",
-    "description": "ARTEMIS v3 - Entropia Universe Activity Tracker",
+    "name": "artemis",
+    "version": "0.3.2",
+    "description": "ARTEMIS - Hunt Smarter, Not Harder.",
     "type": "module",
     "main": "dist-electron/main.cjs",
     "author": "Les Tasker",
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/LesTasker2023/Artemis-Tracker.git"
+    },
     "scripts": {
         "dev": "vite",
         "dev:electron": "concurrently -k \"vite\" \"npm run electron:dev\"",
@@ -19,11 +23,12 @@
         "test:watch": "vitest"
     },
     "dependencies": {
-        "electron-updater": "^6.6.2",
         "electron-log": "^5.4.3",
+        "electron-updater": "^6.7.3",
         "lucide-react": "^0.561.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-is": "^19.2.3",
         "recharts": "^3.5.1",
         "zod": "^3.22.0",
         "zustand": "^4.4.0"
@@ -66,7 +71,9 @@
         ],
         "publish": [
             {
-                "provider": "github"
+                "provider": "github",
+                "owner": "LesTasker2023",
+                "repo": "Artemis-Tracker"
             }
         ],
         "icon": "build/icon",

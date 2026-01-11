@@ -7,6 +7,7 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('path');
 import fs from 'fs';
 const os = require('os');
+import { updateEquipmentDatabase, checkForUpdates } from './equipment-updater';
 
 // Global error handlers to catch crashes and unhandled rejections
 process.on('uncaughtException', (err: any) => {
@@ -562,9 +563,6 @@ function createWindow() {
   });
 }
 
-// App ready handler consolidated at end of file to avoid duplicate windows
-// (See final `app.whenReady()` block which also performs setup and update checks)
-
 // ==================== Popout Window ====================
 
 function createPopoutWindow() {
@@ -775,6 +773,34 @@ ipcMain.handle('equipment:load', (_event: unknown, type: string) => {
     return [];
   }
   return loadEquipmentData(type);
+});
+
+// ==================== Equipment Database Updater ====================
+
+function getDataDir(): string {
+  return process.env.VITE_DEV_SERVER_URL
+    ? path.join(__dirname, '..', 'data')
+    : path.join(__dirname, '..', 'data');
+}
+
+ipcMain.handle('equipment:check-updates', async () => {
+  try {
+    const dataDir = getDataDir();
+    const updateAvailable = await checkForUpdates(dataDir);
+    return { success: true, updateAvailable };
+  } catch (error) {
+    return { success: false, error: String(error), updateAvailable: false };
+  }
+});
+
+ipcMain.handle('equipment:update', async () => {
+  try {
+    const dataDir = getDataDir();
+    const result = await updateEquipmentDatabase(dataDir, false);
+    return { success: true, result };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
 });
 
 // ==================== Session Storage ====================

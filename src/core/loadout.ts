@@ -328,7 +328,6 @@ export function loadLoadouts(): Loadout[] {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
   } catch {
-    console.error('Failed to load loadouts');
     return [];
   }
 }
@@ -340,7 +339,7 @@ export function saveLoadouts(loadouts: Loadout[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(loadouts));
   } catch {
-    console.error('Failed to save loadouts');
+    // Silently fail - localStorage may be unavailable
   }
 }
 
