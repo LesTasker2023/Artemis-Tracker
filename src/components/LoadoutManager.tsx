@@ -392,13 +392,13 @@ function LoadoutCard({
         >
           <span style={{ color: "hsl(220 13% 45%)" }}>Cost/Shot</span>
           <span style={{ fontFamily: "monospace", color: "hsl(217 91% 68%)", fontSize: "14px", fontWeight: 600 }}>
-            {effective.toFixed(5)} PED
+            {(effective * 100).toFixed(3)} PEC
             {loadout.useManualCost && " (manual)"}
           </span>
         </div>
       </div>
       {!loadout.useManualCost && (
-        <div className={styles.loadoutCostRow}>W: {costs.weaponCost.toFixed(4)} A: {costs.ampCost.toFixed(4)}</div>
+        <div className={styles.loadoutCostRow}>W: {(costs.weaponCost * 100).toFixed(2)} A: {(costs.ampCost * 100).toFixed(2)}</div>
       )}
     </div>
   );
@@ -607,15 +607,15 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               {draft.useManualCost && (
                 <input
                   type="number"
-                  value={draft.manualCostPerShot ?? ""}
+                  value={draft.manualCostPerShot !== undefined ? (draft.manualCostPerShot * 100).toFixed(3) : ""}
                   onChange={(e) =>
                     setDraft((prev) => ({
                       ...prev,
-                      manualCostPerShot: parseFloat(e.target.value) || undefined,
+                      manualCostPerShot: e.target.value ? parseFloat(e.target.value) / 100 : undefined,
                     }))
                   }
-                  step="0.00001"
-                  placeholder="0.00000"
+                  step="0.001"
+                  placeholder="0.000"
                   style={{
                     width: "100%",
                     marginTop: "10px",
@@ -683,7 +683,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                       fontWeight: 700,
                     }}
                   >
-                    {costs.totalPerShot.toFixed(5)} PED
+                    {(costs.totalPerShot * 100).toFixed(3)} PEC
                   </span>
                 </div>
               </div>
@@ -747,7 +747,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   />
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontSize: "14px", fontWeight: 600, color: "hsl(0 0% 95%)" }}>
-                      DPP (Dmg/PED)
+                      DPP (Dmg/PEC)
                     </span>
                     <span
                       style={{
@@ -822,7 +822,7 @@ function CostRow({ label, value }: { label: string; value: number }) {
     <div style={{ display: "flex", justifyContent: "space-between" }}>
       <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>{label}</span>
       <span style={{ fontFamily: "monospace", color: "hsl(0 0% 95%)", fontSize: "13px" }}>
-        {value.toFixed(4)} PED
+        {(value * 100).toFixed(2)} PEC
       </span>
     </div>
   );
