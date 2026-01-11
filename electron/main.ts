@@ -578,7 +578,7 @@ function createPopoutWindow() {
     width: 220,
     height: 200,
     minWidth: 180,
-    minHeight: 160,
+    minHeight: 24, // Allow fully-collapsed top-bar mode (matches UI collapsed height)
     backgroundColor: '#090d13',
     frame: false,
     transparent: true,
@@ -597,6 +597,8 @@ function createPopoutWindow() {
   // Load popout page
   if (process.env.VITE_DEV_SERVER_URL) {
     popoutWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/popout.html');
+    // Open DevTools automatically in development for easier debugging
+    popoutWindow.webContents.openDevTools();
   } else {
     popoutWindow.loadFile(path.join(__dirname, '../dist/popout.html'));
   }
@@ -985,6 +987,27 @@ ipcMain.on('popout:stats', (_event: unknown, stats: unknown) => {
 ipcMain.on('popout:request-stats', () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('popout:stats-requested');
+  }
+});
+
+// Popout requests session start
+ipcMain.on('popout:session-start', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:session-start-requested');
+  }
+});
+
+// Popout requests session stop
+ipcMain.on('popout:session-stop', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:session-stop-requested');
+  }
+});
+
+// Main window sends session status to popout
+ipcMain.on('popout:session-status', (_event: unknown, isActive: boolean) => {
+  if (popoutWindow && !popoutWindow.isDestroyed()) {
+    popoutWindow.webContents.send('popout:session-status', isActive);
   }
 });
 

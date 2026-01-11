@@ -29,7 +29,8 @@ import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateNotification } from "./components/UpdateNotification";
-import { LoadoutManager } from "./components/LoadoutManager";
+import { LoadoutManager, LoadoutDropdown } from "./components/LoadoutManager";
+import { useLoadouts } from "./hooks/useLoadouts";
 import { SessionsPage } from "./components/SessionsPage";
 import { LiveDashboard } from "./components/LiveDashboard";
 import { SkillsDeepDive } from "./components/SkillsDeepDive";
@@ -74,7 +75,10 @@ function App() {
           const updateResult = await window.electron?.equipment?.update();
 
           if (updateResult?.success) {
-            const { updated, failed } = updateResult.result || { updated: [], failed: [] };
+            const { updated, failed } = updateResult.result || {
+              updated: [],
+              failed: [],
+            };
             if (updated.length > 0) {
               setInitMessage(`Updated ${updated.length} database(s)...`);
             }
@@ -89,7 +93,7 @@ function App() {
         setInitProgress(100);
 
         // Small delay to show completion
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error) {
         console.error("[App] Initialization error:", error);
         // Continue anyway - local files may still work
@@ -122,6 +126,11 @@ function App() {
     recalculateStats,
   } = useSession();
   const { playerName, setPlayerName, hasPlayerName } = usePlayerName();
+  const {
+    loadouts,
+    activeLoadout,
+    setActive: setActiveLoadout,
+  } = useLoadouts();
   const [activeTab, setActiveTab] = useState<Tab>("live");
 
   // First-time name setup - show modal if no name is set
@@ -246,6 +255,42 @@ function App() {
       unsubscribe?.();
     };
   }, [stats, events.length]);
+
+  // Listen for session control requests from popout
+  useEffect(() => {
+    const handleSessionStart = () => {
+      console.log("[App] Session start requested from popout");
+      startSession();
+    };
+
+    const handleSessionStop = () => {
+      console.log("[App] Session stop requested from popout");
+      stopSession();
+    };
+
+    window.electron?.ipcRenderer?.on('popout:session-start-requested', handleSessionStart);
+    window.electron?.ipcRenderer?.on('popout:session-stop-requested', handleSessionStop);
+
+    return () => {
+      window.electron?.ipcRenderer?.removeListener('popout:session-start-requested', handleSessionStart);
+      window.electron?.ipcRenderer?.removeListener('popout:session-stop-requested', handleSessionStop);
+    };
+  }, [startSession, stopSession]);
+
+  // Send session status updates to popout
+  useEffect(() => {
+    console.log("[App] Sending session status to popout:", sessionActive);
+    if (window.electron?.ipcRenderer) {
+      try {
+        const send = (window.electron.ipcRenderer as any).send;
+        if (send) {
+          send('popout:session-status', sessionActive);
+        }
+      } catch (e) {
+        console.error("[App] Failed to send session status to popout:", e);
+      }
+    }
+  }, [sessionActive]);
 
   // Start both log watcher and session
   const start = async () => {
@@ -421,6 +466,33 @@ function App() {
           </div>
         </div>
         <div style={styles.controls}>
+          {/* Active Loadout Selector */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "4px",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "10px",
+                color: "hsl(220 13% 45%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Active Loadout
+            </span>
+            <LoadoutDropdown
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+              compact
+            />
+          </div>
+
           {!isWatching ? (
             <button onClick={start} style={styles.buttonPrimary}>
               <Play size={14} style={{ marginRight: 6 }} /> Start
