@@ -26,6 +26,8 @@ import {
 } from "./popout/stat-definitions";
 import { ExpandedDashboard } from "./popout/ExpandedDashboard";
 import { AsteroidPanel } from "./popout/AsteroidPanel";
+import { LoadoutDropdown } from "./LoadoutManager";
+import { useLoadouts } from "../hooks/useLoadouts";
 
 // Storage key for persisted config
 const STORAGE_KEY = "artemis-popout-config";
@@ -104,6 +106,9 @@ export function PopoutStats() {
   const [showSettings, setShowSettings] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+
+  // Loadout state management
+  const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
 
   // Track window size for responsive layout
   useEffect(() => {
@@ -266,6 +271,16 @@ export function PopoutStats() {
             </button>
           </div>
           {config.mode === "stats" && (
+            <div style={styles.loadoutDropdownContainer}>
+              <LoadoutDropdown
+                loadouts={loadouts}
+                activeLoadout={activeLoadout}
+                onSelect={setActiveLoadout}
+                compact
+              />
+            </div>
+          )}
+          {config.mode === "stats" && (
             <div style={styles.duration}>
               <Clock size={10} />
               <span>{formatDuration(stats.duration)}</span>
@@ -361,6 +376,16 @@ export function PopoutStats() {
             <Activity size={10} />
           </button>
         </div>
+        {config.mode === "stats" && (
+          <div style={styles.loadoutDropdownContainer}>
+            <LoadoutDropdown
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+              compact
+            />
+          </div>
+        )}
         {config.mode === "stats" && (
           <div style={styles.duration}>
             <Clock size={10} />
@@ -490,6 +515,12 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     transition: "all 0.15s ease",
   },
+  loadoutDropdownContainer: {
+    position: "absolute",
+    left: 32,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
+  },
   title: {
     position: "absolute",
     left: spacing.sm,
@@ -501,7 +532,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   duration: {
     position: "absolute",
-    left: 50,
+    left: 192,
     display: "flex",
     alignItems: "center",
     gap: 4,
