@@ -11,8 +11,6 @@ import {
   X,
   Clock,
   Edit2,
-  Play,
-  Square,
 } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -106,8 +104,6 @@ export function PopoutStatsV2() {
   const [showSettings, setShowSettings] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
-  const [sessionActive, setSessionActive] = useState(false);
-  console.log(sessionActive);
 
   // Loadout management
   const {
@@ -134,18 +130,6 @@ export function PopoutStatsV2() {
       }
     );
     window.electron?.popout?.requestStats();
-    return () => unsubscribe?.();
-  }, []);
-
-  // Listen for session status updates
-  useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate(
-      (isActive: boolean) => {
-        setSessionActive(isActive);
-      }
-    );
-    // Request initial session status
-    window.electron?.popout?.requestSessionStatus();
     return () => unsubscribe?.();
   }, []);
 
@@ -188,14 +172,6 @@ export function PopoutStatsV2() {
 
   const handleToggleCollapsed = () => {
     setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
-  };
-
-  const handleStartSession = () => {
-    window.electron?.popout?.startSession();
-  };
-
-  const handleStopSession = () => {
-    window.electron?.popout?.stopSession();
   };
 
   // Calculate responsive columns based on window width
@@ -383,7 +359,7 @@ export function PopoutStatsV2() {
       {/* Stats Mode */}
       {config.mode === "stats" && (
         <div style={styles.content}>
-          {/* Loadout Dropdown and Session Controls */}
+          {/* Loadout Dropdown */}
           <div style={styles.loadoutRow}>
             <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
               <div style={{ width: "100%" }}>
@@ -394,27 +370,6 @@ export function PopoutStatsV2() {
                   compact
                 />
               </div>
-            </div>
-
-            {/* Session Controls */}
-            <div style={styles.sessionControls}>
-              {sessionActive ? (
-                <button
-                  onClick={handleStopSession}
-                  style={styles.sessionButton}
-                  title="Stop Session"
-                >
-                  <Square size={12} />
-                </button>
-              ) : (
-                <button
-                  onClick={handleStartSession}
-                  style={styles.sessionButton}
-                  title="Start Session"
-                >
-                  <Play size={12} />
-                </button>
-              )}
             </div>
           </div>
 
@@ -836,25 +791,6 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: spacing.sm,
     width: "100%",
-  },
-  sessionControls: {
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.xs,
-    flexShrink: 0,
-  },
-  sessionButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 24,
-    height: 24,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgCard,
-    color: colors.textPrimary,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
   },
   cardActions: {
     position: "absolute",
