@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock } from "lucide-react";
+import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock, Edit2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -88,9 +88,19 @@ export function PopoutStatsV2() {
 
   const [config, setConfig] = useState<PopoutConfigV2>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   // Loadout management
   const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
+
+  // Track window size for responsive layout
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Listen for stats updates
   useEffect(() => {
@@ -140,6 +150,15 @@ export function PopoutStatsV2() {
   // Calculate efficiency metrics
   const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
   const lootPerHour = stats.duration > 0 ? (stats.lootValue / stats.duration) * 3600 : 0;
+
+  // Calculate responsive columns based on window width
+  const getColumns = () => {
+    if (windowWidth < 220) return 1;
+    if (windowWidth < 380) return 2;
+    return 3;
+  };
+
+  const columns = getColumns();
 
   return (
     <div style={styles.container}>
@@ -215,7 +234,7 @@ export function PopoutStatsV2() {
             </button>
           </div>
           <div style={styles.settingsDivider} />
-          <div style={styles.settingsHint}>Click any stat label to change it</div>
+          <div style={styles.settingsHint}>Click edit buttons on cards to change stats</div>
         </div>
       )}
 
@@ -246,7 +265,12 @@ export function PopoutStatsV2() {
           />
 
           {/* Stats Grid */}
-          <div style={styles.statsGrid}>
+          <div
+            style={{
+              ...styles.statsGrid,
+              gridTemplateColumns: `repeat(${columns}, 1fr)`,
+            }}
+          >
             {config.stats.map((statKey, index) => (
               <StatCard
                 key={`stat-${index}`}
@@ -293,6 +317,7 @@ function HeroStatCard({
   onChange: (newKey: string) => void;
   settingsMode: boolean;
 }) {
+  const [showSelector, setShowSelector] = useState(false);
   const stat = STAT_MAP.get(statKey);
   if (!stat) return null;
 
@@ -306,19 +331,36 @@ function HeroStatCard({
         <Icon size={60} />
       </div>
 
-      {settingsMode ? (
-        <div style={{ width: "100%", zIndex: 1 }}>
-          <StatSelector currentKey={statKey} onSelect={onChange} />
-        </div>
-      ) : (
-        <>
-          <div style={styles.heroLabel}>{stat.label.toUpperCase()}</div>
-          <div style={{ ...styles.heroValue, color: value.color }}>
-            {value.value}
-            {value.unit && <span style={styles.heroUnit}> {value.unit}</span>}
-          </div>
-        </>
+      {/* Edit Button (only in settings mode) */}
+      {settingsMode && (
+        <button
+          onClick={() => setShowSelector(!showSelector)}
+          style={styles.editButton}
+          title="Change stat"
+        >
+          <Edit2 size={11} />
+        </button>
       )}
+
+      {/* Stat Selector Dropdown */}
+      {showSelector && (
+        <div style={{ position: "absolute", top: spacing.md, left: spacing.md, right: spacing.md, zIndex: 1 }}>
+          <StatSelector
+            currentKey={statKey}
+            onSelect={(newKey) => {
+              onChange(newKey);
+              setShowSelector(false);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Always show stat value */}
+      <div style={styles.heroLabel}>{stat.label.toUpperCase()}</div>
+      <div style={{ ...styles.heroValue, color: value.color }}>
+        {value.value}
+        {value.unit && <span style={styles.heroUnit}> {value.unit}</span>}
+      </div>
     </div>
   );
 }
@@ -335,6 +377,7 @@ function StatCard({
   onChange: (newKey: string) => void;
   settingsMode: boolean;
 }) {
+  const [showSelector, setShowSelector] = useState(false);
   const stat = STAT_MAP.get(statKey);
   if (!stat) return null;
 
@@ -348,19 +391,36 @@ function StatCard({
         <Icon size={32} />
       </div>
 
-      {settingsMode ? (
-        <div style={{ zIndex: 1 }}>
-          <StatSelector currentKey={statKey} onSelect={onChange} />
-        </div>
-      ) : (
-        <>
-          <div style={styles.statLabel}>{stat.label}</div>
-          <div style={{ ...styles.statValue, color: value.color }}>
-            {value.value}
-            {value.unit && <span style={styles.statUnit}> {value.unit}</span>}
-          </div>
-        </>
+      {/* Edit Button (only in settings mode) */}
+      {settingsMode && (
+        <button
+          onClick={() => setShowSelector(!showSelector)}
+          style={styles.editButtonSmall}
+          title="Change stat"
+        >
+          <Edit2 size={10} />
+        </button>
       )}
+
+      {/* Stat Selector Dropdown */}
+      {showSelector && (
+        <div style={{ position: "absolute", top: spacing.xs, left: spacing.xs, right: spacing.xs, zIndex: 1 }}>
+          <StatSelector
+            currentKey={statKey}
+            onSelect={(newKey) => {
+              onChange(newKey);
+              setShowSelector(false);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Always show stat value */}
+      <div style={styles.statLabel}>{stat.label}</div>
+      <div style={{ ...styles.statValue, color: value.color }}>
+        {value.value}
+        {value.unit && <span style={styles.statUnit}> {value.unit}</span>}
+      </div>
     </div>
   );
 }
@@ -587,6 +647,45 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 18,
     fontWeight: 600,
     opacity: 0.7,
+  },
+  editButton: {
+    position: "absolute",
+    top: spacing.sm,
+    right: spacing.sm,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 24,
+    height: 24,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.xs,
+    backgroundColor: colors.bgPanel,
+    color: colors.textMuted,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    zIndex: 2,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
+  },
+  editButtonSmall: {
+    position: "absolute",
+    top: spacing.xs,
+    right: spacing.xs,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 20,
+    height: 20,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.xs,
+    backgroundColor: colors.bgPanel,
+    color: colors.textMuted,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    zIndex: 2,
+    fontSize: 9,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
   },
   statsGrid: {
     display: "grid",
