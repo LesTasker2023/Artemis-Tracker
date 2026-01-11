@@ -142,6 +142,8 @@ export function PopoutStatsV2() {
         setSessionActive(isActive);
       }
     );
+    // Request initial session status
+    window.electron?.popout?.requestSessionStatus();
     return () => unsubscribe?.();
   }, []);
 
@@ -180,6 +182,18 @@ export function PopoutStatsV2() {
 
   const handleClose = () => {
     window.electron?.popout?.close();
+  };
+
+  const handleToggleCollapsed = () => {
+    setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
+  };
+
+  const handleStartSession = () => {
+    window.electron?.popout?.startSession();
+  };
+
+  const handleStopSession = () => {
+    window.electron?.popout?.stopSession();
   };
 
   // Calculate responsive columns based on window width

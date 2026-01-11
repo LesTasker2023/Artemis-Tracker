@@ -280,16 +280,20 @@ function App() {
   // Send session status updates to popout
   useEffect(() => {
     console.log("[App] Sending session status to popout:", sessionActive);
-    if (window.electron?.ipcRenderer) {
-      try {
-        const send = (window.electron.ipcRenderer as any).send;
-        if (send) {
-          send('popout:session-status', sessionActive);
-        }
-      } catch (e) {
-        console.error("[App] Failed to send session status to popout:", e);
-      }
-    }
+    window.electron?.popout?.sendSessionStatus(sessionActive);
+  }, [sessionActive]);
+
+  // Listen for session status requests from popout
+  useEffect(() => {
+    console.log("[App] useEffect - popout session status request listener registered");
+    const unsubscribe = window.electron?.popout?.onSessionStatusRequest(() => {
+      console.log("[App] popout session status request received, sending:", sessionActive);
+      window.electron?.popout?.sendSessionStatus(sessionActive);
+    });
+    return () => {
+      console.log("[App] useEffect cleanup - popout session status request listener removed");
+      unsubscribe?.();
+    };
   }, [sessionActive]);
 
   // Start both log watcher and session
