@@ -75,7 +75,10 @@ function App() {
           const updateResult = await window.electron?.equipment?.update();
 
           if (updateResult?.success) {
-            const { updated, failed } = updateResult.result || { updated: [], failed: [] };
+            const { updated, failed } = updateResult.result || {
+              updated: [],
+              failed: [],
+            };
             if (updated.length > 0) {
               setInitMessage(`Updated ${updated.length} database(s)...`);
             }
@@ -90,7 +93,7 @@ function App() {
         setInitProgress(100);
 
         // Small delay to show completion
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error) {
         console.error("[App] Initialization error:", error);
         // Continue anyway - local files may still work
@@ -123,7 +126,11 @@ function App() {
     recalculateStats,
   } = useSession();
   const { playerName, setPlayerName, hasPlayerName } = usePlayerName();
-  const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
+  const {
+    loadouts,
+    activeLoadout,
+    setActive: setActiveLoadout,
+  } = useLoadouts();
   const [activeTab, setActiveTab] = useState<Tab>("live");
 
   // First-time name setup - show modal if no name is set
@@ -424,8 +431,24 @@ function App() {
         </div>
         <div style={styles.controls}>
           {/* Active Loadout Selector */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-            <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Loadout</span>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: "4px",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "10px",
+                color: "hsl(220 13% 45%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Active Loadout
+            </span>
             <LoadoutDropdown
               loadouts={loadouts}
               activeLoadout={activeLoadout}

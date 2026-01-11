@@ -59,7 +59,12 @@ interface LoadoutDropdownProps {
   compact?: boolean;
 }
 
-function LoadoutDropdown({ loadouts, activeLoadout, onSelect, compact = false }: LoadoutDropdownProps) {
+function LoadoutDropdown({
+  loadouts,
+  activeLoadout,
+  onSelect,
+  compact = false,
+}: LoadoutDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -81,7 +86,15 @@ function LoadoutDropdown({ loadouts, activeLoadout, onSelect, compact = false }:
           minWidth: compact ? "150px" : "200px",
         }}
       >
-        <span style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span
+          style={{
+            flex: 1,
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
           {activeLoadout ? activeLoadout.name : "No loadout"}
         </span>
         <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)" }}>▼</span>
@@ -123,8 +136,11 @@ function LoadoutDropdown({ loadouts, activeLoadout, onSelect, compact = false }:
                 cursor: "pointer",
                 fontSize: "13px",
                 color: !activeLoadout ? "hsl(217 91% 68%)" : "hsl(220 13% 65%)",
-                backgroundColor: !activeLoadout ? "hsl(217 91% 68% / 0.1)" : "transparent",
-                borderBottom: loadouts.length > 0 ? "1px solid hsl(220 13% 18%)" : "none",
+                backgroundColor: !activeLoadout
+                  ? "hsl(217 91% 68% / 0.1)"
+                  : "transparent",
+                borderBottom:
+                  loadouts.length > 0 ? "1px solid hsl(220 13% 18%)" : "none",
               }}
               onMouseEnter={(e) => {
                 if (activeLoadout) {
@@ -150,8 +166,14 @@ function LoadoutDropdown({ loadouts, activeLoadout, onSelect, compact = false }:
                   padding: "10px 14px",
                   cursor: "pointer",
                   fontSize: "13px",
-                  color: activeLoadout?.id === loadout.id ? "hsl(217 91% 68%)" : "hsl(0 0% 95%)",
-                  backgroundColor: activeLoadout?.id === loadout.id ? "hsl(217 91% 68% / 0.1)" : "transparent",
+                  color:
+                    activeLoadout?.id === loadout.id
+                      ? "hsl(217 91% 68%)"
+                      : "hsl(0 0% 95%)",
+                  backgroundColor:
+                    activeLoadout?.id === loadout.id
+                      ? "hsl(217 91% 68% / 0.1)"
+                      : "transparent",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -167,7 +189,13 @@ function LoadoutDropdown({ loadouts, activeLoadout, onSelect, compact = false }:
                   }
                 }}
               >
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {loadout.name}
                 </span>
                 {activeLoadout?.id === loadout.id && (
@@ -291,7 +319,14 @@ function EquipmentCard({
       />
 
       {/* Decay and Ammo inputs */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "10px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "10px",
+          marginTop: "10px",
+        }}
+      >
         <div>
           <label
             style={{
@@ -364,12 +399,38 @@ function EquipmentCard({
 
       {/* Weapon Enhancers (only for weapon type) */}
       {type === "weapon" && onEnhancerChange && (
-        <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid hsl(220 13% 18%)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-            <span style={{ fontSize: "11px", color: "hsl(220 13% 65%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <div
+          style={{
+            marginTop: "12px",
+            paddingTop: "12px",
+            borderTop: "1px solid hsl(220 13% 18%)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "11px",
+                color: "hsl(220 13% 65%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
               Enhancers
             </span>
-            <span style={{ fontSize: "11px", color: "hsl(217 91% 68%)", fontFamily: "monospace" }}>
+            <span
+              style={{
+                fontSize: "11px",
+                color: "hsl(217 91% 68%)",
+                fontFamily: "monospace",
+              }}
+            >
               +{enhancerSlots * 10}% dmg
             </span>
           </div>
@@ -384,7 +445,9 @@ function EquipmentCard({
               <button
                 key={i}
                 type="button"
-                onClick={() => onEnhancerChange(i + 1 === enhancerSlots ? i : i + 1)}
+                onClick={() =>
+                  onEnhancerChange(i + 1 === enhancerSlots ? i : i + 1)
+                }
                 style={{
                   aspectRatio: "1",
                   borderRadius: "4px",
@@ -393,8 +456,10 @@ function EquipmentCard({
                   fontWeight: 600,
                   border: "1px solid",
                   cursor: "pointer",
-                  backgroundColor: i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 18%)",
-                  borderColor: i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 25%)",
+                  backgroundColor:
+                    i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 18%)",
+                  borderColor:
+                    i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 25%)",
                   color: i < enhancerSlots ? "white" : "hsl(220 13% 45%)",
                   transition: "all 0.15s",
                 }}
@@ -434,7 +499,9 @@ function LoadoutCard({
       style={{
         padding: "14px",
         borderRadius: "8px",
-        border: isActive ? "1px solid hsl(217 91% 68%)" : "1px solid hsl(220 13% 18%)",
+        border: isActive
+          ? "1px solid hsl(217 91% 68%)"
+          : "1px solid hsl(220 13% 18%)",
         backgroundColor: isActive
           ? "hsl(217 91% 68% / 0.15)"
           : "hsl(220 13% 12%)",
@@ -451,7 +518,14 @@ function LoadoutCard({
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "4px",
+            }}
+          >
             <h4
               style={{
                 fontWeight: 600,
@@ -483,7 +557,13 @@ function LoadoutCard({
               </span>
             )}
           </div>
-          <p style={{ fontSize: "13px", color: "hsl(220 13% 45%)", marginTop: "4px" }}>
+          <p
+            style={{
+              fontSize: "13px",
+              color: "hsl(220 13% 45%)",
+              marginTop: "4px",
+            }}
+          >
             {loadout.weapon?.name ?? "No weapon"}
             {loadout.amp && ` + ${loadout.amp.name}`}
           </p>
@@ -552,15 +632,19 @@ function LoadoutCard({
           }}
         >
           <span style={{ color: "hsl(220 13% 45%)" }}>Cost/Shot</span>
-          <span style={{ fontFamily: "monospace", color: "hsl(217 91% 68%)", fontSize: "14px", fontWeight: 600 }}>
+          <span
+            style={{
+              fontFamily: "monospace",
+              color: "hsl(217 91% 68%)",
+              fontSize: "14px",
+              fontWeight: 600,
+            }}
+          >
             {(effective * 100).toFixed(3)} PEC
             {loadout.useManualCost && " (manual)"}
           </span>
         </div>
       </div>
-      {!loadout.useManualCost && (
-        <div className={styles.loadoutCostRow}>W: {(costs.weaponCost * 100).toFixed(2)} A: {(costs.ampCost * 100).toFixed(2)}</div>
-      )}
     </div>
   );
 }
@@ -582,7 +666,9 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
   };
 
   const costs = calculateLoadoutCosts(draft);
-  const damage = draft.weapon ? calculateEnhancedDamage(draft) : { min: 0, max: 0 };
+  const damage = draft.weapon
+    ? calculateEnhancedDamage(draft)
+    : { min: 0, max: 0 };
   const dpp = draft.weapon ? calculateDPP(draft) : 0;
 
   return (
@@ -624,7 +710,14 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
           }}
         >
           <div>
-            <h2 style={{ fontSize: "20px", fontWeight: 700, color: "hsl(0 0% 95%)", marginBottom: "4px" }}>
+            <h2
+              style={{
+                fontSize: "20px",
+                fontWeight: 700,
+                color: "hsl(0 0% 95%)",
+                marginBottom: "4px",
+              }}
+            >
               {loadout.id ? "Edit Loadout" : "New Loadout"}
             </h2>
             <p style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>
@@ -632,8 +725,24 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
-              <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Loadout</span>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  color: "hsl(220 13% 45%)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Active Loadout
+              </span>
               <LoadoutDropdown
                 loadouts={loadouts}
                 activeLoadout={activeLoadout}
@@ -671,7 +780,9 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
           }}
         >
           {/* Left Column - Equipment */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "24px" }}
+          >
             {/* Name Input */}
             <div>
               <label
@@ -709,17 +820,37 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
 
             {/* Weapons Section */}
             <div>
-              <h3 style={{ fontSize: "14px", fontWeight: 600, color: "hsl(220 13% 65%)", marginBottom: "16px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <h3
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "hsl(220 13% 65%)",
+                  marginBottom: "16px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
                 Equipment
               </h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
                 <EquipmentCard
                   label="Weapon"
                   type="weapon"
                   equipment={draft.weapon}
                   onChange={(eq) => updateEquipment("weapon", eq)}
                   enhancerSlots={draft.weaponEnhancerSlots || 0}
-                  onEnhancerChange={(slots) => setDraft((prev) => ({ ...prev, weaponEnhancerSlots: slots }))}
+                  onEnhancerChange={(slots) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      weaponEnhancerSlots: slots,
+                    }))
+                  }
                 />
                 <EquipmentCard
                   label="Amplifier"
@@ -744,7 +875,9 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
           </div>
 
           {/* Right Column - Cost Summary */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
             {/* Manual Override */}
             <div
               style={{
@@ -773,18 +906,30 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   }
                   style={{ width: "16px", height: "16px", cursor: "pointer" }}
                 />
-                <span style={{ fontSize: "13px", color: "hsl(0 0% 95%)", fontWeight: 500 }}>
+                <span
+                  style={{
+                    fontSize: "13px",
+                    color: "hsl(0 0% 95%)",
+                    fontWeight: 500,
+                  }}
+                >
                   Manual cost override
                 </span>
               </label>
               {draft.useManualCost && (
                 <input
                   type="number"
-                  value={draft.manualCostPerShot !== undefined ? (draft.manualCostPerShot * 100).toFixed(3) : ""}
+                  value={
+                    draft.manualCostPerShot !== undefined
+                      ? (draft.manualCostPerShot * 100).toFixed(3)
+                      : ""
+                  }
                   onChange={(e) =>
                     setDraft((prev) => ({
                       ...prev,
-                      manualCostPerShot: e.target.value ? parseFloat(e.target.value) / 100 : undefined,
+                      manualCostPerShot: e.target.value
+                        ? parseFloat(e.target.value) / 100
+                        : undefined,
                     }))
                   }
                   step="0.001"
@@ -825,12 +970,21 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               >
                 Cost Breakdown
               </h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 <CostRow label="Weapon" value={costs.weaponCost} />
                 <CostRow label="Amplifier" value={costs.ampCost} />
                 <CostRow label="Scope" value={costs.scopeCost} />
                 <CostRow label="Sight" value={costs.sightCost} />
-                <CostRow label="Weapon Enhancers" value={costs.weaponEnhancerCost} />
+                <CostRow
+                  label="Weapon Enhancers"
+                  value={costs.weaponEnhancerCost}
+                />
                 <div
                   style={{
                     height: "1px",
@@ -845,7 +999,13 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                     alignItems: "baseline",
                   }}
                 >
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: "hsl(0 0% 95%)" }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "hsl(0 0% 95%)",
+                    }}
+                  >
                     Total/Shot
                   </span>
                   <span
@@ -884,9 +1044,21 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                 >
                   Damage & Efficiency
                 </h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>Min Damage</span>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}
+                    >
+                      Min Damage
+                    </span>
                     <span
                       style={{
                         fontFamily: "monospace",
@@ -898,8 +1070,14 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                       {damage.min.toFixed(1)}
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>Max Damage</span>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}
+                    >
+                      Max Damage
+                    </span>
                     <span
                       style={{
                         fontFamily: "monospace",
@@ -918,8 +1096,16 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                       margin: "4px 0",
                     }}
                   />
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "14px", fontWeight: 600, color: "hsl(0 0% 95%)" }}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "hsl(0 0% 95%)",
+                      }}
+                    >
                       DPP (Dmg/PEC)
                     </span>
                     <span
@@ -993,8 +1179,16 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
 function CostRow({ label, value }: { label: string; value: number }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between" }}>
-      <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>{label}</span>
-      <span style={{ fontFamily: "monospace", color: "hsl(0 0% 95%)", fontSize: "13px" }}>
+      <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "monospace",
+          color: "hsl(0 0% 95%)",
+          fontSize: "13px",
+        }}
+      >
         {(value * 100).toFixed(2)} PEC
       </span>
     </div>
@@ -1056,24 +1250,23 @@ export function LoadoutManager() {
         >
           <div>
             <h2 style={{ fontSize: "18px", fontWeight: 700 }}>Loadouts</h2>
-            <p style={{ fontSize: "13px", color: "hsl(220 13% 45%)", marginTop: "2px" }}>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "hsl(220 13% 45%)",
+                marginTop: "2px",
+              }}
+            >
               Manage your equipment configurations
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
-              <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Loadout</span>
-              <LoadoutDropdown
-                loadouts={loadouts}
-                activeLoadout={activeLoadout}
-                onSelect={setActive}
-              />
-            </div>
             <button
               onClick={handleNew}
               style={{
                 padding: "10px 18px",
-                background: "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)",
+                background:
+                  "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)",
                 borderRadius: "8px",
                 border: "none",
                 cursor: "pointer",
@@ -1110,7 +1303,9 @@ export function LoadoutManager() {
               color: "hsl(220 13% 45%)",
             }}
           >
-            <p style={{ fontSize: "15px", marginBottom: "6px" }}>No loadouts yet</p>
+            <p style={{ fontSize: "15px", marginBottom: "6px" }}>
+              No loadouts yet
+            </p>
             <p style={{ fontSize: "13px" }}>
               Create one to track cost per shot
             </p>
