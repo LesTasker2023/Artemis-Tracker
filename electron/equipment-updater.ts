@@ -10,7 +10,7 @@ import https from 'https';
 const API_BASE = 'https://api.entropianexus.com';
 const ENDPOINTS = {
   weapons: '/weapons',
-  amps: '/amps',
+  amps: '/weaponamplifiers',
   scopes: '/weaponvisionattachments?type=scope',
   sights: '/weaponvisionattachments?type=sight',
   // armor: '/armor', // Uncomment when armor is re-enabled
@@ -72,6 +72,35 @@ function checkFilesExist(dataDir: string): boolean {
   return requiredFiles.every(file =>
     fs.existsSync(path.join(dataDir, file))
   );
+}
+
+/**
+ * Check if equipment data needs initialization
+ * Returns true if any file is missing or has less than 10 bytes (empty/corrupted)
+ */
+export function needsInitialization(dataDir: string): boolean {
+  const requiredFiles = Object.keys(ENDPOINTS).map(key => `${key}.json`);
+
+  for (const file of requiredFiles) {
+    const filePath = path.join(dataDir, file);
+
+    // File doesn't exist
+    if (!fs.existsSync(filePath)) {
+      return true;
+    }
+
+    // File is empty or nearly empty (corrupted)
+    try {
+      const stats = fs.statSync(filePath);
+      if (stats.size < 10) {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
