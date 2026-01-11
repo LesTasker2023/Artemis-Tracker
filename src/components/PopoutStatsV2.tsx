@@ -4,7 +4,19 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock, Edit2, ChevronDown, ChevronUp, Play, Square } from "lucide-react";
+import {
+  GripHorizontal,
+  Settings,
+  RotateCcw,
+  Activity,
+  X,
+  Clock,
+  Edit2,
+  ChevronDown,
+  ChevronUp,
+  Play,
+  Square,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -27,7 +39,14 @@ interface PopoutConfigV2 {
 
 const DEFAULT_CONFIG: PopoutConfigV2 = {
   mode: "stats",
-  stats: ["netProfit", "returnRate", "kills", "hitRate", "lootValue", "totalSpend"],
+  stats: [
+    "netProfit",
+    "returnRate",
+    "kills",
+    "hitRate",
+    "lootValue",
+    "totalSpend",
+  ],
   collapsed: false,
 };
 
@@ -59,7 +78,10 @@ function formatDuration(seconds: number) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
-  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  if (h > 0)
+    return `${h}:${m.toString().padStart(2, "0")}:${s
+      .toString()
+      .padStart(2, "0")}`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
@@ -92,7 +114,11 @@ export function PopoutStatsV2() {
   const [sessionActive, setSessionActive] = useState(false);
 
   // Loadout management
-  const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
+  const {
+    loadouts,
+    activeLoadout,
+    setActive: setActiveLoadout,
+  } = useLoadouts();
 
   // Track window size for responsive layout
   useEffect(() => {
@@ -105,18 +131,22 @@ export function PopoutStatsV2() {
 
   // Listen for stats updates
   useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onStatsUpdate((data: LiveStats) => {
-      setStats(data);
-    });
+    const unsubscribe = window.electron?.popout?.onStatsUpdate(
+      (data: LiveStats) => {
+        setStats(data);
+      }
+    );
     window.electron?.popout?.requestStats();
     return () => unsubscribe?.();
   }, []);
 
   // Listen for session status updates
   useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate((isActive: boolean) => {
-      setSessionActive(isActive);
-    });
+    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate(
+      (isActive: boolean) => {
+        setSessionActive(isActive);
+      }
+    );
     return () => unsubscribe?.();
   }, []);
 
@@ -212,7 +242,9 @@ export function PopoutStatsV2() {
               return (
                 <div key={statKey} style={styles.collapsedStat}>
                   <span style={styles.collapsedLabel}>{stat.label}:</span>
-                  <span style={{ ...styles.collapsedValue, color: value.color }}>
+                  <span
+                    style={{ ...styles.collapsedValue, color: value.color }}
+                  >
                     {value.value}
                     {value.unit && ` ${value.unit}`}
                   </span>
@@ -223,7 +255,9 @@ export function PopoutStatsV2() {
             {/* Duration */}
             <div style={styles.collapsedStat}>
               <Clock size={10} style={{ color: colors.textMuted }} />
-              <span style={styles.collapsedValue}>{formatDuration(stats.duration)}</span>
+              <span style={styles.collapsedValue}>
+                {formatDuration(stats.duration)}
+              </span>
             </div>
           </div>
 
@@ -251,8 +285,10 @@ export function PopoutStatsV2() {
             onClick={() => handleModeChange("stats")}
             style={{
               ...styles.modeTab,
-              backgroundColor: config.mode === "stats" ? colors.bgCard : "transparent",
-              color: config.mode === "stats" ? colors.textPrimary : colors.textMuted,
+              backgroundColor:
+                config.mode === "stats" ? colors.bgCard : "transparent",
+              color:
+                config.mode === "stats" ? colors.textPrimary : colors.textMuted,
             }}
             title="Stats Mode"
           >
@@ -264,7 +300,9 @@ export function PopoutStatsV2() {
         {config.mode === "stats" && (
           <div style={styles.durationDisplay}>
             <Clock size={10} style={{ color: colors.textMuted }} />
-            <span style={styles.durationText}>{formatDuration(stats.duration)}</span>
+            <span style={styles.durationText}>
+              {formatDuration(stats.duration)}
+            </span>
           </div>
         )}
 
@@ -318,20 +356,13 @@ export function PopoutStatsV2() {
               Reset to Defaults
             </button>
           </div>
-          <div style={styles.settingsRow}>
-            <button onClick={handleSwitchVersion} style={styles.settingsActionButton}>
-              Switch to V1
-            </button>
-          </div>
+
           <div style={styles.settingsDivider} />
-          <div style={styles.settingsHint}>Click edit buttons on cards to change stats</div>
+          <div style={styles.settingsHint}>
+            Click edit buttons on cards to change stats
+          </div>
         </div>
       )}
-
-      {/* Asteroid Mode */}
-      <div style={{ display: config.mode === "asteroid" ? "block" : "none", flex: 1 }}>
-        <AsteroidPanel />
-      </div>
 
       {/* Stats Mode */}
       {config.mode === "stats" && (
@@ -350,7 +381,7 @@ export function PopoutStatsV2() {
             </div>
 
             {/* Session Controls */}
-            <div style={styles.sessionControls}>
+            {/* <div style={styles.sessionControls}>
               {sessionActive ? (
                 <button
                   onClick={handleStopSession}
@@ -368,7 +399,7 @@ export function PopoutStatsV2() {
                   <Play size={12} />
                 </button>
               )}
-            </div>
+            </div> */}
           </div>
 
           {/* Stats Grid */}
@@ -455,18 +486,13 @@ function StatCard({
         </div>
       )}
 
-      {/* Stat Selector Dropdown */}
-      {showSelector && (
-        <div style={{ position: "absolute", top: spacing.xs, left: spacing.xs, right: spacing.xs, zIndex: 1 }}>
-          <StatSelector
-            currentKey={statKey}
-            onSelect={(newKey) => {
-              onChange(newKey);
-              setShowSelector(false);
-            }}
-          />
-        </div>
-      )}
+      <StatSelector
+        currentKey={statKey}
+        onSelect={(newKey) => {
+          onChange(newKey);
+          setShowSelector(false);
+        }}
+      />
 
       {/* Always show stat value */}
       <div style={styles.statLabel}>{stat.label}</div>
@@ -496,7 +522,10 @@ function StatSelector({
       </button>
       {isOpen && (
         <>
-          <div style={styles.selectorOverlay} onClick={() => setIsOpen(false)} />
+          <div
+            style={styles.selectorOverlay}
+            onClick={() => setIsOpen(false)}
+          />
           <div style={styles.selectorDropdown}>
             {Array.from(STAT_MAP.values()).map((stat) => (
               <button
@@ -508,7 +537,9 @@ function StatSelector({
                 style={{
                   ...styles.selectorOption,
                   backgroundColor:
-                    stat.key === currentKey ? "hsl(217 91% 68% / 0.15)" : "transparent",
+                    stat.key === currentKey
+                      ? "hsl(217 91% 68% / 0.15)"
+                      : "transparent",
                 }}
               >
                 <span style={styles.selectorCategory}>{stat.category}</span>
