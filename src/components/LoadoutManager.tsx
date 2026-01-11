@@ -50,6 +50,147 @@ function createEquipmentManual(
   };
 }
 
+// ==================== Loadout Dropdown Selector ====================
+
+interface LoadoutDropdownProps {
+  loadouts: Loadout[];
+  activeLoadout: Loadout | null;
+  onSelect: (id: string | null) => void;
+  compact?: boolean;
+}
+
+function LoadoutDropdown({ loadouts, activeLoadout, onSelect, compact = false }: LoadoutDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          padding: compact ? "6px 12px" : "8px 16px",
+          backgroundColor: "hsl(220 13% 12%)",
+          border: "1px solid hsl(220 13% 25%)",
+          borderRadius: "6px",
+          color: "hsl(0 0% 95%)",
+          fontSize: compact ? "12px" : "13px",
+          fontWeight: 500,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          minWidth: compact ? "150px" : "200px",
+        }}
+      >
+        <span style={{ flex: 1, textAlign: "left", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {activeLoadout ? activeLoadout.name : "No loadout"}
+        </span>
+        <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)" }}>▼</span>
+      </button>
+
+      {isOpen && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 40,
+            }}
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              marginTop: "4px",
+              backgroundColor: "hsl(220 13% 12%)",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "6px",
+              maxHeight: "300px",
+              overflowY: "auto",
+              zIndex: 50,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+            }}
+          >
+            <div
+              onClick={() => {
+                onSelect(null);
+                setIsOpen(false);
+              }}
+              style={{
+                padding: "10px 14px",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: !activeLoadout ? "hsl(217 91% 68%)" : "hsl(220 13% 65%)",
+                backgroundColor: !activeLoadout ? "hsl(217 91% 68% / 0.1)" : "transparent",
+                borderBottom: loadouts.length > 0 ? "1px solid hsl(220 13% 18%)" : "none",
+              }}
+              onMouseEnter={(e) => {
+                if (activeLoadout) {
+                  e.currentTarget.style.backgroundColor = "hsl(220 13% 18%)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeLoadout) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
+            >
+              None
+            </div>
+            {loadouts.map((loadout) => (
+              <div
+                key={loadout.id}
+                onClick={() => {
+                  onSelect(loadout.id);
+                  setIsOpen(false);
+                }}
+                style={{
+                  padding: "10px 14px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  color: activeLoadout?.id === loadout.id ? "hsl(217 91% 68%)" : "hsl(0 0% 95%)",
+                  backgroundColor: activeLoadout?.id === loadout.id ? "hsl(217 91% 68% / 0.1)" : "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeLoadout?.id !== loadout.id) {
+                    e.currentTarget.style.backgroundColor = "hsl(220 13% 18%)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeLoadout?.id !== loadout.id) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {loadout.name}
+                </span>
+                {activeLoadout?.id === loadout.id && (
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      color: "hsl(142 76% 60%)",
+                      marginLeft: "8px",
+                    }}
+                  >
+                    ACTIVE
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ==================== Equipment Card with Autocomplete ====================
 
 interface EquipmentCardProps {
@@ -310,18 +451,38 @@ function LoadoutCard({
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h4
-            style={{
-              fontWeight: 600,
-              fontSize: "15px",
-              color: "hsl(0 0% 95%)",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {loadout.name}
-          </h4>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+            <h4
+              style={{
+                fontWeight: 600,
+                fontSize: "15px",
+                color: "hsl(0 0% 95%)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {loadout.name}
+            </h4>
+            {isActive && (
+              <span
+                style={{
+                  padding: "2px 8px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "hsl(142 76% 40%)",
+                  backgroundColor: "hsl(142 76% 40% / 0.15)",
+                  border: "1px solid hsl(142 76% 40% / 0.4)",
+                  borderRadius: "4px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  flexShrink: 0,
+                }}
+              >
+                Active
+              </span>
+            )}
+          </div>
           <p style={{ fontSize: "13px", color: "hsl(220 13% 45%)", marginTop: "4px" }}>
             {loadout.weapon?.name ?? "No weapon"}
             {loadout.amp && ` + ${loadout.amp.name}`}
@@ -414,6 +575,7 @@ interface LoadoutEditorProps {
 
 function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
   const [draft, setDraft] = useState<Loadout>({ ...loadout });
+  const { loadouts, activeLoadout, setActive } = useLoadouts();
 
   const updateEquipment = (key: keyof Loadout, eq: Equipment | undefined) => {
     setDraft((prev) => ({ ...prev, [key]: eq }));
@@ -469,21 +631,32 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               Configure your equipment and weapon enhancers
             </p>
           </div>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: "6px 14px",
-              backgroundColor: "transparent",
-              border: "1px solid hsl(220 13% 25%)",
-              borderRadius: "6px",
-              color: "hsl(220 13% 65%)",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 500,
-            }}
-          >
-            Close
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
+              <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Loadout</span>
+              <LoadoutDropdown
+                loadouts={loadouts}
+                activeLoadout={activeLoadout}
+                onSelect={setActive}
+                compact
+              />
+            </div>
+            <button
+              onClick={onCancel}
+              style={{
+                padding: "6px 14px",
+                backgroundColor: "transparent",
+                border: "1px solid hsl(220 13% 25%)",
+                borderRadius: "6px",
+                color: "hsl(220 13% 65%)",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 500,
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
 
         {/* Content - Two Column Layout */}
@@ -887,22 +1060,32 @@ export function LoadoutManager() {
               Manage your equipment configurations
             </p>
           </div>
-          <button
-            onClick={handleNew}
-            style={{
-              padding: "10px 18px",
-              background: "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              color: "white",
-              fontSize: "14px",
-              fontWeight: 600,
-            }}
-            title="New Loadout"
-          >
-            New Loadout
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
+              <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Loadout</span>
+              <LoadoutDropdown
+                loadouts={loadouts}
+                activeLoadout={activeLoadout}
+                onSelect={setActive}
+              />
+            </div>
+            <button
+              onClick={handleNew}
+              style={{
+                padding: "10px 18px",
+                background: "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "pointer",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: 600,
+              }}
+              title="New Loadout"
+            >
+              New Loadout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -959,3 +1142,6 @@ export function LoadoutManager() {
     </div>
   );
 }
+
+// Export LoadoutDropdown for use in App header
+export { LoadoutDropdown };

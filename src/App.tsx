@@ -29,7 +29,8 @@ import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateNotification } from "./components/UpdateNotification";
-import { LoadoutManager } from "./components/LoadoutManager";
+import { LoadoutManager, LoadoutDropdown } from "./components/LoadoutManager";
+import { useLoadouts } from "./hooks/useLoadouts";
 import { SessionsPage } from "./components/SessionsPage";
 import { LiveDashboard } from "./components/LiveDashboard";
 import { SkillsDeepDive } from "./components/SkillsDeepDive";
@@ -122,6 +123,7 @@ function App() {
     recalculateStats,
   } = useSession();
   const { playerName, setPlayerName, hasPlayerName } = usePlayerName();
+  const { loadouts, activeLoadout, setActive: setActiveLoadout } = useLoadouts();
   const [activeTab, setActiveTab] = useState<Tab>("live");
 
   // First-time name setup - show modal if no name is set
@@ -421,6 +423,17 @@ function App() {
           </div>
         </div>
         <div style={styles.controls}>
+          {/* Active Loadout Selector */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Active Loadout</span>
+            <LoadoutDropdown
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+              compact
+            />
+          </div>
+
           {!isWatching ? (
             <button onClick={start} style={styles.buttonPrimary}>
               <Play size={14} style={{ marginRight: 6 }} /> Start
