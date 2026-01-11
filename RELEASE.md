@@ -22,11 +22,41 @@ When you launch Artemis v3:
 
 ### For Developers
 
-#### 1. Building a Release
+#### 1. Automated Releases (Recommended)
+
+**The easiest way - fully automated via GitHub Actions:**
+
+1. Update the version in `package.json`:
+   ```json
+   {
+     "version": "0.3.2"
+   }
+   ```
+
+2. Commit and push to your branch:
+   ```bash
+   git add package.json
+   git commit -m "chore: bump version to 0.3.2"
+   git push
+   ```
+
+3. Merge your PR to `main` branch
+
+4. **GitHub Actions automatically:**
+   - Builds for Windows, macOS, and Linux
+   - Creates a GitHub Release tagged `v0.3.2`
+   - Uploads all installers to the release
+   - Generates release notes from commits
+
+That's it! No manual builds or uploads needed.
+
+#### 2. Manual Release (Alternative)
+
+**If you prefer to build locally:**
 
 ```bash
 # Update version in package.json
-# Example: "version": "3.0.0-alpha.2"
+# Example: "version": "0.3.2"
 
 # Build the app with electron-builder
 npm run build:electron
@@ -37,24 +67,12 @@ npm run build:electron
 # - Linux: .AppImage and .deb
 ```
 
-#### 2. Publishing to GitHub Releases
-
-**Automatic Publishing:**
-
-```bash
-# Ensure you have GH_TOKEN environment variable set
-export GH_TOKEN=your_github_personal_access_token
-
-# Build and publish
-npm run build:electron -- --publish always
-```
-
-**Manual Publishing:**
+**Publishing manually:**
 
 1. Go to https://github.com/LesTasker2023/Artemis-Tracker/releases
 2. Click "Create a new release"
-3. Tag version: `v3.0.0-alpha.2` (must match package.json version)
-4. Release title: `Artemis v3.0.0-alpha.2`
+3. Tag version: `v0.3.2` (must match package.json version with "v" prefix)
+4. Release title: `Artemis v0.3.2`
 5. Upload the files from `dist/`:
    - `Artemis-v3-{version}.exe` (Windows)
    - `Artemis-v3-{version}.dmg` (macOS)
@@ -66,12 +84,29 @@ npm run build:electron -- --publish always
 #### 3. Version Numbering
 
 Follow semantic versioning:
-- **Major**: Breaking changes (`4.0.0`)
-- **Minor**: New features (`3.1.0`)
-- **Patch**: Bug fixes (`3.0.1`)
-- **Pre-release**: Alpha/Beta (`3.0.0-alpha.1`, `3.0.0-beta.1`)
+- **Major**: Breaking changes (`1.0.0`)
+- **Minor**: New features (`0.4.0`)
+- **Patch**: Bug fixes (`0.3.2`)
 
-#### 4. Update Configuration
+Current version scheme: `0.3.x` → `0.4.x` → `1.0.0`
+
+#### 4. GitHub Actions Workflow
+
+The automated release workflow is defined in `.github/workflows/release.yml`:
+
+**Triggers on:**
+- Push to `main` branch (when PR is merged)
+
+**What it does:**
+1. Builds app for all platforms (Windows, macOS, Linux) in parallel
+2. Reads version from `package.json`
+3. Creates GitHub Release with tag `v{version}`
+4. Uploads all installers and update metadata files
+5. Generates release notes from commit history
+
+**No configuration needed** - it works automatically when you merge to main!
+
+#### 5. Update Configuration
 
 The auto-updater is configured in:
 - **package.json**: Repository info and build settings
@@ -99,24 +134,29 @@ Configuration:
 
 ## Testing Updates
 
-### Local Testing
+### Automated Testing (via GitHub)
 
-1. Build two versions:
-   ```bash
-   # Version 1
-   npm run build:electron
-   ```
+1. **Create a test release:**
+   - Update `package.json` to `0.3.1`
+   - Merge to `main` branch
+   - GitHub Actions builds and creates release `v0.3.1`
 
-2. Install version 1
+2. **Install test release**
 
-3. Update package.json to version 2
+3. **Create next version:**
+   - Update `package.json` to `0.3.2`
+   - Merge to `main` branch
+   - GitHub Actions builds and creates release `v0.3.2`
 
-4. Build and publish version 2:
-   ```bash
-   npm run build:electron -- --publish always
-   ```
+4. **Test auto-update:**
+   - Launch version `0.3.1`
+   - It should detect and download `0.3.2` automatically
 
-5. Launch version 1 - it should detect and download version 2
+### Local Testing (Advanced)
+
+1. Build and install version `0.3.1` locally
+2. Create GitHub release `v0.3.2` (manual or via GitHub Actions)
+3. Launch version `0.3.1` - should detect update from GitHub
 
 ### Debug Mode
 
@@ -128,17 +168,8 @@ Check the logs at:
 Look for:
 ```
 [AutoUpdater] Checking for update...
-[AutoUpdater] Update available: 3.0.0-alpha.2
+[AutoUpdater] Update available: 0.3.2
 [AutoUpdater] Update downloaded
-```
-
-## Pre-release vs. Stable
-
-By default, the app only checks for stable releases. To enable pre-release updates:
-
-In `electron/main.ts`:
-```typescript
-autoUpdater.allowPrerelease = true;  // Enable alpha/beta updates
 ```
 
 ## Troubleshooting
