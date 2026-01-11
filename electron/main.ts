@@ -7,6 +7,7 @@ const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron')
 const path = require('path');
 import fs from 'fs';
 const os = require('os');
+import { updateEquipmentDatabase, checkForUpdates } from './equipment-updater';
 
 let mainWindow: typeof BrowserWindow | null = null;
 let popoutWindow: typeof BrowserWindow | null = null;
@@ -542,30 +543,6 @@ function createWindow() {
   });
 }
 
-// Set dock icon on macOS (useful in dev)
-app.whenReady().then(() => {
-  if (process.platform === 'darwin') {
-    const icns = getIconPath();
-    if (fs.existsSync(icns)) {
-      try {
-        // app.dock.setIcon accepts nativeImage or path
-        app.dock.setIcon(icns);
-        console.log('[Main] Dock icon set:', icns);
-      } catch (e) {
-        console.warn('[Main] Failed to set dock icon:', e);
-      }
-    }
-  }
-
-  createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
-  });
-});
-
 // ==================== Popout Window ====================
 
 function createPopoutWindow() {
@@ -739,6 +716,34 @@ ipcMain.handle('equipment:load', (_event: unknown, type: string) => {
     return [];
   }
   return loadEquipmentData(type);
+});
+
+// ==================== Equipment Database Updater ====================
+
+function getDataDir(): string {
+  return process.env.VITE_DEV_SERVER_URL
+    ? path.join(__dirname, '..', 'data')
+    : path.join(__dirname, '..', 'data');
+}
+
+ipcMain.handle('equipment:check-updates', async () => {
+  try {
+    const dataDir = getDataDir();
+    const updateAvailable = await checkForUpdates(dataDir);
+    return { success: true, updateAvailable };
+  } catch (error) {
+    return { success: false, error: String(error), updateAvailable: false };
+  }
+});
+
+ipcMain.handle('equipment:update', async () => {
+  try {
+    const dataDir = getDataDir();
+    const result = await updateEquipmentDatabase(dataDir, false);
+    return { success: true, result };
+  } catch (error) {
+    return { success: false, error: String(error) };
+  }
 });
 
 // ==================== Session Storage ====================
