@@ -347,12 +347,16 @@ export function PopoutStatsV2() {
         <div style={styles.content}>
           {/* Loadout Dropdown */}
           <div style={styles.loadoutRow}>
-            <LoadoutDropdown
-              loadouts={loadouts}
-              activeLoadout={activeLoadout}
-              onSelect={setActiveLoadout}
-              compact
-            />
+            <div style={{ position: "relative", width: "100%" }}>
+              <div style={{ width: "100%" }}>
+                <LoadoutDropdown
+                  loadouts={loadouts}
+                  activeLoadout={activeLoadout}
+                  onSelect={setActiveLoadout}
+                  compact
+                />
+              </div>
+            </div>
           </div>
 
           {/* Hero Stat */}
@@ -436,23 +440,23 @@ function HeroStatCard({
     <div style={styles.heroCard}>
       {/* Background Icon */}
       <div style={styles.heroIcon}>
-        <Icon size={60} />
+        <Icon size={32} />
       </div>
 
       {/* Edit Button (only in settings mode) */}
       {settingsMode && (
         <button
           onClick={() => setShowSelector(!showSelector)}
-          style={styles.editButton}
+          style={styles.editButtonSmall}
           title="Change stat"
         >
-          <Edit2 size={11} />
+          <Edit2 size={10} />
         </button>
       )}
 
       {/* Stat Selector Dropdown */}
       {showSelector && (
-        <div style={{ position: "absolute", top: spacing.md, left: spacing.md, right: spacing.md, zIndex: 1 }}>
+        <div style={{ position: "absolute", top: spacing.xs, left: spacing.xs, right: spacing.xs, zIndex: 1 }}>
           <StatSelector
             currentKey={statKey}
             onSelect={(newKey) => {
@@ -787,68 +791,50 @@ const styles: Record<string, React.CSSProperties> = {
   loadoutRow: {
     display: "flex",
     alignItems: "center",
-    gap: spacing.sm,
+    width: "100%",
   },
   heroCard: {
     position: "relative",
     backgroundColor: colors.bgCard,
-    border: `2px solid ${colors.border}`,
-    borderRadius: radius.md,
-    padding: spacing.lg,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 90,
+    minHeight: 58,
     overflow: "hidden",
   },
   heroIcon: {
     position: "absolute",
-    right: spacing.sm,
+    right: spacing.xs,
     top: "50%",
     transform: "translateY(-50%)",
-    opacity: 0.06,
+    opacity: 0.05,
     color: colors.iconWatermark,
     pointerEvents: "none",
   },
   heroLabel: {
-    fontSize: 10,
-    fontWeight: 700,
-    color: colors.textSecondary,
-    letterSpacing: "0.1em",
+    fontSize: 9,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
     marginBottom: spacing.xs,
     zIndex: 1,
   },
   heroValue: {
-    fontSize: 32,
+    fontSize: 16,
     fontWeight: 700,
     fontFamily: typography.mono,
     lineHeight: 1,
     zIndex: 1,
   },
   heroUnit: {
-    fontSize: 18,
+    fontSize: "0.7em",
     fontWeight: 600,
     opacity: 0.7,
-  },
-  editButton: {
-    position: "absolute",
-    top: spacing.sm,
-    right: spacing.sm,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 24,
-    height: 24,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.xs,
-    backgroundColor: colors.bgPanel,
-    color: colors.textMuted,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    zIndex: 2,
-    // @ts-expect-error Electron specific
-    WebkitAppRegion: "no-drag",
   },
   cardActions: {
     position: "absolute",

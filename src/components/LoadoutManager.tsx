@@ -83,7 +83,7 @@ function LoadoutDropdown({
           display: "flex",
           alignItems: "center",
           gap: "8px",
-          minWidth: compact ? "150px" : "200px",
+          width: "100%",
         }}
       >
         <span
