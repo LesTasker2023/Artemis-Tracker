@@ -244,12 +244,12 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     label: "PROFIT",
     icon: DollarSign,
     category: "economy",
-    description: "Gross profit (loot - spent, before decay)",
+    description: "Net profit after all costs (loot - ammo - decay)",
     getValue: (d) => ({
-      value: `${d.profit >= 0 ? "+" : ""}${formatPed(d.profit)}`,
-      unit: `${formatPed(d.lootValue)}/${formatPed(d.totalSpend)}`,
-      color: profitColor(d.profit),
-      numericValue: d.profit,
+      value: `${d.netProfit >= 0 ? "+" : ""}${formatPed(d.netProfit)}`,
+      unit: `${formatPed(d.lootValue)}/${formatPed(d.totalSpend + d.decay)}`,
+      color: profitColor(d.netProfit),
+      numericValue: d.netProfit,
     }),
   },
   {
