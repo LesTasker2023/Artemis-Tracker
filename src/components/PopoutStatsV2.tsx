@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock, Edit2 } from "lucide-react";
+import { GripHorizontal, Settings, RotateCcw, Activity, X, Clock, Edit2, ChevronDown, ChevronUp } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -23,12 +23,14 @@ interface PopoutConfigV2 {
   mode: PopoutMode;
   hero: string;
   stats: string[]; // 6 stat tiles
+  collapsed: boolean; // collapsed minimal mode
 }
 
 const DEFAULT_CONFIG: PopoutConfigV2 = {
   mode: "stats",
   hero: "netProfit",
   stats: ["returnRate", "kills", "hitRate", "lootValue", "totalSpend", "damageDealt"],
+  collapsed: false,
 };
 
 // Load config from localStorage
@@ -147,6 +149,10 @@ export function PopoutStatsV2() {
     window.electron?.popout?.close();
   };
 
+  const handleToggleCollapsed = () => {
+    setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
+  };
+
   // Calculate efficiency metrics
   const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
   const lootPerHour = stats.duration > 0 ? (stats.lootValue / stats.duration) * 3600 : 0;
@@ -160,6 +166,76 @@ export function PopoutStatsV2() {
 
   const columns = getColumns();
 
+  // Collapsed minimal mode
+  if (config.collapsed) {
+    return (
+      <div style={styles.collapsedContainer}>
+        {/* Collapsed Header Bar */}
+        <div style={styles.collapsedBar}>
+          {/* Expand Button */}
+          <button
+            onClick={handleToggleCollapsed}
+            style={styles.collapseButton}
+            title="Expand"
+          >
+            <ChevronDown size={12} />
+          </button>
+
+          {/* Minimal Stats Display */}
+          <div style={styles.collapsedStats}>
+            {/* Hero Stat */}
+            {(() => {
+              const heroStat = STAT_MAP.get(config.hero);
+              if (!heroStat) return null;
+              const value = heroStat.getValue(statData);
+              return (
+                <div style={styles.collapsedStat}>
+                  <span style={styles.collapsedLabel}>{heroStat.label}:</span>
+                  <span style={{ ...styles.collapsedValue, color: value.color }}>
+                    {value.value}
+                    {value.unit && ` ${value.unit}`}
+                  </span>
+                </div>
+              );
+            })()}
+
+            {/* Quick Stats */}
+            {config.stats.slice(0, 3).map((statKey) => {
+              const stat = STAT_MAP.get(statKey);
+              if (!stat) return null;
+              const value = stat.getValue(statData);
+              return (
+                <div key={statKey} style={styles.collapsedStat}>
+                  <span style={styles.collapsedLabel}>{stat.label}:</span>
+                  <span style={styles.collapsedValue}>
+                    {value.value}
+                    {value.unit && ` ${value.unit}`}
+                  </span>
+                </div>
+              );
+            })}
+
+            {/* Duration */}
+            <div style={styles.collapsedStat}>
+              <Clock size={10} style={{ color: colors.textMuted }} />
+              <span style={styles.collapsedValue}>{formatDuration(stats.duration)}</span>
+            </div>
+          </div>
+
+          {/* Close Button */}
+          <button
+            onClick={handleClose}
+            style={styles.collapseButton}
+            title="Close"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Expanded full mode
   return (
     <div style={styles.container}>
       {/* Draggable Header */}
@@ -195,16 +271,25 @@ export function PopoutStatsV2() {
         {/* Header Actions */}
         <div style={styles.headerActions}>
           {config.mode === "stats" && (
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              style={{
-                ...styles.headerButton,
-                backgroundColor: showSettings ? colors.bgCard : "transparent",
-              }}
-              title="Settings"
-            >
-              <Settings size={12} />
-            </button>
+            <>
+              <button
+                onClick={handleToggleCollapsed}
+                style={styles.headerButton}
+                title="Collapse to minimal mode"
+              >
+                <ChevronUp size={12} />
+              </button>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                style={{
+                  ...styles.headerButton,
+                  backgroundColor: showSettings ? colors.bgCard : "transparent",
+                }}
+                title="Settings"
+              >
+                <Settings size={12} />
+              </button>
+            </>
           )}
           <button
             onClick={handleClose}
@@ -476,6 +561,66 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     fontFamily: typography.sans,
+  },
+  collapsedContainer: {
+    minHeight: 24,
+    background: colors.bgBase,
+    display: "flex",
+    flexDirection: "column",
+    fontFamily: typography.sans,
+  },
+  collapsedBar: {
+    display: "flex",
+    alignItems: "center",
+    gap: spacing.sm,
+    height: 24,
+    backgroundColor: colors.bgPanel,
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+    padding: `0 ${spacing.xs}px`,
+    cursor: "grab",
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "drag",
+  },
+  collapseButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 20,
+    height: 20,
+    border: "none",
+    borderRadius: radius.xs,
+    backgroundColor: "transparent",
+    color: colors.textMuted,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    flexShrink: 0,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
+  },
+  collapsedStats: {
+    display: "flex",
+    alignItems: "center",
+    gap: spacing.md,
+    flex: 1,
+    overflow: "hidden",
+    fontSize: 11,
+    fontFamily: typography.mono,
+  },
+  collapsedStat: {
+    display: "flex",
+    alignItems: "center",
+    gap: spacing.xs,
+    whiteSpace: "nowrap",
+  },
+  collapsedLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.textMuted,
+  },
+  collapsedValue: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: colors.textPrimary,
   },
   header: {
     position: "relative",
