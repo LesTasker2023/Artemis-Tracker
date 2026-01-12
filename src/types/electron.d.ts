@@ -71,6 +71,10 @@ interface PopoutAPI {
   open: () => Promise<{ success: boolean }>;
   close: () => Promise<{ success: boolean }>;
   status: () => Promise<{ open: boolean }>;
+  sendStats: (stats: LiveStats) => void;
+  onStatsUpdate: (callback: (stats: LiveStats) => void) => () => void;
+  requestStats: () => void;
+  onStatsRequest: (callback: () => void) => () => void;
   onClose: (callback: () => void) => () => void;
 }
 

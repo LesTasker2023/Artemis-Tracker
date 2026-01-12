@@ -85,6 +85,18 @@ contextBridge.exposeInMainWorld('electron', {
     open: () => ipcRenderer.invoke('popout:open'),
     close: () => ipcRenderer.invoke('popout:close'),
     status: (): Promise<{open:boolean}> => ipcRenderer.invoke('popout:status'),
+    sendStats: (stats: LiveStats) => ipcRenderer.send('popout:stats', stats),
+    onStatsUpdate: (callback: (stats: LiveStats) => void) => {
+      const handler = (_: unknown, data: LiveStats) => callback(data);
+      ipcRenderer.on('popout:stats-update', handler);
+      return () => ipcRenderer.removeListener('popout:stats-update', handler);
+    },
+    requestStats: () => ipcRenderer.send('popout:request-stats'),
+    onStatsRequest: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('popout:stats-requested', handler);
+      return () => ipcRenderer.removeListener('popout:stats-requested', handler);
+    },
     onClose: (callback: () => void) => {
       const handler = () => callback();
       ipcRenderer.on('popout:closed', handler);

@@ -205,6 +205,73 @@ function App() {
     }
   }, [sessionActive, events.length]);
 
+  // Send stats to popout window whenever session updates
+  useEffect(() => {
+    if (session && stats) {
+      const lastEvent =
+        events.length > 0 ? events[events.length - 1].raw : undefined;
+      const liveStats = {
+        profit: stats.profit,
+        netProfit: stats.netProfit,
+        shots: stats.shots,
+        hits: stats.hits,
+        kills: stats.kills,
+        deaths: stats.deaths,
+        criticals: stats.criticals,
+        lootValue: stats.lootValue,
+        totalSpend: stats.totalSpend,
+        returnRate: stats.returnRate,
+        damageDealt: stats.damageDealt,
+        damageTaken: stats.damageTaken,
+        damageReduced: stats.combat.damageReduced,
+        deflects: stats.deflects,
+        decay: stats.decay,
+        repairBill: stats.repairBill,
+        skillGains: stats.skills.totalSkillGains,
+        skillEvents: stats.skills.totalSkillEvents,
+        duration: stats.duration,
+        lastEvent,
+      };
+      window.electron?.popout?.sendStats(liveStats);
+    }
+  }, [session?.events.length, stats, events.length]);
+
+  // Listen for popout stats requests
+  useEffect(() => {
+    const unsubscribe = window.electron?.popout?.onStatsRequest(() => {
+      if (stats) {
+        const lastEvent =
+          events.length > 0 ? events[events.length - 1].raw : undefined;
+        const liveStats = {
+          profit: stats.profit,
+          netProfit: stats.netProfit,
+          shots: stats.shots,
+          hits: stats.hits,
+          kills: stats.kills,
+          deaths: stats.deaths,
+          criticals: stats.criticals,
+          lootValue: stats.lootValue,
+          totalSpend: stats.totalSpend,
+          returnRate: stats.returnRate,
+          damageDealt: stats.damageDealt,
+          damageTaken: stats.damageTaken,
+          damageReduced: stats.combat.damageReduced,
+          deflects: stats.deflects,
+          decay: stats.decay,
+          repairBill: stats.repairBill,
+          skillGains: stats.skills.totalSkillGains,
+          skillEvents: stats.skills.totalSkillEvents,
+          duration: stats.duration,
+          lastEvent,
+        };
+        window.electron?.popout?.sendStats(liveStats);
+      }
+    });
+    return () => {
+      unsubscribe?.();
+    };
+  }, [stats, events.length]);
+
   // Show start session modal
   const start = () => {
     console.log("[App] start() called - showing modal");
