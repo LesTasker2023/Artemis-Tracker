@@ -244,7 +244,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     label: "PROFIT",
     icon: DollarSign,
     category: "economy",
-    description: "Net profit after all costs (loot - ammo - decay)",
+    description: "Net profit after all costs (loot - spent - armor decay)",
     getValue: (d) => ({
       value: `${d.netProfit >= 0 ? "+" : ""}${formatPed(d.netProfit)}`,
       unit: `${formatPed(d.lootValue)}/${formatPed(d.totalSpend + d.decay)}`,
@@ -270,7 +270,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     label: "SPENT",
     icon: ArrowDownRight,
     category: "economy",
-    description: "Total PED spent on ammo",
+    description: "Total PED spent (ammo + weapon decay)",
     getValue: (d) => ({
       value: formatPed(d.totalSpend),
       unit: "PED",
@@ -292,10 +292,10 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
   },
   {
     key: "decay",
-    label: "DECAY",
+    label: "ARMOR DECAY",
     icon: Wrench,
     category: "economy",
-    description: "Estimated weapon + armor decay",
+    description: "Armor decay only (weapon decay is in Spent)",
     getValue: (d) => ({
       value: formatPed(d.decay),
       unit: "PED",
