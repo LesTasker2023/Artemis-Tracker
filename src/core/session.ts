@@ -11,7 +11,7 @@
  */
 
 import { ParsedEvent, isAmmoConsumingEvent } from "./parser";
-import { Loadout, getEffectiveCostPerShot, calculateArmorDecayPerHit, calculateSinglePlateDecayPerHit, isLimitedItem } from "./loadout";
+import { Loadout, getEffectiveCostPerShot, calculateArmorDecayPerHit, calculateSinglePlateDecayPerHit } from "./loadout";
 import { 
   SkillBreakdown, 
   SkillStats, 
