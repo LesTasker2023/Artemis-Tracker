@@ -101,7 +101,7 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
                 disabled={!tagInput.trim()}
               >
                 <Plus size={16} />
-                <span style={{marginLeft: spacing.xs}}>Add</span>
+                <span>Add</span>
               </button>
             </div>
 
@@ -117,8 +117,8 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
                       onClick={() => handleSuggestedTagClick(tag)}
                       style={styles.suggestedTag}
                     >
-                      <Tag size={10} />
-                      <span style={{marginLeft: '4px'}}>{tag}</span>
+                      <Tag size={12} />
+                      <span>{tag}</span>
                     </button>
                   ))}
                 </div>
@@ -130,14 +130,14 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
               <div style={styles.tagList}>
                 {tags.map((tag) => (
                   <div key={tag} style={styles.activeTag}>
-                    <Tag size={12} />
-                    <span style={{marginLeft: spacing.xs}}>{tag}</span>
+                    <Tag size={13} />
+                    <span>{tag}</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
                       style={styles.tagRemoveButton}
                     >
-                      <X size={12} />
+                      <X size={13} />
                     </button>
                   </div>
                 ))}
@@ -223,7 +223,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     width: '100%',
-    padding: `${spacing.md} ${spacing.lg}`,
+    padding: '12px 16px',
     backgroundColor: colors.bgApp,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
@@ -246,12 +246,13 @@ const styles: Record<string, React.CSSProperties> = {
   addButton: {
     display: 'flex',
     alignItems: 'center',
-    padding: `${spacing.md} ${spacing.lg}`,
+    gap: '6px',
+    padding: '12px 20px',
     backgroundColor: colors.bgApp,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
     color: colors.textPrimary,
-    fontSize: '13px',
+    fontSize: '14px',
     fontWeight: 500,
     fontFamily: 'inherit',
     whiteSpace: 'nowrap',
@@ -279,12 +280,13 @@ const styles: Record<string, React.CSSProperties> = {
   suggestedTag: {
     display: 'flex',
     alignItems: 'center',
-    padding: `${spacing.sm} ${spacing.md}`,
+    gap: '6px',
+    padding: '8px 14px',
     backgroundColor: 'rgba(99, 102, 241, 0.1)',
     border: '1px solid rgba(99, 102, 241, 0.25)',
     borderRadius: radius.sm,
     color: '#a5b4fc',
-    fontSize: '12px',
+    fontSize: '13px',
     fontWeight: 500,
     fontFamily: 'inherit',
     cursor: 'pointer',
@@ -298,7 +300,8 @@ const styles: Record<string, React.CSSProperties> = {
   activeTag: {
     display: 'flex',
     alignItems: 'center',
-    padding: `${spacing.sm} ${spacing.md}`,
+    gap: '6px',
+    padding: '8px 12px',
     backgroundColor: 'rgba(99, 102, 241, 0.15)',
     border: '1px solid rgba(99, 102, 241, 0.3)',
     borderRadius: radius.md,
@@ -310,8 +313,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '2px',
-    marginLeft: spacing.xs,
+    padding: '4px',
     border: 'none',
     borderRadius: radius.sm,
     backgroundColor: 'transparent',
@@ -327,7 +329,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderTop: `1px solid ${colors.border}`,
   },
   cancelButton: {
-    padding: `${spacing.md} ${spacing.xl}`,
+    padding: '12px 24px',
     backgroundColor: colors.bgApp,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
@@ -338,7 +340,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   confirmButton: {
-    padding: `${spacing.md} ${spacing.xl}`,
+    padding: '12px 28px',
     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
     border: 'none',
     borderRadius: radius.md,
