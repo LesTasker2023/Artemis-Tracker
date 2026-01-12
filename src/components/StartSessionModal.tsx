@@ -5,7 +5,7 @@
 
 import React, { useState } from "react";
 import { X, Tag, Plus } from "lucide-react";
-import { colors, spacing, radius } from "../ui/tokens";
+import { colors, spacing, radius } from "./ui/tokens";
 
 interface StartSessionModalProps {
   onConfirm: (name: string, tags: string[]) => void;
