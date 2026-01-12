@@ -29,6 +29,7 @@ interface EquipmentAPI {
 interface SessionMeta {
   id: string;
   name: string;
+  tags: string[];
   startedAt: string;
   endedAt?: string;
   eventCount: number;

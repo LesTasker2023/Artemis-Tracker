@@ -37,6 +37,7 @@ import { SkillsDeepDive } from "./components/SkillsDeepDive";
 import { LootAnalysis } from "./components/LootAnalysis";
 import { CombatAnalytics } from "./components/CombatAnalytics";
 import { EconomyTracker } from "./components/EconomyTracker";
+import { StartSessionModal } from "./components/StartSessionModal";
 import type { Session, SessionStats } from "./core/session";
 import { calculateSessionStats } from "./core/session";
 import { getActiveLoadout } from "./core/loadout";
@@ -136,6 +137,9 @@ function App() {
   // First-time name setup - show modal if no name is set
   const [showNameSetup, setShowNameSetup] = useState(false);
   const [nameInputValue, setNameInputValue] = useState("");
+
+  // Start session modal
+  const [showStartSessionModal, setShowStartSessionModal] = useState(false);
 
   // Update modal visibility when player name status changes
   useEffect(() => {
@@ -256,28 +260,38 @@ function App() {
     };
   }, [stats, events.length]);
 
-  // Listen for session control requests from popout
-  // Start both log watcher and session
-  const start = async () => {
-    console.log("[App] start() called");
+  // Show start session modal
+  const start = () => {
+    console.log("[App] start() called - showing modal");
+    setShowStartSessionModal(true);
+  };
+
+  // Handle session start confirmation from modal
+  const handleStartSessionConfirm = async (name: string, tags: string[]) => {
+    console.log("[App] handleStartSessionConfirm called", { name, tags });
+    setShowStartSessionModal(false);
+
     // Clear any viewed session first
     setViewedSession(null);
     setViewedStats(null);
+
     try {
       const res = await startLog();
       console.log("[App] startLog result:", res);
     } catch (e) {
       console.error("[App] startLog failed:", e);
     }
+
     try {
-      startSession();
-      console.log("[App] startSession invoked");
+      startSession(name, tags);
+      console.log("[App] startSession invoked with name:", name, "tags:", tags);
     } catch (e) {
       console.error("[App] startSession failed:", e);
     }
+
     // Switch to live tab
     setActiveTab("live");
-    console.log("[App] start() complete");
+    console.log("[App] handleStartSessionConfirm complete");
   };
 
   // Stop both log watcher and active session
@@ -762,6 +776,14 @@ function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Start Session Modal */}
+      {showStartSessionModal && (
+        <StartSessionModal
+          onConfirm={handleStartSessionConfirm}
+          onCancel={() => setShowStartSessionModal(false)}
+        />
       )}
 
       {/* Update Notification */}

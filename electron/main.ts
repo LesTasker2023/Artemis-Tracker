@@ -906,6 +906,7 @@ ipcMain.handle('session:list', () => {
       return {
         id: session.id,
         name: session.name,
+        tags: session.tags || [],
         startedAt: session.startedAt,
         endedAt: session.endedAt,
         eventCount: session.events?.length ?? 0,

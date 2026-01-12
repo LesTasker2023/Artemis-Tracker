@@ -46,6 +46,7 @@ export interface SessionEvent extends ParsedEvent {
 export interface Session {
   id: string;
   name: string;
+  tags: string[];
   startedAt: string;
   endedAt?: string;
   events: SessionEvent[];
@@ -119,11 +120,12 @@ export interface SessionStats {
 /**
  * Create a new session
  */
-export function createSession(name?: string): Session {
+export function createSession(name?: string, tags?: string[]): Session {
   const now = new Date();
   return {
     id: `session-${now.getTime()}`,
     name: name || `Hunt ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+    tags: tags || [],
     startedAt: now.toISOString(),
     events: [],
     loadoutSnapshots: {},

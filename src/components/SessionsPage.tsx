@@ -22,6 +22,7 @@ import {
   Eye,
   RotateCcw,
   AlertTriangle,
+  Tag,
 } from "lucide-react";
 import type { Session, LoadoutBreakdown } from "../core/session";
 import { calculateSessionStats } from "../core/session";
@@ -159,6 +160,16 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
                 <span style={listStyles.dot}>•</span>
                 <span>{formatDuration(meta.startedAt, meta.endedAt)}</span>
               </div>
+              {meta.tags && meta.tags.length > 0 && (
+                <div style={listStyles.tagContainer}>
+                  {meta.tags.map((tag) => (
+                    <span key={tag} style={listStyles.tag}>
+                      <Tag size={10} />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <ChevronRight size={20} style={{ color: "#64748b" }} />
           </div>
@@ -277,6 +288,24 @@ const listStyles: Record<string, React.CSSProperties> = {
   },
   dot: {
     color: "hsl(220 13% 25%)",
+  },
+  tagContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+    marginTop: "8px",
+  },
+  tag: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "3px 8px",
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
+    border: "1px solid rgba(99, 102, 241, 0.3)",
+    borderRadius: "10px",
+    color: "#a5b4fc",
+    fontSize: "11px",
+    fontWeight: "500",
   },
   cardStats: {
     display: "flex",
