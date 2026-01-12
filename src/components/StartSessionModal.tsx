@@ -13,13 +13,17 @@ interface StartSessionModalProps {
   availableTags?: string[];
 }
 
-export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: StartSessionModalProps) {
+export function StartSessionModal({
+  onConfirm,
+  onCancel,
+  availableTags = [],
+}: StartSessionModalProps) {
   const [name, setName] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
 
   // Get suggested tags (available tags not already added)
-  const suggestedTags = availableTags.filter(tag => !tags.includes(tag));
+  const suggestedTags = availableTags.filter((tag) => !tags.includes(tag));
 
   const handleAddTag = () => {
     const trimmed = tagInput.trim();
@@ -30,7 +34,7 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(t => t !== tagToRemove));
+    setTags(tags.filter((t) => t !== tagToRemove));
   };
 
   const handleSuggestedTagClick = (tag: string) => {
@@ -48,7 +52,7 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm(name || undefined, tags);
+    onConfirm(name, tags);
   };
 
   return (
@@ -88,7 +92,7 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Add tag..."
-                style={{...styles.input, flex: 1}}
+                style={{ ...styles.input, flex: 1 }}
               />
               <button
                 type="button"
@@ -96,7 +100,7 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
                 style={{
                   ...styles.addButton,
                   opacity: tagInput.trim() ? 1 : 0.5,
-                  cursor: tagInput.trim() ? 'pointer' : 'not-allowed'
+                  cursor: tagInput.trim() ? "pointer" : "not-allowed",
                 }}
                 disabled={!tagInput.trim()}
               >
@@ -147,7 +151,11 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
 
           {/* Actions */}
           <div style={styles.actions}>
-            <button type="button" onClick={onCancel} style={styles.cancelButton}>
+            <button
+              type="button"
+              onClick={onCancel}
+              style={styles.cancelButton}
+            >
               Cancel
             </button>
             <button type="submit" style={styles.confirmButton}>
@@ -162,51 +170,51 @@ export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: S
 
 const styles: Record<string, React.CSSProperties> = {
   overlay: {
-    position: 'fixed',
+    position: "fixed",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1000,
   },
   modal: {
     backgroundColor: colors.bgCard,
     borderRadius: radius.lg,
     border: `1px solid ${colors.border}`,
-    width: '90%',
-    maxWidth: '520px',
-    maxHeight: '90vh',
-    overflowY: 'auto',
-    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+    width: "90%",
+    maxWidth: "520px",
+    maxHeight: "90vh",
+    overflowY: "auto",
+    boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5)",
   },
   header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: spacing.lg,
     borderBottom: `1px solid ${colors.border}`,
   },
   title: {
-    fontSize: '18px',
+    fontSize: "18px",
     fontWeight: 600,
     color: colors.textPrimary,
     margin: 0,
   },
   closeButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '32px',
-    height: '32px',
-    border: 'none',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "32px",
+    height: "32px",
+    border: "none",
     borderRadius: radius.md,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     color: colors.textSecondary,
-    cursor: 'pointer',
+    cursor: "pointer",
   },
   form: {
     padding: spacing.lg,
@@ -215,140 +223,140 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: spacing.lg,
   },
   label: {
-    display: 'block',
-    fontSize: '13px',
+    display: "block",
+    fontSize: "13px",
     fontWeight: 600,
     color: colors.textPrimary,
     marginBottom: spacing.xs,
   },
   input: {
-    width: '100%',
-    padding: '12px 16px',
-    backgroundColor: colors.bgApp,
+    width: "100%",
+    padding: "12px 16px",
+    backgroundColor: colors.bgPanel,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
     color: colors.textPrimary,
-    fontSize: '14px',
-    fontFamily: 'inherit',
-    outline: 'none',
-    boxSizing: 'border-box',
+    fontSize: "14px",
+    fontFamily: "inherit",
+    outline: "none",
+    boxSizing: "border-box",
   },
   hint: {
-    fontSize: '12px',
+    fontSize: "12px",
     color: colors.textSecondary,
     margin: `${spacing.xs} 0 0 0`,
     opacity: 0.8,
   },
   tagInputRow: {
-    display: 'flex',
+    display: "flex",
     gap: spacing.sm,
   },
   addButton: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '12px 20px',
-    backgroundColor: colors.bgApp,
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "12px 20px",
+    backgroundColor: colors.bgPanel,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
     color: colors.textPrimary,
-    fontSize: '14px',
+    fontSize: "14px",
     fontWeight: 500,
-    fontFamily: 'inherit',
-    whiteSpace: 'nowrap',
+    fontFamily: "inherit",
+    whiteSpace: "nowrap",
   },
   suggestedSection: {
     marginTop: spacing.sm,
     padding: spacing.sm,
-    backgroundColor: 'rgba(99, 102, 241, 0.05)',
-    border: '1px solid rgba(99, 102, 241, 0.15)',
+    backgroundColor: "rgba(99, 102, 241, 0.05)",
+    border: "1px solid rgba(99, 102, 241, 0.15)",
     borderRadius: radius.md,
   },
   suggestedLabel: {
-    fontSize: '11px',
+    fontSize: "11px",
     fontWeight: 600,
     color: colors.textSecondary,
     margin: `0 0 ${spacing.xs} 0`,
-    textTransform: 'uppercase',
-    letterSpacing: '0.5px',
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
   },
   suggestedTags: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: "flex",
+    flexWrap: "wrap",
     gap: spacing.xs,
   },
   suggestedTag: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 14px',
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
-    border: '1px solid rgba(99, 102, 241, 0.25)',
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 14px",
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    border: "1px solid rgba(99, 102, 241, 0.25)",
     borderRadius: radius.sm,
-    color: '#a5b4fc',
-    fontSize: '13px',
+    color: "#a5b4fc",
+    fontSize: "13px",
     fontWeight: 500,
-    fontFamily: 'inherit',
-    cursor: 'pointer',
+    fontFamily: "inherit",
+    cursor: "pointer",
   },
   tagList: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    display: "flex",
+    flexWrap: "wrap",
     gap: spacing.xs,
     marginTop: spacing.sm,
   },
   activeTag: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '8px 12px',
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
-    border: '1px solid rgba(99, 102, 241, 0.3)',
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 12px",
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
+    border: "1px solid rgba(99, 102, 241, 0.3)",
     borderRadius: radius.md,
-    color: '#a5b4fc',
-    fontSize: '13px',
+    color: "#a5b4fc",
+    fontSize: "13px",
     fontWeight: 500,
   },
   tagRemoveButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '4px',
-    border: 'none',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "4px",
+    border: "none",
     borderRadius: radius.sm,
-    backgroundColor: 'transparent',
-    color: '#a5b4fc',
-    cursor: 'pointer',
+    backgroundColor: "transparent",
+    color: "#a5b4fc",
+    cursor: "pointer",
   },
   actions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
+    display: "flex",
+    justifyContent: "flex-end",
     gap: spacing.sm,
     marginTop: spacing.xl,
     paddingTop: spacing.lg,
     borderTop: `1px solid ${colors.border}`,
   },
   cancelButton: {
-    padding: '12px 24px',
-    backgroundColor: colors.bgApp,
+    padding: "12px 24px",
+    backgroundColor: colors.bgBase,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
     color: colors.textPrimary,
-    fontSize: '14px',
+    fontSize: "14px",
     fontWeight: 500,
-    fontFamily: 'inherit',
-    cursor: 'pointer',
+    fontFamily: "inherit",
+    cursor: "pointer",
   },
   confirmButton: {
-    padding: '12px 28px',
-    background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-    border: 'none',
+    padding: "12px 28px",
+    background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+    border: "none",
     borderRadius: radius.md,
-    color: 'white',
-    fontSize: '14px',
+    color: "white",
+    fontSize: "14px",
     fontWeight: 600,
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
+    fontFamily: "inherit",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(99, 102, 241, 0.3)",
   },
 };

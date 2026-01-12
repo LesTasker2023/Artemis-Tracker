@@ -127,6 +127,7 @@ export function calculateWeaponCost(equipment?: Equipment): number {
  * Calculate scope/sight cost per shot (no per-shot cost - decay calculated separately)
  */
 export function calculateAttachmentCost(equipment?: Equipment): number {
+  console.log("🚀 ~ calculateAttachmentCost ~ equipment:", equipment)
   // Scopes and sights have no per-shot cost (only decay, which is calculated separately)
   return 0;
 }

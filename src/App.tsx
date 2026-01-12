@@ -74,7 +74,7 @@ function App() {
           const updateResult = await window.electron?.equipment?.update();
 
           if (updateResult?.success) {
-            const { updated, failed } = updateResult.result || {
+            const { failed } = updateResult.result || {
               updated: [],
               failed: [],
             };
@@ -149,9 +149,9 @@ function App() {
       if (sessionList) {
         // Collect all unique tags from all sessions
         const allTags = new Set<string>();
-        sessionList.forEach(meta => {
+        sessionList.forEach((meta) => {
           if (meta.tags) {
-            meta.tags.forEach(tag => allTags.add(tag));
+            meta.tags.forEach((tag) => allTags.add(tag));
           }
         });
         // Convert to array and sort alphabetically

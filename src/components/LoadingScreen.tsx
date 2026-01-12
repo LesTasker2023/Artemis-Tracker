@@ -30,10 +30,7 @@ const wittyMessages = [
   "Debuffing loading times...",
 ];
 
-export function LoadingScreen({
-  message,
-  progress,
-}: LoadingScreenProps) {
+export function LoadingScreen({ message }: LoadingScreenProps) {
   const [currentMessage, setCurrentMessage] = useState(0);
 
   useEffect(() => {
@@ -52,11 +49,7 @@ export function LoadingScreen({
     <div style={styles.container}>
       {/* Artemis Logo */}
       <div style={styles.logoSection}>
-        <img
-          src={projectLogo}
-          alt="Artemis"
-          style={styles.logo}
-        />
+        <img src={projectLogo} alt="Artemis" style={styles.logo} />
       </div>
 
       {/* Status Message */}

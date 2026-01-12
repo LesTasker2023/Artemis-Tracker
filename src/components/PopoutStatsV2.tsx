@@ -167,9 +167,9 @@ export function PopoutStatsV2() {
     window.electron?.popout?.close();
   };
 
-  const handleToggleCollapsed = () => {
-    setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
-  };
+  // const handleToggleCollapsed = () => {
+  //   setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
+  // };
 
   // Calculate responsive columns based on window width
   const getColumns = () => {
@@ -346,47 +346,47 @@ export function PopoutStatsV2() {
 
       {/* Stats Grid */}
       <div style={styles.content}>
-          {/* Loadout Dropdown */}
-          <div style={styles.loadoutRow}>
-            <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
-              <div style={{ width: "100%" }}>
-                <LoadoutDropdown
-                  loadouts={loadouts}
-                  activeLoadout={activeLoadout}
-                  onSelect={setActiveLoadout}
-                  compact
-                />
-              </div>
+        {/* Loadout Dropdown */}
+        <div style={styles.loadoutRow}>
+          <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+            <div style={{ width: "100%" }}>
+              <LoadoutDropdown
+                loadouts={loadouts}
+                activeLoadout={activeLoadout}
+                onSelect={setActiveLoadout}
+                compact
+              />
             </div>
           </div>
-
-          {/* Stats Grid */}
-          <div
-            style={{
-              ...styles.statsGrid,
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            }}
-          >
-            {config.stats.map((statKey, index) => (
-              <StatCard
-                key={`stat-${index}`}
-                statKey={statKey}
-                data={statData}
-                onChange={(newKey) => handleChangeStat(index, newKey)}
-                onRemove={() => handleRemoveStat(index)}
-                settingsMode={showSettings}
-                canRemove={config.stats.length > 1}
-              />
-            ))}
-          </div>
-
-          {/* Add Card Button */}
-          {showSettings && (
-            <button onClick={handleAddStat} style={styles.addCardButton}>
-              + Add Stat Card
-            </button>
-          )}
         </div>
+
+        {/* Stats Grid */}
+        <div
+          style={{
+            ...styles.statsGrid,
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          }}
+        >
+          {config.stats.map((statKey, index) => (
+            <StatCard
+              key={`stat-${index}`}
+              statKey={statKey}
+              data={statData}
+              onChange={(newKey) => handleChangeStat(index, newKey)}
+              onRemove={() => handleRemoveStat(index)}
+              settingsMode={showSettings}
+              canRemove={config.stats.length > 1}
+            />
+          ))}
+        </div>
+
+        {/* Add Card Button */}
+        {showSettings && (
+          <button onClick={handleAddStat} style={styles.addCardButton}>
+            + Add Stat Card
+          </button>
+        )}
+      </div>
     </div>
   );
 }
