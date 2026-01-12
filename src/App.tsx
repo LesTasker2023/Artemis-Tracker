@@ -57,20 +57,18 @@ function App() {
 
   // Initialization state
   const [isInitializing, setIsInitializing] = useState(true);
-  const [initMessage, setInitMessage] = useState("Initializing...");
+  const [initMessage, setInitMessage] = useState<string | undefined>(undefined);
   const [initProgress, setInitProgress] = useState(0);
 
   // Check and update equipment database on startup
   useEffect(() => {
     async function initialize() {
       try {
-        setInitMessage("Checking equipment database...");
         setInitProgress(25);
 
         const checkResult = await window.electron?.equipment?.checkUpdates();
 
         if (checkResult?.updateAvailable) {
-          setInitMessage("Updating equipment database...");
           setInitProgress(50);
 
           const updateResult = await window.electron?.equipment?.update();
@@ -80,15 +78,11 @@ function App() {
               updated: [],
               failed: [],
             };
-            if (updated.length > 0) {
-              setInitMessage(`Updated ${updated.length} database(s)...`);
-            }
             if (failed.length > 0) {
+              // Only show message if there's an error
               setInitMessage(`Warning: ${failed.length} update(s) failed`);
             }
           }
-        } else {
-          setInitMessage("Equipment database up to date");
         }
 
         setInitProgress(100);
