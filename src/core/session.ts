@@ -390,13 +390,19 @@ export function calculateSessionStats(session: Session, playerName?: string, act
       
       // ==================== Loot ====================
       case "loot": {
-        totalLootItems++;
-        const value = event.value ?? 0;
-        totalLootValue += value;
-        
         const itemName = event.itemName || "Unknown";
+        const value = event.value ?? 0;
         const quantity = event.quantity ?? 1;
-        
+
+        // Skip Universal Ammo - it's a false positive (consumed ammo, not actual loot)
+        if (itemName.toLowerCase().includes("universal ammo")) {
+          ammoValue += value;  // Track for reference but don't count as loot
+          break;
+        }
+
+        totalLootItems++;
+        totalLootValue += value;
+
         // Track by item
         if (!lootByItem[itemName]) {
           lootByItem[itemName] = { itemName, count: 0, totalValue: 0, quantity: 0 };
@@ -404,20 +410,17 @@ export function calculateSessionStats(session: Session, playerName?: string, act
         lootByItem[itemName].count++;
         lootByItem[itemName].totalValue += value;
         lootByItem[itemName].quantity += quantity;
-        
+
         // Special item tracking
         if (itemName.toLowerCase().includes("shrapnel")) {
           shrapnelValue += value;
         }
-        if (itemName.toLowerCase().includes("universal ammo")) {
-          ammoValue += value;
-        }
-        
+
         // Attribute loot to last shot's loadout
         if (lastShotLoadoutId !== undefined || loadoutData["__manual__"]) {
           loadoutData[ensureLoadout(lastShotLoadoutId)].lootValue += value;
         }
-        
+
         // Infer kill if we had damage events and now got loot
         if (damageEventsSinceLastLoot > 0) {
           combat.killsInferred++;
