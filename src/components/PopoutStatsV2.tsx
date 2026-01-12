@@ -245,7 +245,7 @@ export function PopoutStatsV2() {
           {/* Minimal Stats Display */}
           <div style={styles.collapsedStats}>
             {/* User-configured stats in order */}
-            {config.stats.slice(0, 4).map((statKey) => {
+            {config.stats.map((statKey) => {
               const stat = STAT_MAP.get(statKey);
               if (!stat) return null;
               const value = stat.getValue(statData);
