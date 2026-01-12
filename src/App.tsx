@@ -140,6 +140,33 @@ function App() {
 
   // Start session modal
   const [showStartSessionModal, setShowStartSessionModal] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+  // Load available tags when modal opens
+  useEffect(() => {
+    if (showStartSessionModal) {
+      loadAvailableTags();
+    }
+  }, [showStartSessionModal]);
+
+  const loadAvailableTags = async () => {
+    try {
+      const sessionList = await window.electron?.session.list();
+      if (sessionList) {
+        // Collect all unique tags from all sessions
+        const allTags = new Set<string>();
+        sessionList.forEach(meta => {
+          if (meta.tags) {
+            meta.tags.forEach(tag => allTags.add(tag));
+          }
+        });
+        // Convert to array and sort alphabetically
+        setAvailableTags(Array.from(allTags).sort());
+      }
+    } catch (err) {
+      console.error("[App] Failed to load available tags:", err);
+    }
+  };
 
   // Update modal visibility when player name status changes
   useEffect(() => {
@@ -783,6 +810,7 @@ function App() {
         <StartSessionModal
           onConfirm={handleStartSessionConfirm}
           onCancel={() => setShowStartSessionModal(false)}
+          availableTags={availableTags}
         />
       )}
 

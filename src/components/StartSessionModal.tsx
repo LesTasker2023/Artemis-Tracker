@@ -10,12 +10,16 @@ import { colors, spacing, radius } from "./ui/tokens";
 interface StartSessionModalProps {
   onConfirm: (name: string, tags: string[]) => void;
   onCancel: () => void;
+  availableTags?: string[];
 }
 
-export function StartSessionModal({ onConfirm, onCancel }: StartSessionModalProps) {
+export function StartSessionModal({ onConfirm, onCancel, availableTags = [] }: StartSessionModalProps) {
   const [name, setName] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+
+  // Get suggested tags (available tags not already added)
+  const suggestedTags = availableTags.filter(tag => !tags.includes(tag));
 
   const handleAddTag = () => {
     const trimmed = tagInput.trim();
@@ -27,6 +31,12 @@ export function StartSessionModal({ onConfirm, onCancel }: StartSessionModalProp
 
   const handleRemoveTag = (tagToRemove: string) => {
     setTags(tags.filter(t => t !== tagToRemove));
+  };
+
+  const handleSuggestedTagClick = (tag: string) => {
+    if (!tags.includes(tag)) {
+      setTags([...tags, tag]);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -92,6 +102,26 @@ export function StartSessionModal({ onConfirm, onCancel }: StartSessionModalProp
                 Add
               </button>
             </div>
+
+            {/* Suggested Tags */}
+            {suggestedTags.length > 0 && (
+              <div style={styles.suggestedSection}>
+                <p style={styles.suggestedLabel}>Previously used tags:</p>
+                <div style={styles.suggestedTags}>
+                  {suggestedTags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => handleSuggestedTagClick(tag)}
+                      style={styles.suggestedTag}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tag List */}
             {tags.length > 0 && (
@@ -238,6 +268,40 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: radius.md,
     color: colors.textPrimary,
     fontSize: "13px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  suggestedSection: {
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: "rgba(99, 102, 241, 0.05)",
+    border: "1px solid rgba(99, 102, 241, 0.15)",
+    borderRadius: radius.md,
+  },
+  suggestedLabel: {
+    fontSize: "11px",
+    fontWeight: "600",
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    margin: 0,
+    marginBottom: spacing.xs,
+  },
+  suggestedTags: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+  },
+  suggestedTag: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "4px 8px",
+    backgroundColor: "rgba(99, 102, 241, 0.1)",
+    border: "1px solid rgba(99, 102, 241, 0.25)",
+    borderRadius: radius.sm,
+    color: "#a5b4fc",
+    fontSize: "11px",
     fontWeight: "500",
     cursor: "pointer",
     transition: "all 0.2s",
