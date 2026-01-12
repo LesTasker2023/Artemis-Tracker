@@ -114,22 +114,21 @@ const WEAPON_ENHANCER_COST_PED = WEAPON_ENHANCER_AMMOBURN_PEC * AMMOBURN_TO_PED;
 // ==================== Pure Functions ====================
 
 /**
- * Calculate weapon/amp cost per shot (ammo burn ONLY - decay calculated separately)
- * Note: ammoBurn needs conversion to PED (multiply by 0.0001)
+ * Calculate weapon/amp cost per shot (ammo burn + decay)
+ * Note: ammoBurn needs conversion to PED (multiply by 0.0001), decay is already in PED
  */
 export function calculateWeaponCost(equipment?: Equipment): number {
   if (!equipment) return 0;
-  const { ammoBurn } = equipment.economy;
-  return ammoBurn * AMMOBURN_TO_PED;
+  const { ammoBurn, decay } = equipment.economy;
+  return ammoBurn * AMMOBURN_TO_PED + decay;
 }
 
 /**
- * Calculate scope/sight cost per shot (no per-shot cost - decay calculated separately)
+ * Calculate scope/sight cost per shot (decay only, no ammo burn)
  */
 export function calculateAttachmentCost(equipment?: Equipment): number {
-  console.log("🚀 ~ calculateAttachmentCost ~ equipment:", equipment)
-  // Scopes and sights have no per-shot cost (only decay, which is calculated separately)
-  return 0;
+  if (!equipment) return 0;
+  return equipment.economy.decay;
 }
 
 /**
@@ -184,15 +183,14 @@ export function isLimitedItem(name: string): boolean {
 
 /**
  * Calculate full loadout costs breakdown
- * NOTE: This only returns ammo burn and enhancer costs.
- * Equipment decay is calculated separately in session stats.
+ * Includes ammo burn, decay, and enhancer costs for all equipment.
  */
 export function calculateLoadoutCosts(loadout: Loadout): LoadoutCosts {
-  // Weapon and amp ammo burn (decay calculated separately)
+  // Weapon and amp costs (ammo burn + decay)
   const weaponCost = calculateWeaponCost(loadout.weapon);
   const ampCost = calculateWeaponCost(loadout.amp);
 
-  // Scope and sight have no per-shot cost (decay calculated separately)
+  // Scope and sight costs (decay only, no ammo burn)
   const scopeCost = calculateAttachmentCost(loadout.scope);
   const sightCost = calculateAttachmentCost(loadout.sight);
   
