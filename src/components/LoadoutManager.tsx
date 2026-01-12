@@ -238,13 +238,17 @@ function EquipmentCard({
   enhancerSlots = 0,
   onEnhancerChange,
 }: EquipmentCardProps) {
-  const [decay, setDecay] = useState(equipment?.economy.decay.toString() ?? "");
+  const [decay, setDecay] = useState(
+    equipment?.economy.decay ? (equipment.economy.decay * 100).toString() : ""
+  );
   const [ammoBurn, setAmmoBurn] = useState(
     equipment?.economy.ammoBurn.toString() ?? ""
   );
 
   useEffect(() => {
-    setDecay(equipment?.economy.decay.toString() ?? "");
+    setDecay(
+      equipment?.economy.decay ? (equipment.economy.decay * 100).toString() : ""
+    );
     setAmmoBurn(equipment?.economy.ammoBurn.toString() ?? "");
   }, [equipment]);
 
@@ -257,14 +261,14 @@ function EquipmentCard({
     }
 
     if (record) {
-      setDecay(record.decay.toString());
+      setDecay((record.decay * 100).toString());
       setAmmoBurn(record.ammoBurn.toString());
       onChange(createEquipmentFromRecord(record));
     } else {
       onChange(
         createEquipmentManual(
           name,
-          parseFloat(decay) || 0,
+          (parseFloat(decay) || 0) / 100,
           parseFloat(ammoBurn) || 0
         )
       );
@@ -276,7 +280,7 @@ function EquipmentCard({
     onChange(
       createEquipmentManual(
         equipment.name,
-        parseFloat(decay) || 0,
+        (parseFloat(decay) || 0) / 100,
         parseFloat(ammoBurn) || 0
       )
     );
@@ -338,7 +342,7 @@ function EquipmentCard({
               marginBottom: "6px",
             }}
           >
-            Decay (PED)
+            Decay (PEC)
           </label>
           <input
             className={styles.smallInput}
@@ -346,8 +350,8 @@ function EquipmentCard({
             value={decay}
             onChange={(e) => setDecay(e.target.value)}
             onBlur={handleManualChange}
-            placeholder="0.0000"
-            step="0.001"
+            placeholder="0.00"
+            step="0.01"
             style={{
               width: "100%",
               padding: "8px 10px",

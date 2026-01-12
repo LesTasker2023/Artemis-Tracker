@@ -7,7 +7,7 @@
 // ==================== Types ====================
 
 export interface EquipmentEconomy {
-  decay: number;      // PED per shot (already converted from PEC at load time)
+  decay: number;      // PED per shot (stored internally, displayed as PEC in UI)
   ammoBurn: number;   // Raw ammo burn value (multiply by 0.0001 for PED)
 }
 

@@ -22,7 +22,7 @@ export interface EquipmentRecord {
   name: string;
   type?: string;
   category?: string;
-  decay: number;       // PED per shot (converted from PEC)
+  decay: number;       // PED per shot (stored internally, displayed as PEC in UI)
   ammoBurn: number;    // Raw ammo burn (multiply by 0.0001 for PED)
   damage?: DamageRecord;
 }
