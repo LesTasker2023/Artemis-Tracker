@@ -27,18 +27,18 @@ interface UseSessionReturn {
   session: Session | null;
   stats: SessionStats | null;
   isActive: boolean;
-  
+
   // Session control (one-way: start -> add events -> stop)
-  start: (name?: string) => void;
+  start: (name?: string, tags?: string[]) => void;
   stop: () => void;
   reset: () => void;
-  
+
   // Resume a previous session
   resume: (sessionToResume: Session) => void;
-  
+
   // Event handling (only works while session is active)
   addEvent: (event: LogEvent) => void;
-  
+
   // Recalculate stats (useful when player name changes)
   recalculateStats: () => void;
 }
@@ -132,8 +132,8 @@ export function useSession(): UseSessionReturn {
     }
   }, []);
   
-  const start = useCallback(async (name?: string) => {
-    console.log('[useSession] start invoked, name:', name);
+  const start = useCallback(async (name?: string, tags?: string[]) => {
+    console.log('[useSession] start invoked, name:', name, 'tags:', tags);
     // End any existing active session first
     if (session && !session.endedAt) {
       const ended = endSession(session);
@@ -142,15 +142,15 @@ export function useSession(): UseSessionReturn {
       } catch (e) {
       }
     }
-    
-    const newSession = createSession(name);
-    
+
+    const newSession = createSession(name, tags);
+
     // Immediately save to file
     try {
       await window.electron?.session?.save(newSession);
     } catch (e) {
     }
-    
+
     setSession(newSession);
     return newSession;
   }, [session]);

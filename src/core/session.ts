@@ -46,6 +46,7 @@ export interface SessionEvent extends ParsedEvent {
 export interface Session {
   id: string;
   name: string;
+  tags: string[];
   startedAt: string;
   endedAt?: string;
   events: SessionEvent[];
@@ -91,11 +92,11 @@ export interface SessionStats {
   // Economy
   lootCount: number;
   lootValue: number;
-  totalSpend: number;
-  profit: number;        // lootValue - ammo/weapon spend (without decay estimate)
-  netProfit: number;     // lootValue - totalSpend - decay (true profit after all costs)
-  returnRate: number;    // lootValue / spend as percentage
-  decay: number;         // Total estimated decay (weapon + armor, L and UL)
+  totalSpend: number;    // Ammo burn + enhancer costs only (NO decay)
+  profit: number;        // lootValue - totalSpend (gross profit before decay)
+  netProfit: number;     // lootValue - totalSpend - decay (net profit after all costs)
+  returnRate: number;    // lootValue / totalSpend as percentage
+  decay: number;         // Total equipment decay (weapon + armor, L and UL)
   repairBill: number;    // Repair cost for UL items only (L items = TT loss, not repair)
   
   // Gains (backwards compatible)
@@ -119,11 +120,12 @@ export interface SessionStats {
 /**
  * Create a new session
  */
-export function createSession(name?: string): Session {
+export function createSession(name?: string, tags?: string[]): Session {
   const now = new Date();
   return {
     id: `session-${now.getTime()}`,
     name: name || `Hunt ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,
+    tags: tags || [],
     startedAt: now.toISOString(),
     events: [],
     loadoutSnapshots: {},
@@ -390,13 +392,19 @@ export function calculateSessionStats(session: Session, playerName?: string, act
       
       // ==================== Loot ====================
       case "loot": {
-        totalLootItems++;
-        const value = event.value ?? 0;
-        totalLootValue += value;
-        
         const itemName = event.itemName || "Unknown";
+        const value = event.value ?? 0;
         const quantity = event.quantity ?? 1;
-        
+
+        // Skip Universal Ammo - it's a false positive (consumed ammo, not actual loot)
+        if (itemName.toLowerCase().includes("universal ammo")) {
+          ammoValue += value;  // Track for reference but don't count as loot
+          break;
+        }
+
+        totalLootItems++;
+        totalLootValue += value;
+
         // Track by item
         if (!lootByItem[itemName]) {
           lootByItem[itemName] = { itemName, count: 0, totalValue: 0, quantity: 0 };
@@ -404,20 +412,17 @@ export function calculateSessionStats(session: Session, playerName?: string, act
         lootByItem[itemName].count++;
         lootByItem[itemName].totalValue += value;
         lootByItem[itemName].quantity += quantity;
-        
+
         // Special item tracking
         if (itemName.toLowerCase().includes("shrapnel")) {
           shrapnelValue += value;
         }
-        if (itemName.toLowerCase().includes("universal ammo")) {
-          ammoValue += value;
-        }
-        
+
         // Attribute loot to last shot's loadout
         if (lastShotLoadoutId !== undefined || loadoutData["__manual__"]) {
           loadoutData[ensureLoadout(lastShotLoadoutId)].lootValue += value;
         }
-        
+
         // Infer kill if we had damage events and now got loot
         if (damageEventsSinceLastLoot > 0) {
           combat.killsInferred++;
