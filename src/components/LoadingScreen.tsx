@@ -40,24 +40,14 @@ export function LoadingScreen({
             fontSize: "32px",
             fontWeight: 700,
             marginBottom: "8px",
-            background: "linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)",
+            background: "linear-gradient(135deg, #06b6d4 0%, #00122e 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
           }}
         >
-          ARTEMIS v3
+          ARTEMIS
         </h1>
-        <p
-          style={{
-            fontSize: "14px",
-            color: "#94a3b8",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
-          Activity Tracker
-        </p>
       </div>
 
       {/* Spinner */}
@@ -101,7 +91,7 @@ export function LoadingScreen({
             style={{
               width: `${progress}%`,
               height: "100%",
-              backgroundColor: "#06b6d4",
+              backgroundColor: "#001e24",
               transition: "width 0.3s ease",
             }}
           />

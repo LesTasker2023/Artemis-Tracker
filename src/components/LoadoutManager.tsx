@@ -4,18 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import {
-  Plus,
-  Trash2,
-  Save,
-  X,
-  Edit2,
-  Crosshair,
-  Zap,
-  Shield,
-  Package,
-  TrendingUp,
-} from "lucide-react";
+// Icons removed per user request
 import {
   Loadout,
   Equipment,
@@ -25,12 +14,9 @@ import {
   getEffectiveCostPerShot,
   calculateEnhancedDamage,
   calculateDPP,
-  calculateWeaponEnhancerCost,
 } from "../core/loadout";
 import { useLoadouts } from "../hooks/useLoadouts";
 import { EquipmentAutocomplete } from "./EquipmentAutocomplete";
-import { ArmorAutocomplete } from "./ArmorAutocomplete";
-import { ArmorPlateAutocomplete } from "./ArmorPlateAutocomplete";
 import { EquipmentRecord } from "../core/equipment-db";
 // @ts-ignore: CSS module declaration
 import styles from "./LoadoutManager.module.css";
@@ -64,24 +50,193 @@ function createEquipmentManual(
   };
 }
 
+// ==================== Loadout Dropdown Selector ====================
+
+interface LoadoutDropdownProps {
+  loadouts: Loadout[];
+  activeLoadout: Loadout | null;
+  onSelect: (id: string | null) => void;
+  compact?: boolean;
+}
+
+function LoadoutDropdown({
+  loadouts,
+  activeLoadout,
+  onSelect,
+  compact = false,
+}: LoadoutDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          padding: compact ? "6px 12px" : "8px 16px",
+          backgroundColor: "hsl(220 13% 12%)",
+          border: "1px solid hsl(220 13% 25%)",
+          borderRadius: "6px",
+          color: "hsl(0 0% 95%)",
+          fontSize: compact ? "12px" : "13px",
+          fontWeight: 500,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          width: "100%",
+        }}
+      >
+        <span
+          style={{
+            flex: 1,
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {activeLoadout ? activeLoadout.name : "No loadout"}
+        </span>
+        <span style={{ fontSize: "10px", color: "hsl(220 13% 45%)" }}>▼</span>
+      </button>
+
+      {isOpen && (
+        <>
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 40,
+            }}
+            onClick={() => setIsOpen(false)}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              marginTop: "4px",
+              backgroundColor: "hsl(220 13% 12%)",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "6px",
+              maxHeight: "300px",
+              overflowY: "auto",
+              zIndex: 50,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+            }}
+          >
+            <div
+              onClick={() => {
+                onSelect(null);
+                setIsOpen(false);
+              }}
+              style={{
+                padding: "10px 14px",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: !activeLoadout ? "hsl(217 91% 68%)" : "hsl(220 13% 65%)",
+                backgroundColor: !activeLoadout
+                  ? "hsl(217 91% 68% / 0.1)"
+                  : "transparent",
+                borderBottom:
+                  loadouts.length > 0 ? "1px solid hsl(220 13% 18%)" : "none",
+              }}
+              onMouseEnter={(e) => {
+                if (activeLoadout) {
+                  e.currentTarget.style.backgroundColor = "hsl(220 13% 18%)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeLoadout) {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }
+              }}
+            >
+              None
+            </div>
+            {loadouts.map((loadout) => (
+              <div
+                key={loadout.id}
+                onClick={() => {
+                  onSelect(loadout.id);
+                  setIsOpen(false);
+                }}
+                style={{
+                  padding: "10px 14px",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  color:
+                    activeLoadout?.id === loadout.id
+                      ? "hsl(217 91% 68%)"
+                      : "hsl(0 0% 95%)",
+                  backgroundColor:
+                    activeLoadout?.id === loadout.id
+                      ? "hsl(217 91% 68% / 0.1)"
+                      : "transparent",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeLoadout?.id !== loadout.id) {
+                    e.currentTarget.style.backgroundColor = "hsl(220 13% 18%)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activeLoadout?.id !== loadout.id) {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <span
+                  style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {loadout.name}
+                </span>
+                {activeLoadout?.id === loadout.id && (
+                  <span
+                    style={{
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      color: "hsl(142 76% 60%)",
+                      marginLeft: "8px",
+                    }}
+                  >
+                    ACTIVE
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ==================== Equipment Card with Autocomplete ====================
 
 interface EquipmentCardProps {
   label: string;
-  icon: React.ElementType;
   type: "weapon" | "amp" | "scope" | "sight";
   equipment?: Equipment;
   onChange: (eq: Equipment | undefined) => void;
-  color: string;
+  enhancerSlots?: number;
+  onEnhancerChange?: (slots: number) => void;
 }
 
 function EquipmentCard({
   label,
-  icon: Icon,
   type,
   equipment,
   onChange,
-  color,
+  enhancerSlots = 0,
+  onEnhancerChange,
 }: EquipmentCardProps) {
   const [decay, setDecay] = useState(equipment?.economy.decay.toString() ?? "");
   const [ammoBurn, setAmmoBurn] = useState(
@@ -130,41 +285,23 @@ function EquipmentCard({
   return (
     <div
       style={{
-        padding: "20px",
-        backgroundColor: "rgba(17,24,39,0.6)",
-        borderRadius: "12px",
-        border: "2px solid #374151",
-        transition: "border-color 0.2s",
+        padding: "16px",
+        backgroundColor: "hsl(220 13% 12%)",
+        borderRadius: "8px",
+        border: "1px solid hsl(220 13% 18%)",
       }}
     >
       {/* Header */}
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          marginBottom: "16px",
+          marginBottom: "12px",
         }}
       >
-        <div
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "10px",
-            background: `linear-gradient(135deg, ${color}20 0%, ${color}40 100%)`,
-            border: `2px solid ${color}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Icon size={20} style={{ color }} />
-        </div>
         <span
           style={{
-            fontSize: "14px",
+            fontSize: "12px",
             fontWeight: 600,
-            color: "#e5e7eb",
+            color: "hsl(220 13% 65%)",
             textTransform: "uppercase",
             letterSpacing: "0.05em",
           }}
@@ -182,13 +319,20 @@ function EquipmentCard({
       />
 
       {/* Decay and Ammo inputs */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "12px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "10px",
+          marginTop: "10px",
+        }}
+      >
         <div>
           <label
             style={{
               display: "block",
               fontSize: "10px",
-              color: "#9ca3af",
+              color: "hsl(220 13% 45%)",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               marginBottom: "6px",
@@ -206,12 +350,12 @@ function EquipmentCard({
             step="0.001"
             style={{
               width: "100%",
-              padding: "10px 12px",
-              backgroundColor: "#111827",
-              border: "1px solid #374151",
-              borderRadius: "8px",
-              fontSize: "14px",
-              color: "white",
+              padding: "8px 10px",
+              backgroundColor: "hsl(220 13% 8%)",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "6px",
+              fontSize: "13px",
+              color: "hsl(0 0% 95%)",
               fontFamily: "monospace",
               textAlign: "right",
             }}
@@ -222,7 +366,7 @@ function EquipmentCard({
             style={{
               display: "block",
               fontSize: "10px",
-              color: "#9ca3af",
+              color: "hsl(220 13% 45%)",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               marginBottom: "6px",
@@ -240,18 +384,92 @@ function EquipmentCard({
             step="1"
             style={{
               width: "100%",
-              padding: "10px 12px",
-              backgroundColor: "#111827",
-              border: "1px solid #374151",
-              borderRadius: "8px",
-              fontSize: "14px",
-              color: "white",
+              padding: "8px 10px",
+              backgroundColor: "hsl(220 13% 8%)",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "6px",
+              fontSize: "13px",
+              color: "hsl(0 0% 95%)",
               fontFamily: "monospace",
               textAlign: "right",
             }}
           />
         </div>
       </div>
+
+      {/* Weapon Enhancers (only for weapon type) */}
+      {type === "weapon" && onEnhancerChange && (
+        <div
+          style={{
+            marginTop: "12px",
+            paddingTop: "12px",
+            borderTop: "1px solid hsl(220 13% 18%)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "8px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "11px",
+                color: "hsl(220 13% 65%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Enhancers
+            </span>
+            <span
+              style={{
+                fontSize: "11px",
+                color: "hsl(217 91% 68%)",
+                fontFamily: "monospace",
+              }}
+            >
+              +{enhancerSlots * 10}% dmg
+            </span>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(10, 1fr)",
+              gap: "4px",
+            }}
+          >
+            {[...Array(10)].map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() =>
+                  onEnhancerChange(i + 1 === enhancerSlots ? i : i + 1)
+                }
+                style={{
+                  aspectRatio: "1",
+                  borderRadius: "4px",
+                  fontSize: "11px",
+                  fontFamily: "monospace",
+                  fontWeight: 600,
+                  border: "1px solid",
+                  cursor: "pointer",
+                  backgroundColor:
+                    i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 18%)",
+                  borderColor:
+                    i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 25%)",
+                  color: i < enhancerSlots ? "white" : "hsl(220 13% 45%)",
+                  transition: "all 0.15s",
+                }}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -274,17 +492,19 @@ function LoadoutCard({
   onDelete,
 }: LoadoutCardProps) {
   const effective = getEffectiveCostPerShot(loadout);
-  const costs = calculateLoadoutCosts(loadout);
+  // const costs = calculateLoadoutCosts(loadout);
 
   return (
     <div
       style={{
-        padding: "16px",
-        borderRadius: "12px",
-        border: isActive ? "2px solid #22c55e" : "2px solid #374151",
+        padding: "14px",
+        borderRadius: "8px",
+        border: isActive
+          ? "1px solid hsl(217 91% 68%)"
+          : "1px solid hsl(220 13% 18%)",
         backgroundColor: isActive
-          ? "rgba(34,197,94,0.15)"
-          : "rgba(17,24,39,0.5)",
+          ? "hsl(217 91% 68% / 0.15)"
+          : "hsl(220 13% 12%)",
         cursor: "pointer",
         transition: "all 0.2s",
       }}
@@ -298,19 +518,52 @@ function LoadoutCard({
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h4
+          <div
             style={{
-              fontWeight: 600,
-              fontSize: "16px",
-              color: "white",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginBottom: "4px",
             }}
           >
-            {loadout.name}
-          </h4>
-          <p style={{ fontSize: "14px", color: "#9ca3af", marginTop: "4px" }}>
+            <h4
+              style={{
+                fontWeight: 600,
+                fontSize: "15px",
+                color: "hsl(0 0% 95%)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {loadout.name}
+            </h4>
+            {isActive && (
+              <span
+                style={{
+                  padding: "2px 8px",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "hsl(142 76% 40%)",
+                  backgroundColor: "hsl(142 76% 40% / 0.15)",
+                  border: "1px solid hsl(142 76% 40% / 0.4)",
+                  borderRadius: "4px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  flexShrink: 0,
+                }}
+              >
+                Active
+              </span>
+            )}
+          </div>
+          <p
+            style={{
+              fontSize: "13px",
+              color: "hsl(220 13% 45%)",
+              marginTop: "4px",
+            }}
+          >
             {loadout.weapon?.name ?? "No weapon"}
             {loadout.amp && ` + ${loadout.amp.name}`}
           </p>
@@ -319,7 +572,7 @@ function LoadoutCard({
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "6px",
+            gap: "4px",
             marginLeft: "12px",
           }}
         >
@@ -329,16 +582,18 @@ function LoadoutCard({
               onEdit();
             }}
             style={{
-              padding: "8px",
-              color: "#9ca3af",
+              padding: "6px 12px",
+              color: "hsl(220 13% 65%)",
               background: "transparent",
-              border: "none",
-              borderRadius: "6px",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "4px",
               cursor: "pointer",
+              fontSize: "12px",
+              fontWeight: 500,
             }}
             title="Edit"
           >
-            <Edit2 size={16} />
+            Edit
           </button>
           <button
             onClick={(e) => {
@@ -346,24 +601,26 @@ function LoadoutCard({
               onDelete();
             }}
             style={{
-              padding: "8px",
-              color: "#9ca3af",
+              padding: "6px 12px",
+              color: "hsl(220 13% 65%)",
               background: "transparent",
-              border: "none",
-              borderRadius: "6px",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "4px",
               cursor: "pointer",
+              fontSize: "12px",
+              fontWeight: 500,
             }}
             title="Delete"
           >
-            <Trash2 size={16} />
+            Delete
           </button>
         </div>
       </div>
       <div
         style={{
-          marginTop: "12px",
-          paddingTop: "12px",
-          borderTop: "1px solid rgba(55,65,81,0.5)",
+          marginTop: "10px",
+          paddingTop: "10px",
+          borderTop: "1px solid hsl(220 13% 18%)",
         }}
       >
         <div
@@ -371,19 +628,23 @@ function LoadoutCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            fontSize: "13px",
+            fontSize: "12px",
           }}
         >
-          <span style={{ color: "#6b7280" }}>Cost/Shot</span>
-          <span style={{ fontFamily: "monospace", color: "#22d3ee", fontSize: "15px", fontWeight: 600 }}>
-            {effective.toFixed(5)} PED
+          <span style={{ color: "hsl(220 13% 45%)" }}>Cost/Shot</span>
+          <span
+            style={{
+              fontFamily: "monospace",
+              color: "hsl(217 91% 68%)",
+              fontSize: "14px",
+              fontWeight: 600,
+            }}
+          >
+            {(effective * 100).toFixed(3)} PEC
             {loadout.useManualCost && " (manual)"}
           </span>
         </div>
       </div>
-      {!loadout.useManualCost && (
-        <div className={styles.loadoutCostRow}>W: {costs.weaponCost.toFixed(4)} A: {costs.ampCost.toFixed(4)}</div>
-      )}
     </div>
   );
 }
@@ -398,13 +659,16 @@ interface LoadoutEditorProps {
 
 function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
   const [draft, setDraft] = useState<Loadout>({ ...loadout });
+  const { loadouts, activeLoadout, setActive } = useLoadouts();
 
   const updateEquipment = (key: keyof Loadout, eq: Equipment | undefined) => {
     setDraft((prev) => ({ ...prev, [key]: eq }));
   };
 
   const costs = calculateLoadoutCosts(draft);
-  const damage = draft.weapon ? calculateEnhancedDamage(draft) : { min: 0, max: 0 };
+  const damage = draft.weapon
+    ? calculateEnhancedDamage(draft)
+    : { min: 0, max: 0 };
   const dpp = draft.weapon ? calculateDPP(draft) : 0;
 
   return (
@@ -423,11 +687,11 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
     >
       <div
         style={{
-          backgroundColor: "#0f172a",
-          borderRadius: "16px",
-          border: "2px solid #1e293b",
+          backgroundColor: "hsl(220 13% 8%)",
+          borderRadius: "12px",
+          border: "1px solid hsl(220 13% 18%)",
           width: "100%",
-          maxWidth: "1400px",
+          maxWidth: "1200px",
           maxHeight: "95vh",
           overflow: "hidden",
           display: "flex",
@@ -437,35 +701,71 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
         {/* Header */}
         <div
           style={{
-            padding: "24px 32px",
-            borderBottom: "2px solid #1e293b",
+            padding: "20px 24px",
+            borderBottom: "1px solid hsl(220 13% 18%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+            background: "hsl(220 13% 8%)",
           }}
         >
           <div>
-            <h2 style={{ fontSize: "24px", fontWeight: 700, color: "white", marginBottom: "4px" }}>
+            <h2
+              style={{
+                fontSize: "20px",
+                fontWeight: 700,
+                color: "hsl(0 0% 95%)",
+                marginBottom: "4px",
+              }}
+            >
               {loadout.id ? "Edit Loadout" : "New Loadout"}
             </h2>
-            <p style={{ fontSize: "14px", color: "#64748b" }}>
-              Configure your equipment, armor, and enhancers
+            <p style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>
+              Configure your equipment and weapon enhancers
             </p>
           </div>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: "10px",
-              backgroundColor: "#1e293b",
-              border: "1px solid #334155",
-              borderRadius: "8px",
-              color: "#94a3b8",
-              cursor: "pointer",
-            }}
-          >
-            <X size={24} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "4px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "10px",
+                  color: "hsl(220 13% 45%)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Active Loadout
+              </span>
+              <LoadoutDropdown
+                loadouts={loadouts}
+                activeLoadout={activeLoadout}
+                onSelect={setActive}
+                compact
+              />
+            </div>
+            <button
+              onClick={onCancel}
+              style={{
+                padding: "6px 14px",
+                backgroundColor: "transparent",
+                border: "1px solid hsl(220 13% 25%)",
+                borderRadius: "6px",
+                color: "hsl(220 13% 65%)",
+                cursor: "pointer",
+                fontSize: "13px",
+                fontWeight: 500,
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
 
         {/* Content - Two Column Layout */}
@@ -473,25 +773,27 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
           style={{
             flex: 1,
             overflow: "auto",
-            padding: "32px",
+            padding: "24px",
             display: "grid",
-            gridTemplateColumns: "1fr 420px",
-            gap: "32px",
+            gridTemplateColumns: "1fr 360px",
+            gap: "24px",
           }}
         >
-          {/* Left Column - Equipment & Armor */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
+          {/* Left Column - Equipment */}
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "24px" }}
+          >
             {/* Name Input */}
             <div>
               <label
                 style={{
                   display: "block",
-                  fontSize: "12px",
+                  fontSize: "11px",
                   fontWeight: 600,
-                  color: "#94a3b8",
+                  color: "hsl(220 13% 45%)",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  marginBottom: "12px",
+                  marginBottom: "8px",
                 }}
               >
                 Loadout Name
@@ -504,12 +806,12 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                 }
                 style={{
                   width: "100%",
-                  padding: "14px 16px",
-                  backgroundColor: "#1e293b",
-                  border: "2px solid #334155",
-                  borderRadius: "10px",
-                  fontSize: "16px",
-                  color: "white",
+                  padding: "12px 14px",
+                  backgroundColor: "hsl(220 13% 12%)",
+                  border: "1px solid hsl(220 13% 25%)",
+                  borderRadius: "8px",
+                  fontSize: "15px",
+                  color: "hsl(0 0% 95%)",
                   fontWeight: 500,
                 }}
                 placeholder="Enter loadout name..."
@@ -518,313 +820,78 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
 
             {/* Weapons Section */}
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-                <Crosshair size={24} style={{ color: "#ef4444" }} />
-                <h3 style={{ fontSize: "18px", fontWeight: 600, color: "white" }}>
-                  Weapons & Attachments
-                </h3>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <h3
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "hsl(220 13% 65%)",
+                  marginBottom: "16px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Equipment
+              </h3>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
                 <EquipmentCard
                   label="Weapon"
-                  icon={Crosshair}
                   type="weapon"
                   equipment={draft.weapon}
                   onChange={(eq) => updateEquipment("weapon", eq)}
-                  color="#ef4444"
+                  enhancerSlots={draft.weaponEnhancerSlots || 0}
+                  onEnhancerChange={(slots) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      weaponEnhancerSlots: slots,
+                    }))
+                  }
                 />
                 <EquipmentCard
                   label="Amplifier"
-                  icon={Zap}
                   type="amp"
                   equipment={draft.amp}
                   onChange={(eq) => updateEquipment("amp", eq)}
-                  color="#8b5cf6"
                 />
                 <EquipmentCard
                   label="Scope"
-                  icon={Package}
                   type="scope"
                   equipment={draft.scope}
                   onChange={(eq) => updateEquipment("scope", eq)}
-                  color="#3b82f6"
                 />
                 <EquipmentCard
                   label="Sight"
-                  icon={Package}
                   type="sight"
                   equipment={draft.sight}
                   onChange={(eq) => updateEquipment("sight", eq)}
-                  color="#06b6d4"
                 />
-              </div>
-            </div>
-
-            {/* Armor Section */}
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-                <Shield size={24} style={{ color: "#60a5fa" }} />
-                <h3 style={{ fontSize: "18px", fontWeight: 600, color: "white" }}>
-                  Armor Protection
-                </h3>
-              </div>
-              <div style={{ display: "grid", gap: "16px" }}>
-                <div
-                  style={{
-                    padding: "20px",
-                    backgroundColor: "rgba(17,24,39,0.6)",
-                    borderRadius: "12px",
-                    border: "2px solid #374151",
-                  }}
-                >
-                  <ArmorAutocomplete
-                    value={draft.armor}
-                    onChange={(armor) => setDraft((prev) => ({ ...prev, armor }))}
-                  />
-                </div>
-                <div
-                  style={{
-                    padding: "20px",
-                    backgroundColor: "rgba(17,24,39,0.6)",
-                    borderRadius: "12px",
-                    border: "2px solid #374151",
-                  }}
-                >
-                  <ArmorPlateAutocomplete
-                    plates={draft.armorPlates || []}
-                    onChange={(plates) =>
-                      setDraft((prev) => ({ ...prev, armorPlates: plates }))
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Enhancers Section */}
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
-                <TrendingUp size={24} style={{ color: "#4ade80" }} />
-                <h3 style={{ fontSize: "18px", fontWeight: 600, color: "white" }}>
-                  Enhancers
-                </h3>
-              </div>
-              <div style={{ display: "grid", gap: "16px" }}>
-                {/* Weapon Enhancers */}
-                <div
-                  style={{
-                    padding: "24px",
-                    backgroundColor: "rgba(34,197,94,0.1)",
-                    borderRadius: "12px",
-                    border: "2px solid rgba(34,197,94,0.3)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        color: "#e5e7eb",
-                      }}
-                    >
-                      Weapon Enhancers
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "14px",
-                        color: "#22d3ee",
-                        fontFamily: "monospace",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {calculateWeaponEnhancerCost(
-                        draft.weaponEnhancerSlots || 0
-                      ).toFixed(4)}{" "}
-                      PED/shot
-                    </span>
-                  </div>
-
-                  {/* Slot Selector */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(10, 1fr)",
-                      gap: "8px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    {[...Array(10)].map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() =>
-                          setDraft((prev) => ({
-                            ...prev,
-                            weaponEnhancerSlots:
-                              i + 1 === prev.weaponEnhancerSlots ? i : i + 1,
-                          }))
-                        }
-                        style={{
-                          aspectRatio: "1",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontFamily: "monospace",
-                          fontWeight: 600,
-                          border: "2px solid",
-                          cursor: "pointer",
-                          backgroundColor:
-                            i < (draft.weaponEnhancerSlots || 0)
-                              ? "#16a34a"
-                              : "#1e293b",
-                          borderColor:
-                            i < (draft.weaponEnhancerSlots || 0)
-                              ? "#22c55e"
-                              : "#334155",
-                          color:
-                            i < (draft.weaponEnhancerSlots || 0)
-                              ? "white"
-                              : "#64748b",
-                          transition: "all 0.15s",
-                        }}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "13px",
-                    }}
-                  >
-                    <span style={{ color: "#94a3b8" }}>
-                      {draft.weaponEnhancerSlots || 0}/10 slots
-                    </span>
-                    <span style={{ color: "#4ade80", fontWeight: 600 }}>
-                      +{(draft.weaponEnhancerSlots || 0) * 10}% damage
-                    </span>
-                  </div>
-                </div>
-
-                {/* Armor Enhancers */}
-                <div
-                  style={{
-                    padding: "24px",
-                    backgroundColor: "rgba(59,130,246,0.1)",
-                    borderRadius: "12px",
-                    border: "2px solid rgba(59,130,246,0.3)",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: "16px",
-                        fontWeight: 600,
-                        color: "#e5e7eb",
-                      }}
-                    >
-                      Armor Enhancers
-                    </span>
-                    <span style={{ fontSize: "13px", color: "#64748b" }}>
-                      No shot cost
-                    </span>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(10, 1fr)",
-                      gap: "8px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    {[...Array(10)].map((_, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() =>
-                          setDraft((prev) => ({
-                            ...prev,
-                            armorEnhancerSlots:
-                              i + 1 === prev.armorEnhancerSlots ? i : i + 1,
-                          }))
-                        }
-                        style={{
-                          aspectRatio: "1",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          fontFamily: "monospace",
-                          fontWeight: 600,
-                          border: "2px solid",
-                          cursor: "pointer",
-                          backgroundColor:
-                            i < (draft.armorEnhancerSlots || 0)
-                              ? "#2563eb"
-                              : "#1e293b",
-                          borderColor:
-                            i < (draft.armorEnhancerSlots || 0)
-                              ? "#3b82f6"
-                              : "#334155",
-                          color:
-                            i < (draft.armorEnhancerSlots || 0)
-                              ? "white"
-                              : "#64748b",
-                          transition: "all 0.15s",
-                        }}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: "13px",
-                    }}
-                  >
-                    <span style={{ color: "#94a3b8" }}>
-                      {draft.armorEnhancerSlots || 0}/10 slots
-                    </span>
-                    <span style={{ color: "#64748b" }}>Decay on damage taken</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
 
           {/* Right Column - Cost Summary */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
+          >
             {/* Manual Override */}
             <div
               style={{
-                padding: "20px",
-                backgroundColor: "rgba(17,24,39,0.6)",
-                borderRadius: "12px",
-                border: "2px solid #334155",
+                padding: "16px",
+                backgroundColor: "hsl(220 13% 12%)",
+                borderRadius: "8px",
+                border: "1px solid hsl(220 13% 18%)",
               }}
             >
               <label
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "12px",
+                  gap: "10px",
                   cursor: "pointer",
                 }}
               >
@@ -837,33 +904,45 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                       useManualCost: e.target.checked,
                     }))
                   }
-                  style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
                 />
-                <span style={{ fontSize: "14px", color: "#d1d5db", fontWeight: 500 }}>
-                  Use manual cost override
+                <span
+                  style={{
+                    fontSize: "13px",
+                    color: "hsl(0 0% 95%)",
+                    fontWeight: 500,
+                  }}
+                >
+                  Manual cost override
                 </span>
               </label>
               {draft.useManualCost && (
                 <input
                   type="number"
-                  value={draft.manualCostPerShot ?? ""}
+                  value={
+                    draft.manualCostPerShot !== undefined
+                      ? (draft.manualCostPerShot * 100).toFixed(3)
+                      : ""
+                  }
                   onChange={(e) =>
                     setDraft((prev) => ({
                       ...prev,
-                      manualCostPerShot: parseFloat(e.target.value) || undefined,
+                      manualCostPerShot: e.target.value
+                        ? parseFloat(e.target.value) / 100
+                        : undefined,
                     }))
                   }
-                  step="0.00001"
-                  placeholder="0.00000"
+                  step="0.001"
+                  placeholder="0.000"
                   style={{
                     width: "100%",
-                    marginTop: "12px",
-                    padding: "12px 14px",
-                    backgroundColor: "#1e293b",
-                    border: "2px solid #334155",
-                    borderRadius: "8px",
-                    color: "white",
-                    fontSize: "16px",
+                    marginTop: "10px",
+                    padding: "10px 12px",
+                    backgroundColor: "hsl(220 13% 8%)",
+                    border: "1px solid hsl(220 13% 25%)",
+                    borderRadius: "6px",
+                    color: "hsl(0 0% 95%)",
+                    fontSize: "14px",
                     fontFamily: "monospace",
                   }}
                 />
@@ -873,35 +952,44 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             {/* Cost Breakdown */}
             <div
               style={{
-                padding: "24px",
-                backgroundColor: "rgba(17,24,39,0.8)",
-                borderRadius: "12px",
-                border: "2px solid #334155",
+                padding: "16px",
+                backgroundColor: "hsl(220 13% 12%)",
+                borderRadius: "8px",
+                border: "1px solid hsl(220 13% 18%)",
               }}
             >
               <h4
                 style={{
-                  fontSize: "12px",
+                  fontSize: "11px",
                   fontWeight: 600,
-                  color: "#94a3b8",
+                  color: "hsl(220 13% 65%)",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  marginBottom: "20px",
+                  marginBottom: "14px",
                 }}
               >
                 Cost Breakdown
               </h4>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 <CostRow label="Weapon" value={costs.weaponCost} />
                 <CostRow label="Amplifier" value={costs.ampCost} />
                 <CostRow label="Scope" value={costs.scopeCost} />
                 <CostRow label="Sight" value={costs.sightCost} />
-                <CostRow label="Weapon Enhancers" value={costs.weaponEnhancerCost} />
+                <CostRow
+                  label="Weapon Enhancers"
+                  value={costs.weaponEnhancerCost}
+                />
                 <div
                   style={{
                     height: "1px",
-                    backgroundColor: "#334155",
-                    margin: "8px 0",
+                    backgroundColor: "hsl(220 13% 18%)",
+                    margin: "6px 0",
                   }}
                 />
                 <div
@@ -911,18 +999,24 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                     alignItems: "baseline",
                   }}
                 >
-                  <span style={{ fontSize: "16px", fontWeight: 600, color: "white" }}>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "hsl(0 0% 95%)",
+                    }}
+                  >
                     Total/Shot
                   </span>
                   <span
                     style={{
                       fontFamily: "monospace",
-                      color: "#22d3ee",
-                      fontSize: "20px",
+                      color: "hsl(217 91% 68%)",
+                      fontSize: "16px",
                       fontWeight: 700,
                     }}
                   >
-                    {costs.totalPerShot.toFixed(5)} PED
+                    {(costs.totalPerShot * 100).toFixed(3)} PEC
                   </span>
                 </div>
               </div>
@@ -932,45 +1026,63 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             {draft.weapon && (
               <div
                 style={{
-                  padding: "24px",
-                  backgroundColor: "rgba(239,68,68,0.1)",
-                  borderRadius: "12px",
-                  border: "2px solid rgba(239,68,68,0.3)",
+                  padding: "16px",
+                  backgroundColor: "hsl(220 13% 12%)",
+                  borderRadius: "8px",
+                  border: "1px solid hsl(220 13% 18%)",
                 }}
               >
                 <h4
                   style={{
-                    fontSize: "12px",
+                    fontSize: "11px",
                     fontWeight: 600,
-                    color: "#94a3b8",
+                    color: "hsl(220 13% 65%)",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    marginBottom: "20px",
+                    marginBottom: "14px",
                   }}
                 >
                   Damage & Efficiency
                 </h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "14px", color: "#9ca3af" }}>Min Damage</span>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}
+                    >
+                      Min Damage
+                    </span>
                     <span
                       style={{
                         fontFamily: "monospace",
-                        color: "#fb923c",
-                        fontSize: "16px",
+                        color: "hsl(33 100% 50%)",
+                        fontSize: "14px",
                         fontWeight: 600,
                       }}
                     >
                       {damage.min.toFixed(1)}
                     </span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "14px", color: "#9ca3af" }}>Max Damage</span>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}
+                    >
+                      Max Damage
+                    </span>
                     <span
                       style={{
                         fontFamily: "monospace",
-                        color: "#fb923c",
-                        fontSize: "16px",
+                        color: "hsl(33 100% 50%)",
+                        fontSize: "14px",
                         fontWeight: 600,
                       }}
                     >
@@ -980,19 +1092,27 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   <div
                     style={{
                       height: "1px",
-                      backgroundColor: "rgba(239,68,68,0.3)",
+                      backgroundColor: "hsl(220 13% 18%)",
                       margin: "4px 0",
                     }}
                   />
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "16px", fontWeight: 600, color: "white" }}>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        fontWeight: 600,
+                        color: "hsl(0 0% 95%)",
+                      }}
+                    >
                       DPP (Dmg/PEC)
                     </span>
                     <span
                       style={{
                         fontFamily: "monospace",
-                        color: "#4ade80",
-                        fontSize: "20px",
+                        color: "hsl(142 76% 60%)",
+                        fontSize: "16px",
                         fontWeight: 700,
                       }}
                     >
@@ -1002,74 +1122,30 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                 </div>
               </div>
             )}
-
-            {/* Armor Decay */}
-            {(draft.armor || (draft.armorPlates && draft.armorPlates.length > 0)) && (
-              <div
-                style={{
-                  padding: "24px",
-                  backgroundColor: "rgba(96,165,250,0.1)",
-                  borderRadius: "12px",
-                  border: "2px solid rgba(96,165,250,0.3)",
-                }}
-              >
-                <h4
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color: "#94a3b8",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    marginBottom: "16px",
-                  }}
-                >
-                  Armor Decay/Hit
-                </h4>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
-                  }}
-                >
-                  <span style={{ fontSize: "14px", color: "#9ca3af" }}>Per Hit Cost</span>
-                  <span
-                    style={{
-                      fontFamily: "monospace",
-                      color: "#60a5fa",
-                      fontSize: "18px",
-                      fontWeight: 700,
-                    }}
-                  >
-                    {costs.armorDecayPerHit.toFixed(5)} PED
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Footer Actions */}
         <div
           style={{
-            padding: "20px 32px",
-            borderTop: "2px solid #1e293b",
-            backgroundColor: "#0f172a",
+            padding: "16px 24px",
+            borderTop: "1px solid hsl(220 13% 18%)",
+            backgroundColor: "hsl(220 13% 8%)",
             display: "flex",
-            gap: "16px",
+            gap: "12px",
             justifyContent: "flex-end",
           }}
         >
           <button
             onClick={onCancel}
             style={{
-              padding: "12px 32px",
-              backgroundColor: "#1e293b",
-              color: "#d1d5db",
-              border: "2px solid #334155",
-              borderRadius: "10px",
+              padding: "10px 24px",
+              backgroundColor: "hsl(220 13% 14%)",
+              color: "hsl(0 0% 95%)",
+              border: "1px solid hsl(220 13% 25%)",
+              borderRadius: "8px",
               cursor: "pointer",
-              fontSize: "15px",
+              fontSize: "14px",
               fontWeight: 600,
             }}
           >
@@ -1079,20 +1155,18 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             onClick={() => onSave(draft)}
             disabled={!draft.name.trim()}
             style={{
-              padding: "12px 32px",
-              backgroundColor: draft.name.trim() ? "#0891b2" : "#334155",
-              color: draft.name.trim() ? "white" : "#64748b",
+              padding: "10px 24px",
+              background: draft.name.trim()
+                ? "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)"
+                : "hsl(220 13% 18%)",
+              color: draft.name.trim() ? "white" : "hsl(220 13% 45%)",
               border: "none",
-              borderRadius: "10px",
+              borderRadius: "8px",
               cursor: draft.name.trim() ? "pointer" : "not-allowed",
-              fontSize: "15px",
+              fontSize: "14px",
               fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
             }}
           >
-            <Save size={18} />
             Save Loadout
           </button>
         </div>
@@ -1105,9 +1179,17 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
 function CostRow({ label, value }: { label: string; value: number }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between" }}>
-      <span style={{ fontSize: "14px", color: "#9ca3af" }}>{label}</span>
-      <span style={{ fontFamily: "monospace", color: "#d1d5db", fontSize: "14px" }}>
-        {value.toFixed(4)} PED
+      <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>
+        {label}
+      </span>
+      <span
+        style={{
+          fontFamily: "monospace",
+          color: "hsl(0 0% 95%)",
+          fontSize: "13px",
+        }}
+      >
+        {(value * 100).toFixed(2)} PEC
       </span>
     </div>
   );
@@ -1147,16 +1229,16 @@ export function LoadoutManager() {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#0f172a",
-        color: "white",
+        backgroundColor: "#090d13",
+        color: "hsl(0 0% 95%)",
       }}
     >
       {/* Header */}
       <div
         style={{
-          padding: "20px 24px",
-          borderBottom: "2px solid #1e293b",
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+          padding: "16px 24px",
+          borderBottom: "1px solid hsl(220 13% 18%)",
+          background: "hsl(220 13% 8%)",
         }}
       >
         <div
@@ -1167,31 +1249,36 @@ export function LoadoutManager() {
           }}
         >
           <div>
-            <h2 style={{ fontSize: "20px", fontWeight: 700 }}>Loadouts</h2>
-            <p style={{ fontSize: "13px", color: "#64748b", marginTop: "2px" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 700 }}>Loadouts</h2>
+            <p
+              style={{
+                fontSize: "13px",
+                color: "hsl(220 13% 45%)",
+                marginTop: "2px",
+              }}
+            >
               Manage your equipment configurations
             </p>
           </div>
-          <button
-            onClick={handleNew}
-            style={{
-              padding: "12px 20px",
-              backgroundColor: "#0891b2",
-              borderRadius: "10px",
-              border: "none",
-              cursor: "pointer",
-              color: "white",
-              fontSize: "14px",
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-            title="New Loadout"
-          >
-            <Plus size={18} />
-            New Loadout
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              onClick={handleNew}
+              style={{
+                padding: "10px 18px",
+                background:
+                  "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "pointer",
+                color: "white",
+                fontSize: "14px",
+                fontWeight: 600,
+              }}
+              title="New Loadout"
+            >
+              New Loadout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1203,7 +1290,7 @@ export function LoadoutManager() {
           padding: "20px 24px",
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-          gap: "16px",
+          gap: "14px",
           alignContent: "start",
         }}
       >
@@ -1213,11 +1300,13 @@ export function LoadoutManager() {
               gridColumn: "1 / -1",
               textAlign: "center",
               padding: "64px 0",
-              color: "#64748b",
+              color: "hsl(220 13% 45%)",
             }}
           >
-            <p style={{ fontSize: "16px", marginBottom: "8px" }}>No loadouts yet</p>
-            <p style={{ fontSize: "14px" }}>
+            <p style={{ fontSize: "15px", marginBottom: "6px" }}>
+              No loadouts yet
+            </p>
+            <p style={{ fontSize: "13px" }}>
               Create one to track cost per shot
             </p>
           </div>
@@ -1248,3 +1337,6 @@ export function LoadoutManager() {
     </div>
   );
 }
+
+// Export LoadoutDropdown for use in App header
+export { LoadoutDropdown };

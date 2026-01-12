@@ -1,59 +1,36 @@
 /**
- * PopoutStats - Configurable overlay with customizable stat tiles
- * Users can choose which 4 stats to display plus see mini trend charts
- * Expands to full dashboard when window is resized larger
- * Includes Asteroid Tracker mode toggle
+ * PopoutStats - Minimal, focused overlay for hunting and economy stats
+ * Clean layout with hero stat, primary/secondary metrics, and skills
  */
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
-import {
-  GripHorizontal,
-  Settings,
-  RotateCcw,
-  Plus,
-  Minus,
-  Clock,
-  Activity,
-  Play,
-  Square,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { GripHorizontal, Settings, RotateCcw, Activity } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius } from "./ui";
-import { ConfigurableTile } from "./popout/ConfigurableTile";
-import {
-  DEFAULT_TILE_CONFIG,
-  DEFAULT_EXPANDED_HERO,
-  DEFAULT_EXPANDED_GRID,
-  type StatData,
-} from "./popout/stat-definitions";
-import { ExpandedDashboard } from "./popout/ExpandedDashboard";
+import { STAT_MAP, type StatData } from "./popout/stat-definitions";
 import { AsteroidPanel } from "./popout/AsteroidPanel";
+import { LoadoutDropdown } from "./LoadoutManager";
+import { useLoadouts } from "../hooks/useLoadouts";
 
 // Storage key for persisted config
 const STORAGE_KEY = "artemis-popout-config";
 
-// Threshold for expanded view (width x height)
-const EXPANDED_WIDTH_THRESHOLD = 600;
-const EXPANDED_HEIGHT_THRESHOLD = 400;
-
 type PopoutMode = "stats" | "asteroid";
 
 interface PopoutConfig {
-  tiles: string[]; // stat keys for each tile (compact view)
-  showCharts: boolean;
   mode: PopoutMode;
-  expandedHero: string[]; // stat keys for hero row (expanded view)
-  expandedGrid: string[]; // stat keys for stats grid (expanded view)
-  showExpandedCharts: boolean; // show/hide charts in expanded view
+  hero: string; // single hero stat key
+  primary: string[]; // 3 primary stats
+  secondary: string[]; // 3 secondary stats
+  skills: string[]; // 2 skill stats
 }
 
 const DEFAULT_CONFIG: PopoutConfig = {
-  tiles: DEFAULT_TILE_CONFIG,
-  showCharts: true,
   mode: "stats",
-  expandedHero: DEFAULT_EXPANDED_HERO,
-  expandedGrid: DEFAULT_EXPANDED_GRID,
-  showExpandedCharts: true,
+  hero: "netProfit",
+  primary: ["returnRate", "kills", "hitRate"],
+  secondary: ["lootValue", "totalSpend", "damageDealt"],
+  skills: ["skillGains", "skillEvents"],
 };
 
 // Load config from localStorage
@@ -77,6 +54,18 @@ function saveConfig(config: PopoutConfig) {
   } catch {
     // Ignore errors
   }
+}
+
+// Format duration as HH:MM:SS or MM:SS
+function formatDuration(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0)
+    return `${h}:${m.toString().padStart(2, "0")}:${s
+      .toString()
+      .padStart(2, "0")}`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 export function PopoutStats() {
@@ -104,64 +93,26 @@ export function PopoutStats() {
 
   const [config, setConfig] = useState<PopoutConfig>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
-  const [sessionActive, setSessionActive] = useState(false);
 
-  // Track window size for responsive layout
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      setWindowHeight(window.innerHeight);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // Loadout state management
+  const {
+    loadouts,
+    activeLoadout,
+    setActive: setActiveLoadout,
+  } = useLoadouts();
 
-  // Determine if we should show expanded dashboard
-  const isExpanded =
-    windowWidth >= EXPANDED_WIDTH_THRESHOLD &&
-    windowHeight >= EXPANDED_HEIGHT_THRESHOLD;
-
-  // Calculate columns based on window width
-  const getColumns = () => {
-    if (windowWidth < 200) return 1;
-    if (windowWidth < 350) return 2;
-    if (windowWidth < 500) return 3;
-    return 4;
-  };
-
-  const columns = getColumns();
-
-  // Historical data for sparklines (last 60 samples)
-  const historyRef = useRef<Record<string, number[]>>({});
-
-  // Update history on each stats update - track ALL stats for full session
-  const updateHistory = useCallback((newStats: StatData) => {
-    const history = historyRef.current;
-
-    // Track all stats for charts - no limit, keep full session
-    Object.keys(newStats).forEach((key) => {
-      if (!history[key]) history[key] = [];
-      const value = newStats[key as keyof StatData] as number;
-      if (typeof value === "number") {
-        history[key].push(value);
-      }
-    });
-  }, []);
-
+  // Listen for stats updates
   useEffect(() => {
     const unsubscribe = window.electron?.popout?.onStatsUpdate(
       (data: LiveStats) => {
         setStats(data);
-        updateHistory(data as StatData);
       }
     );
     window.electron?.popout?.requestStats();
     return () => {
       unsubscribe?.();
     };
-  }, [updateHistory]);
+  }, []);
 
   // Listen for session status updates
   useEffect(() => {
@@ -178,204 +129,56 @@ export function PopoutStats() {
     saveConfig(config);
   }, [config]);
 
-  const handleChangeTileStat = (index: number, newStatKey: string) => {
-    setConfig((prev) => {
-      const newTiles = [...prev.tiles];
-      newTiles[index] = newStatKey;
-      return { ...prev, tiles: newTiles };
-    });
-  };
-
-  const handleAddTile = () => {
-    if (config.tiles.length < 8) {
-      setConfig((prev) => ({
-        ...prev,
-        tiles: [...prev.tiles, "kills"],
-      }));
-    }
-  };
-
-  const handleRemoveTile = () => {
-    if (config.tiles.length > 1) {
-      setConfig((prev) => ({
-        ...prev,
-        tiles: prev.tiles.slice(0, -1),
-      }));
-    }
+  const handleModeChange = (mode: PopoutMode) => {
+    setConfig((prev) => ({ ...prev, mode }));
   };
 
   const handleResetConfig = () => {
     setConfig(DEFAULT_CONFIG);
   };
 
-  const handleToggleCharts = () => {
-    setConfig((prev) => ({ ...prev, showCharts: !prev.showCharts }));
+  const handleSwitchVersion = () => {
+    localStorage.setItem("artemis-popout-version", "v2");
+    window.location.reload();
+  };
+
+  const handleChangeHero = (newStatKey: string) => {
+    setConfig((prev) => ({ ...prev, hero: newStatKey }));
+  };
+
+  const handleChangePrimary = (index: number, newStatKey: string) => {
+    setConfig((prev) => {
+      const newPrimary = [...prev.primary];
+      newPrimary[index] = newStatKey;
+      return { ...prev, primary: newPrimary };
+    });
+  };
+
+  const handleChangeSecondary = (index: number, newStatKey: string) => {
+    setConfig((prev) => {
+      const newSecondary = [...prev.secondary];
+      newSecondary[index] = newStatKey;
+      return { ...prev, secondary: newSecondary };
+    });
+  };
+
+  const handleChangeSkills = (index: number, newStatKey: string) => {
+    setConfig((prev) => {
+      const newSkills = [...prev.skills];
+      newSkills[index] = newStatKey;
+      return { ...prev, skills: newSkills };
+    });
   };
 
   const statData: StatData = stats;
 
-  // Determine if tiles should be compact based on size
-  const isCompact = columns >= 3 || config.tiles.length > 4;
+  // Calculate kills per hour
+  const killsPerHour =
+    stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
 
-  // Format duration as HH:MM:SS or MM:SS
-  const formatDuration = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    if (h > 0)
-      return `${h}:${m.toString().padStart(2, "0")}:${s
-        .toString()
-        .padStart(2, "0")}`;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
-
-  const handleModeChange = (mode: PopoutMode) => {
-    setConfig((prev) => ({ ...prev, mode }));
-  };
-
-  const handleStartSession = () => {
-    window.electron?.popout?.startSession();
-  };
-
-  const handleStopSession = () => {
-    window.electron?.popout?.stopSession();
-  };
-
-  const handleChangeExpandedHeroStat = (index: number, newStatKey: string) => {
-    setConfig((prev) => {
-      const newHero = [...prev.expandedHero];
-      newHero[index] = newStatKey;
-      return { ...prev, expandedHero: newHero };
-    });
-  };
-
-  const handleChangeExpandedGridStat = (index: number, newStatKey: string) => {
-    setConfig((prev) => {
-      const newGrid = [...prev.expandedGrid];
-      newGrid[index] = newStatKey;
-      return { ...prev, expandedGrid: newGrid };
-    });
-  };
-
-  const handleToggleExpandedCharts = () => {
-    setConfig((prev) => ({
-      ...prev,
-      showExpandedCharts: !prev.showExpandedCharts,
-    }));
-  };
-
-  // Expanded dashboard view
-  if (isExpanded) {
-    return (
-      <div style={styles.container}>
-        {/* Drag Handle + Settings */}
-        <div style={styles.header}>
-          <div style={styles.modeTabs}>
-            <button
-              onClick={() => handleModeChange("stats")}
-              style={{
-                ...styles.modeTab,
-                backgroundColor:
-                  config.mode === "stats" ? colors.bgCard : "transparent",
-                color:
-                  config.mode === "stats"
-                    ? colors.textPrimary
-                    : colors.textMuted,
-              }}
-            >
-              <Activity size={10} />
-            </button>
-          </div>
-          {config.mode === "stats" && (
-            <div style={styles.duration}>
-              <Clock size={10} />
-              <span>{formatDuration(stats.duration)}</span>
-            </div>
-          )}
-          <div style={styles.dragHandle}>
-            <GripHorizontal size={14} style={{ color: colors.textMuted }} />
-          </div>
-          {config.mode === "stats" && (
-            <>
-              <button
-                onClick={sessionActive ? handleStopSession : handleStartSession}
-                style={styles.sessionButton}
-                title={sessionActive ? "Stop Session" : "Start Session"}
-              >
-                {sessionActive ? <Square size={12} /> : <Play size={12} />}
-              </button>
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                style={{
-                  ...styles.settingsButton,
-                  backgroundColor: showSettings ? colors.bgCard : "transparent",
-                }}
-              >
-                <Settings size={12} />
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Settings Panel - expanded view */}
-        {config.mode === "stats" && showSettings && (
-          <div style={styles.settingsPanel}>
-            <div style={styles.settingsRow}>
-              <span style={styles.settingsLabel}>Charts</span>
-              <button
-                onClick={handleToggleExpandedCharts}
-                style={styles.toggleButton}
-              >
-                {config.showExpandedCharts ? "On" : "Off"}
-              </button>
-            </div>
-            <div style={styles.settingsRow}>
-              <button
-                onClick={handleResetConfig}
-                style={styles.resetButton}
-              >
-                <RotateCcw size={12} />
-                Reset
-              </button>
-            </div>
-            <div style={{ ...styles.settingsRow, marginTop: spacing.xs }}>
-              <span style={{ ...styles.settingsLabel, fontSize: "9px" }}>
-                Click stat labels to change
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Always render AsteroidPanel so it keeps listening for events */}
-        <div
-          style={{
-            display: config.mode === "asteroid" ? "block" : "none",
-            flex: 1,
-          }}
-        >
-          <AsteroidPanel />
-        </div>
-        {config.mode !== "asteroid" && (
-          <ExpandedDashboard
-            stats={stats}
-            history={historyRef.current}
-            formatDuration={formatDuration}
-            heroStats={config.expandedHero}
-            gridStats={config.expandedGrid}
-            showCharts={config.showExpandedCharts}
-            onChangeHeroStat={handleChangeExpandedHeroStat}
-            onChangeGridStat={handleChangeExpandedGridStat}
-            settingsMode={showSettings}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // Compact tile view
   return (
     <div style={styles.container}>
-      {/* Drag Handle + Settings + Mode Toggle */}
+      {/* Header */}
       <div style={styles.header}>
         <div style={styles.modeTabs}>
           <button
@@ -392,9 +195,13 @@ export function PopoutStats() {
           </button>
         </div>
         {config.mode === "stats" && (
-          <div style={styles.duration}>
-            <Clock size={10} />
-            <span>{formatDuration(stats.duration)}</span>
+          <div style={styles.loadoutDropdownContainer}>
+            <LoadoutDropdown
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+              compact
+            />
           </div>
         )}
         <div style={styles.dragHandle}>
@@ -413,70 +220,266 @@ export function PopoutStats() {
         )}
       </div>
 
-      {/* Settings Panel - only in stats mode */}
+      {/* Settings Panel */}
       {config.mode === "stats" && showSettings && (
         <div style={styles.settingsPanel}>
           <div style={styles.settingsRow}>
-            <span style={styles.settingsLabel}>Tiles</span>
-            <div style={styles.settingsActions}>
-              <button
-                onClick={handleRemoveTile}
-                style={styles.iconButton}
-                disabled={config.tiles.length <= 1}
-              >
-                <Minus size={12} />
-              </button>
-              <span style={styles.tileCount}>{config.tiles.length}</span>
-              <button
-                onClick={handleAddTile}
-                style={styles.iconButton}
-                disabled={config.tiles.length >= 8}
-              >
-                <Plus size={12} />
-              </button>
-            </div>
-          </div>
-          <div style={styles.settingsRow}>
-            <span style={styles.settingsLabel}>Charts</span>
-            <button onClick={handleToggleCharts} style={styles.toggleButton}>
-              {config.showCharts ? "On" : "Off"}
-            </button>
-          </div>
-          <div style={styles.settingsRow}>
             <button onClick={handleResetConfig} style={styles.resetButton}>
               <RotateCcw size={12} />
-              Reset
+              Reset to Defaults
             </button>
+            <button onClick={handleSwitchVersion} style={styles.versionButton}>
+              Switch to V2
+            </button>
+          </div>
+          <div style={{ ...styles.settingsRow, marginTop: spacing.xs }}>
+            <span style={{ ...styles.settingsLabel, fontSize: "9px" }}>
+              Click stat labels to change
+            </span>
           </div>
         </div>
       )}
 
-      {/* Content based on mode */}
       {/* Always render AsteroidPanel so it keeps listening for events */}
-      <div style={{ display: config.mode === "asteroid" ? "block" : "none" }}>
+      <div
+        style={{
+          display: config.mode === "asteroid" ? "block" : "none",
+          flex: 1,
+        }}
+      >
         <AsteroidPanel />
       </div>
-      {config.mode !== "asteroid" && (
-        /* Tiles Grid */
-        <div
-          style={{
-            ...styles.tilesGrid,
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          }}
-        >
-          {config.tiles.map((statKey, index) => (
-            <ConfigurableTile
-              key={`${index}-${statKey}`}
-              statKey={statKey}
-              data={statData}
-              history={historyRef.current[statKey] || []}
-              onChangeStat={(newKey) => handleChangeTileStat(index, newKey)}
-              showChart={config.showCharts}
-              compact={isCompact}
-              fullSessionChart
-            />
-          ))}
+
+      {/* Stats Mode */}
+      {config.mode === "stats" && (
+        <div style={styles.statsContent}>
+          {/* Hero Stat */}
+          <HeroStat
+            statKey={config.hero}
+            data={statData}
+            onChange={handleChangeHero}
+            settingsMode={showSettings}
+          />
+
+          {/* Primary Stats Row */}
+          <div style={styles.statsRow}>
+            {config.primary.map((statKey, index) => (
+              <StatTile
+                key={`primary-${index}`}
+                statKey={statKey}
+                data={statData}
+                onChange={(newKey) => handleChangePrimary(index, newKey)}
+                settingsMode={showSettings}
+                size="medium"
+              />
+            ))}
+          </div>
+
+          {/* Secondary Stats Row */}
+          <div style={styles.statsRow}>
+            {config.secondary.map((statKey, index) => (
+              <StatTile
+                key={`secondary-${index}`}
+                statKey={statKey}
+                data={statData}
+                onChange={(newKey) => handleChangeSecondary(index, newKey)}
+                settingsMode={showSettings}
+                size="small"
+              />
+            ))}
+          </div>
+
+          {/* Skills Row */}
+          <div style={styles.skillsRow}>
+            {config.skills.map((statKey, index) => {
+              const stat = STAT_MAP.get(statKey);
+              if (!stat) return null;
+              const value = stat.getValue(statData);
+              return (
+                <div key={`skill-${index}`} style={styles.skillItem}>
+                  {showSettings ? (
+                    <StatSelector
+                      currentKey={statKey}
+                      onSelect={(newKey) => handleChangeSkills(index, newKey)}
+                    />
+                  ) : (
+                    <>
+                      <span style={styles.skillLabel}>{stat.label}:</span>
+                      <span style={styles.skillValue}>
+                        {value.value}
+                        {value.unit && ` ${value.unit}`}
+                      </span>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div style={styles.footer}>
+            <div style={styles.footerItem}>
+              <span style={styles.footerLabel}>Duration:</span>
+              <span style={styles.footerValue}>
+                {formatDuration(stats.duration)}
+              </span>
+            </div>
+            <div style={styles.footerSeparator} />
+            <div style={styles.footerItem}>
+              <span style={styles.footerValue}>
+                {killsPerHour.toFixed(0)} kills/hr
+              </span>
+            </div>
+          </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+// Hero Stat Component
+function HeroStat({
+  statKey,
+  data,
+  onChange,
+  settingsMode,
+}: {
+  statKey: string;
+  data: StatData;
+  onChange: (newKey: string) => void;
+  settingsMode: boolean;
+}) {
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+
+  const value = stat.getValue(data);
+  const Icon = stat.icon;
+
+  return (
+    <div style={styles.heroStat}>
+      <Icon
+        size={40}
+        style={{
+          position: "absolute",
+          right: 16,
+          top: "50%",
+          transform: "translateY(-50%)",
+          opacity: 0.1,
+          color: colors.textMuted,
+        }}
+      />
+      {settingsMode ? (
+        <div style={{ width: "100%" }}>
+          <StatSelector currentKey={statKey} onSelect={onChange} />
+        </div>
+      ) : (
+        <>
+          <div style={styles.heroLabel}>{stat.label}</div>
+          <div style={{ ...styles.heroValue, color: value.color }}>
+            {value.value}
+            {value.unit && <span style={styles.heroUnit}> {value.unit}</span>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Stat Tile Component
+function StatTile({
+  statKey,
+  data,
+  onChange,
+  settingsMode,
+  size,
+}: {
+  statKey: string;
+  data: StatData;
+  onChange: (newKey: string) => void;
+  settingsMode: boolean;
+  size: "medium" | "small";
+}) {
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+
+  const value = stat.getValue(data);
+  const Icon = stat.icon;
+
+  const isMedium = size === "medium";
+
+  return (
+    <div style={isMedium ? styles.statTileMedium : styles.statTileSmall}>
+      <Icon
+        size={isMedium ? 24 : 20}
+        style={{
+          position: "absolute",
+          right: 8,
+          top: "50%",
+          transform: "translateY(-50%)",
+          opacity: 0.08,
+          color: colors.textMuted,
+        }}
+      />
+      {settingsMode ? (
+        <StatSelector currentKey={statKey} onSelect={onChange} />
+      ) : (
+        <>
+          <div style={isMedium ? styles.tileLabel : styles.tileLabelSmall}>
+            {stat.label}
+          </div>
+          <div style={isMedium ? styles.tileValue : styles.tileValueSmall}>
+            {value.value}
+            {value.unit && <span style={styles.tileUnit}> {value.unit}</span>}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Stat Selector Component (for settings mode)
+function StatSelector({
+  currentKey,
+  onSelect,
+}: {
+  currentKey: string;
+  onSelect: (key: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const currentStat = STAT_MAP.get(currentKey);
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button onClick={() => setIsOpen(!isOpen)} style={styles.selectorButton}>
+        {currentStat?.label || "Select..."}
+      </button>
+      {isOpen && (
+        <>
+          <div
+            style={styles.selectorOverlay}
+            onClick={() => setIsOpen(false)}
+          />
+          <div style={styles.selectorDropdown}>
+            {Array.from(STAT_MAP.values()).map((stat) => (
+              <button
+                key={stat.key}
+                onClick={() => {
+                  onSelect(stat.key);
+                  setIsOpen(false);
+                }}
+                style={{
+                  ...styles.selectorOption,
+                  backgroundColor:
+                    stat.key === currentKey
+                      ? "hsl(217 91% 68% / 0.15)"
+                      : "transparent",
+                }}
+              >
+                {stat.label}
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -520,25 +523,11 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     transition: "all 0.15s ease",
   },
-  title: {
+  loadoutDropdownContainer: {
     position: "absolute",
-    left: spacing.sm,
-    fontSize: 10,
-    fontWeight: 700,
-    color: colors.textMuted,
-    letterSpacing: "0.1em",
-    pointerEvents: "none",
-  },
-  duration: {
-    position: "absolute",
-    left: 50,
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    fontSize: 10,
-    fontFamily: "monospace",
-    color: colors.textMuted,
-    pointerEvents: "none",
+    left: 32,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
   },
   dragHandle: {
     position: "absolute",
@@ -599,40 +588,6 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: "uppercase",
     letterSpacing: "0.05em",
   },
-  settingsActions: {
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-  },
-  iconButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 20,
-    height: 20,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgCard,
-    color: colors.textMuted,
-    cursor: "pointer",
-  },
-  tileCount: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: colors.textPrimary,
-    minWidth: 16,
-    textAlign: "center",
-  },
-  toggleButton: {
-    padding: `${spacing.xs}px ${spacing.sm}px`,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgCard,
-    color: colors.textPrimary,
-    fontSize: 10,
-    fontWeight: 600,
-    cursor: "pointer",
-  },
   resetButton: {
     display: "flex",
     alignItems: "center",
@@ -644,14 +599,216 @@ const styles: Record<string, React.CSSProperties> = {
     color: colors.textMuted,
     fontSize: 10,
     cursor: "pointer",
+  },
+  versionButton: {
+    padding: `${spacing.xs}px ${spacing.sm}px`,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgCard,
+    color: "#06b6d4",
+    fontSize: 10,
+    fontWeight: 600,
+    cursor: "pointer",
     marginLeft: "auto",
   },
-  tilesGrid: {
-    display: "grid",
-    gap: spacing.xs,
-    padding: spacing.sm,
+  statsContent: {
     flex: 1,
-    alignContent: "start",
+    display: "flex",
+    flexDirection: "column",
+    padding: spacing.sm,
+    gap: spacing.sm,
+  },
+  heroStat: {
+    position: "relative",
+    backgroundColor: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 80,
+    overflow: "hidden",
+  },
+  heroLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.1em",
+    marginBottom: spacing.xs,
+  },
+  heroValue: {
+    fontSize: 28,
+    fontWeight: 700,
+    fontFamily: "monospace",
+    lineHeight: 1,
+  },
+  heroUnit: {
+    fontSize: 16,
+    fontWeight: 600,
+    opacity: 0.7,
+  },
+  statsRow: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: spacing.xs,
+  },
+  statTileMedium: {
+    position: "relative",
+    backgroundColor: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 50,
+    overflow: "hidden",
+  },
+  statTileSmall: {
+    position: "relative",
+    backgroundColor: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: spacing.xs,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 40,
+    overflow: "hidden",
+  },
+  tileLabel: {
+    fontSize: 9,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    marginBottom: 4,
+  },
+  tileLabelSmall: {
+    fontSize: 8,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    marginBottom: 2,
+  },
+  tileValue: {
+    fontSize: 18,
+    fontWeight: 700,
+    fontFamily: "monospace",
+    color: colors.textPrimary,
+  },
+  tileValueSmall: {
+    fontSize: 14,
+    fontWeight: 700,
+    fontFamily: "monospace",
+    color: colors.textPrimary,
+  },
+  tileUnit: {
+    fontSize: "0.7em",
+    fontWeight: 600,
+    opacity: 0.7,
+  },
+  skillsRow: {
+    display: "flex",
+    gap: spacing.sm,
+    backgroundColor: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+  },
+  skillItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+  },
+  skillLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.textMuted,
+  },
+  skillValue: {
+    fontSize: 12,
+    fontWeight: 700,
+    fontFamily: "monospace",
+    color: colors.textPrimary,
+  },
+  footer: {
+    display: "flex",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: `${spacing.xs}px ${spacing.sm}px`,
+    backgroundColor: colors.bgPanel,
+    borderRadius: radius.sm,
+    marginTop: "auto",
+  },
+  footerItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  },
+  footerLabel: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.textMuted,
+  },
+  footerValue: {
+    fontSize: 11,
+    fontWeight: 700,
+    fontFamily: "monospace",
+    color: colors.textPrimary,
+  },
+  footerSeparator: {
+    width: 1,
+    height: 12,
+    backgroundColor: colors.border,
+  },
+  selectorButton: {
+    width: "100%",
+    padding: "6px 8px",
+    backgroundColor: "hsl(220 13% 12%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: radius.sm,
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+    textAlign: "left",
+  },
+  selectorOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  selectorDropdown: {
+    position: "absolute",
+    top: "100%",
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    backgroundColor: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    maxHeight: 200,
+    overflowY: "auto",
+    zIndex: 1000,
+  },
+  selectorOption: {
+    width: "100%",
+    padding: "6px 8px",
+    border: "none",
+    backgroundColor: "transparent",
+    color: colors.textPrimary,
+    fontSize: 10,
+    fontWeight: 500,
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "background-color 0.1s ease",
   },
 };
 
