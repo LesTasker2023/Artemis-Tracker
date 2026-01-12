@@ -223,7 +223,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     width: '100%',
-    padding: `${spacing.sm} ${spacing.md}`,
+    padding: `${spacing.md} ${spacing.lg}`,
     backgroundColor: colors.bgApp,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
@@ -246,7 +246,7 @@ const styles: Record<string, React.CSSProperties> = {
   addButton: {
     display: 'flex',
     alignItems: 'center',
-    padding: `${spacing.sm} ${spacing.md}`,
+    padding: `${spacing.md} ${spacing.lg}`,
     backgroundColor: colors.bgApp,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
@@ -279,12 +279,12 @@ const styles: Record<string, React.CSSProperties> = {
   suggestedTag: {
     display: 'flex',
     alignItems: 'center',
-    padding: '4px 10px',
+    padding: `${spacing.sm} ${spacing.md}`,
     backgroundColor: 'rgba(99, 102, 241, 0.1)',
     border: '1px solid rgba(99, 102, 241, 0.25)',
     borderRadius: radius.sm,
     color: '#a5b4fc',
-    fontSize: '11px',
+    fontSize: '12px',
     fontWeight: 500,
     fontFamily: 'inherit',
     cursor: 'pointer',
@@ -298,12 +298,12 @@ const styles: Record<string, React.CSSProperties> = {
   activeTag: {
     display: 'flex',
     alignItems: 'center',
-    padding: `${spacing.xs} ${spacing.sm}`,
+    padding: `${spacing.sm} ${spacing.md}`,
     backgroundColor: 'rgba(99, 102, 241, 0.15)',
     border: '1px solid rgba(99, 102, 241, 0.3)',
     borderRadius: radius.md,
     color: '#a5b4fc',
-    fontSize: '12px',
+    fontSize: '13px',
     fontWeight: 500,
   },
   tagRemoveButton: {
@@ -327,7 +327,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderTop: `1px solid ${colors.border}`,
   },
   cancelButton: {
-    padding: `${spacing.sm} ${spacing.lg}`,
+    padding: `${spacing.md} ${spacing.xl}`,
     backgroundColor: colors.bgApp,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
@@ -338,7 +338,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   confirmButton: {
-    padding: `${spacing.sm} ${spacing.xl}`,
+    padding: `${spacing.md} ${spacing.xl}`,
     background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
     border: 'none',
     borderRadius: radius.md,
