@@ -977,20 +977,6 @@ ipcMain.handle('popout:status', () => {
   return { open: popoutWindow !== null && !popoutWindow.isDestroyed() };
 });
 
-// Main window sends stats to popout
-ipcMain.on('popout:stats', (_event: unknown, stats: unknown) => {
-  if (popoutWindow && !popoutWindow.isDestroyed()) {
-    popoutWindow.webContents.send('popout:stats-update', stats);
-  }
-});
-
-// Popout requests stats from main window
-ipcMain.on('popout:request-stats', () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('popout:stats-requested');
-  }
-});
-
 // ==================== Asteroid IPC ====================
 
 ipcMain.handle('asteroid:save', (_event: unknown, asteroids: unknown[]) => {
