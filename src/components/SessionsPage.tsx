@@ -166,94 +166,93 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
 
   return (
     <div style={listStyles.wrapper}>
-      {/* Header with filters, sort, and delete */}
+      {/* Header with title, filters, sort, and delete */}
       <div style={listStyles.header}>
         <h2 style={listStyles.headerTitle}>Sessions</h2>
+
         {sessions.length > 0 && (
-          <div style={listStyles.headerActions}>
-            {confirmDelete ? (
-              <>
-                <button
-                  onClick={handleDeleteAllClick}
-                  style={{ ...listStyles.deleteButton, ...listStyles.deleteButtonConfirm }}
-                >
-                  <AlertTriangle size={14} />
-                  Confirm Delete All
-                </button>
-                <button
-                  onClick={handleCancelDelete}
-                  style={listStyles.cancelButton}
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <button
-                onClick={handleDeleteAllClick}
-                style={listStyles.deleteButton}
+          <>
+            {/* Sort */}
+            <div style={listStyles.filterGroup}>
+              <ArrowUpDown size={14} style={{ color: '#64748b' }} />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                style={listStyles.sortSelect}
               >
-                <Trash2 size={14} />
-                Delete All
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+              </select>
+            </div>
+
+            {/* Tag Filters */}
+            {allTags.length > 0 && (
+              <div style={listStyles.filterGroup}>
+                <Filter size={14} style={{ color: '#64748b' }} />
+                <div style={listStyles.tagFilters}>
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      style={{
+                        ...listStyles.filterTag,
+                        ...(selectedTags.includes(tag) ? listStyles.filterTagActive : {})
+                      }}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Clear Filters */}
+            {selectedTags.length > 0 && (
+              <button onClick={clearFilters} style={listStyles.clearFiltersButton}>
+                <X size={12} />
+                Clear ({selectedTags.length})
               </button>
             )}
-          </div>
+
+            {/* Results Count */}
+            <div style={listStyles.resultsCount}>
+              {filteredAndSortedSessions.length} of {sessions.length}
+            </div>
+
+            {/* Delete All */}
+            <div style={listStyles.headerActions}>
+              {confirmDelete ? (
+                <>
+                  <button
+                    onClick={handleDeleteAllClick}
+                    style={{ ...listStyles.deleteButton, ...listStyles.deleteButtonConfirm }}
+                  >
+                    <AlertTriangle size={14} />
+                    Confirm Delete All
+                  </button>
+                  <button
+                    onClick={handleCancelDelete}
+                    style={listStyles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleDeleteAllClick}
+                  style={listStyles.deleteButton}
+                >
+                  <Trash2 size={14} />
+                  Delete All
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
-
-      {/* Filter and Sort Controls */}
-      {sessions.length > 0 && (
-        <div style={listStyles.filterBar}>
-          {/* Sort */}
-          <div style={listStyles.filterGroup}>
-            <ArrowUpDown size={14} style={{ color: '#64748b' }} />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              style={listStyles.sortSelect}
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="name-asc">Name A-Z</option>
-              <option value="name-desc">Name Z-A</option>
-            </select>
-          </div>
-
-          {/* Tag Filters */}
-          {allTags.length > 0 && (
-            <div style={listStyles.filterGroup}>
-              <Filter size={14} style={{ color: '#64748b' }} />
-              <div style={listStyles.tagFilters}>
-                {allTags.map(tag => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    style={{
-                      ...listStyles.filterTag,
-                      ...(selectedTags.includes(tag) ? listStyles.filterTagActive : {})
-                    }}
-                  >
-                    <Tag size={10} />
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Clear Filters */}
-          {selectedTags.length > 0 && (
-            <button onClick={clearFilters} style={listStyles.clearFiltersButton}>
-              <X size={12} />
-              Clear ({selectedTags.length})
-            </button>
-          )}
-
-          {/* Results Count */}
-          <div style={listStyles.resultsCount}>
-            {filteredAndSortedSessions.length} of {sessions.length}
-          </div>
-        </div>
-      )}
 
       {/* Session list */}
       <div style={listStyles.container}>
@@ -326,8 +325,9 @@ const listStyles: Record<string, React.CSSProperties> = {
   },
   header: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
+    flexWrap: "wrap",
+    gap: "12px",
     padding: "16px",
     borderBottom: "1px solid hsl(220 13% 18%)",
     backgroundColor: "hsl(220 13% 10%)",
@@ -341,15 +341,6 @@ const listStyles: Record<string, React.CSSProperties> = {
   headerActions: {
     display: "flex",
     gap: "8px",
-  },
-  filterBar: {
-    display: "flex",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "12px",
-    padding: "12px 16px",
-    borderBottom: "1px solid hsl(220 13% 18%)",
-    backgroundColor: "hsl(220 13% 11%)",
   },
   filterGroup: {
     display: "flex",
