@@ -122,17 +122,6 @@ export function PopoutStatsV2() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Listen for stats updates
-  useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onStatsUpdate(
-      (data: LiveStats) => {
-        setStats(data);
-      }
-    );
-    window.electron?.popout?.requestStats();
-    return () => unsubscribe?.();
-  }, []);
-
   // Save config on change
   useEffect(() => {
     saveConfig(config);
