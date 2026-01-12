@@ -387,7 +387,6 @@ export function PopoutStatsV2() {
             </button>
           )}
         </div>
-      </div>
     </div>
   );
 }
