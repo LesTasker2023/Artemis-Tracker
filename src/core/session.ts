@@ -92,11 +92,11 @@ export interface SessionStats {
   // Economy
   lootCount: number;
   lootValue: number;
-  totalSpend: number;    // Ammo burn + enhancer costs only (NO decay)
-  profit: number;        // lootValue - totalSpend (gross profit before decay)
-  netProfit: number;     // lootValue - totalSpend - decay (net profit after all costs)
+  totalSpend: number;    // Ammo burn + weapon/amp/scope/sight decay + enhancer costs
+  profit: number;        // lootValue - totalSpend (gross profit before armor decay)
+  netProfit: number;     // lootValue - totalSpend - armor decay (net profit after all costs)
   returnRate: number;    // lootValue / totalSpend as percentage
-  decay: number;         // Total equipment decay (weapon + armor, L and UL)
+  decay: number;         // Armor decay only (weapon decay is in totalSpend)
   repairBill: number;    // Repair cost for UL items only (L items = TT loss, not repair)
   
   // Gains (backwards compatible)
@@ -586,57 +586,14 @@ export function calculateSessionStats(session: Session, playerName?: string, act
   const returnRate = totalSpend > 0 ? (totalLootValue / totalSpend) * 100 : 0;
   
   // ==================== Decay Calculation ====================
-  // Two types of decay:
-  // 1. Per-shot decay: weapon, amp, scope, sight
-  // 2. Per-hit decay: armor set (1 piece), armor plate (1 plate)
+  // NOTE: Weapon/amp/scope/sight decay is now included in totalSpend (via costPerShot)
+  // The "decay" stat now ONLY tracks armor decay (per-hit), not weapon decay (per-shot)
   //
-  // Repair Bill = UL items only (L items lose TT, can't be repaired)
-  // Total Decay = ALL items (UL + L)
-  
-  // --- OFFENSIVE DECAY (per shot) ---
-  let totalOffensiveDecayPerShot = 0;  // All items
-  let ulOffensiveDecayPerShot = 0;     // UL items only (for repair bill)
-  
-  if (activeLoadout) {
-    // Weapon
-    if (activeLoadout.weapon?.economy.decay) {
-      const decay = activeLoadout.weapon.economy.decay;
-      totalOffensiveDecayPerShot += decay;
-      if (!isLimitedItem(activeLoadout.weapon.name)) {
-        ulOffensiveDecayPerShot += decay;
-      }
-    }
-    // Amp
-    if (activeLoadout.amp?.economy.decay) {
-      const decay = activeLoadout.amp.economy.decay;
-      totalOffensiveDecayPerShot += decay;
-      if (!isLimitedItem(activeLoadout.amp.name)) {
-        ulOffensiveDecayPerShot += decay;
-      }
-    }
-    // Scope
-    if (activeLoadout.scope?.economy.decay) {
-      const decay = activeLoadout.scope.economy.decay;
-      totalOffensiveDecayPerShot += decay;
-      if (!isLimitedItem(activeLoadout.scope.name)) {
-        ulOffensiveDecayPerShot += decay;
-      }
-    }
-    // Sight
-    if (activeLoadout.sight?.economy.decay) {
-      const decay = activeLoadout.sight.economy.decay;
-      totalOffensiveDecayPerShot += decay;
-      if (!isLimitedItem(activeLoadout.sight.name)) {
-        ulOffensiveDecayPerShot += decay;
-      }
-    }
-  }
-  
-  // Calculate total offensive decay
-  const DEFAULT_WEAPON_DECAY_RATE = 0.003; // 0.3 PEC fallback if no loadout
-  const effectiveOffensiveRate = totalOffensiveDecayPerShot > 0 ? totalOffensiveDecayPerShot : DEFAULT_WEAPON_DECAY_RATE;
-  const totalOffensiveDecay = combat.totalShots * effectiveOffensiveRate;
-  const ulOffensiveDecay = combat.totalShots * ulOffensiveDecayPerShot;
+  // Armor decay types:
+  // 1. Per-hit decay: armor set (1 piece), armor plate (1 plate)
+  //
+  // Repair Bill = UL armor only (L items lose TT, can't be repaired)
+  // Decay stat = Armor decay only (weapon decay is in totalSpend)
   
   // --- DEFENSIVE DECAY (per hit/deflect) ---
   // armorHits = damage_taken + deflects (dodges/evades/misses don't decay armor)
@@ -661,12 +618,11 @@ export function calculateSessionStats(session: Session, playerName?: string, act
   const ulDefensiveDecay = combat.armorHits * ulDefensiveDecayPerHit;
   
   // --- TOTALS ---
-  // Total decay: all items (UL + L) - shows total TT lost
-  const decay = totalOffensiveDecay + totalDefensiveDecay;
-  
-  // Repair bill: UL items only - what you'll pay at repair terminal
-  // NOTE: Currently disabled in UI - decay calculation needs work
-  const repairBill = ulOffensiveDecay + ulDefensiveDecay;
+  // Decay stat: ARMOR ONLY (weapon decay is included in totalSpend)
+  const decay = totalDefensiveDecay;
+
+  // Repair bill: UL armor only (weapon repair is included in totalSpend)
+  const repairBill = ulDefensiveDecay;
   
   // Build skill breakdown
   const skills: SkillBreakdown = {
