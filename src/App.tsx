@@ -37,6 +37,7 @@ import { SkillsDeepDive } from "./components/SkillsDeepDive";
 import { LootAnalysis } from "./components/LootAnalysis";
 import { CombatAnalytics } from "./components/CombatAnalytics";
 import { EconomyTracker } from "./components/EconomyTracker";
+import { StartSessionModal } from "./components/StartSessionModal";
 import type { Session, SessionStats } from "./core/session";
 import { calculateSessionStats } from "./core/session";
 import { getActiveLoadout } from "./core/loadout";
@@ -56,38 +57,32 @@ function App() {
 
   // Initialization state
   const [isInitializing, setIsInitializing] = useState(true);
-  const [initMessage, setInitMessage] = useState("Initializing...");
+  const [initMessage, setInitMessage] = useState<string | undefined>(undefined);
   const [initProgress, setInitProgress] = useState(0);
 
   // Check and update equipment database on startup
   useEffect(() => {
     async function initialize() {
       try {
-        setInitMessage("Checking equipment database...");
         setInitProgress(25);
 
         const checkResult = await window.electron?.equipment?.checkUpdates();
 
         if (checkResult?.updateAvailable) {
-          setInitMessage("Updating equipment database...");
           setInitProgress(50);
 
           const updateResult = await window.electron?.equipment?.update();
 
           if (updateResult?.success) {
-            const { updated, failed } = updateResult.result || {
+            const { failed } = updateResult.result || {
               updated: [],
               failed: [],
             };
-            if (updated.length > 0) {
-              setInitMessage(`Updated ${updated.length} database(s)...`);
-            }
             if (failed.length > 0) {
+              // Only show message if there's an error
               setInitMessage(`Warning: ${failed.length} update(s) failed`);
             }
           }
-        } else {
-          setInitMessage("Equipment database up to date");
         }
 
         setInitProgress(100);
@@ -137,6 +132,36 @@ function App() {
   const [showNameSetup, setShowNameSetup] = useState(false);
   const [nameInputValue, setNameInputValue] = useState("");
 
+  // Start session modal
+  const [showStartSessionModal, setShowStartSessionModal] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+  // Load available tags when modal opens
+  useEffect(() => {
+    if (showStartSessionModal) {
+      loadAvailableTags();
+    }
+  }, [showStartSessionModal]);
+
+  const loadAvailableTags = async () => {
+    try {
+      const sessionList = await window.electron?.session.list();
+      if (sessionList) {
+        // Collect all unique tags from all sessions
+        const allTags = new Set<string>();
+        sessionList.forEach((meta) => {
+          if (meta.tags) {
+            meta.tags.forEach((tag) => allTags.add(tag));
+          }
+        });
+        // Convert to array and sort alphabetically
+        setAvailableTags(Array.from(allTags).sort());
+      }
+    } catch (err) {
+      console.error("[App] Failed to load available tags:", err);
+    }
+  };
+
   // Update modal visibility when player name status changes
   useEffect(() => {
     console.log("[App] useEffect - hasPlayerName changed:", hasPlayerName);
@@ -182,10 +207,6 @@ function App() {
 
   // Send stats to popout window whenever session updates
   useEffect(() => {
-    console.log("[App] useEffect - session/stats changed:", {
-      sessionExists: !!session,
-      statsExists: !!stats,
-    });
     if (session && stats) {
       const lastEvent =
         events.length > 0 ? events[events.length - 1].raw : undefined;
@@ -217,9 +238,7 @@ function App() {
 
   // Listen for popout stats requests
   useEffect(() => {
-    console.log("[App] useEffect - popout stats request listener registered");
     const unsubscribe = window.electron?.popout?.onStatsRequest(() => {
-      console.log("[App] popout stats request received");
       if (stats) {
         const lastEvent =
           events.length > 0 ? events[events.length - 1].raw : undefined;
@@ -249,70 +268,42 @@ function App() {
       }
     });
     return () => {
-      console.log(
-        "[App] useEffect cleanup - popout stats request listener removed"
-      );
       unsubscribe?.();
     };
   }, [stats, events.length]);
 
-  // Listen for session control requests from popout
-  useEffect(() => {
-    const handleSessionStart = () => {
-      console.log("[App] Session start requested from popout");
-      startSession();
-    };
+  // Show start session modal
+  const start = () => {
+    console.log("[App] start() called - showing modal");
+    setShowStartSessionModal(true);
+  };
 
-    const handleSessionStop = () => {
-      console.log("[App] Session stop requested from popout");
-      stopSession();
-    };
+  // Handle session start confirmation from modal
+  const handleStartSessionConfirm = async (name: string, tags: string[]) => {
+    console.log("[App] handleStartSessionConfirm called", { name, tags });
+    setShowStartSessionModal(false);
 
-    window.electron?.ipcRenderer?.on('popout:session-start-requested', handleSessionStart);
-    window.electron?.ipcRenderer?.on('popout:session-stop-requested', handleSessionStop);
-
-    return () => {
-      window.electron?.ipcRenderer?.removeListener('popout:session-start-requested', handleSessionStart);
-      window.electron?.ipcRenderer?.removeListener('popout:session-stop-requested', handleSessionStop);
-    };
-  }, [startSession, stopSession]);
-
-  // Send session status updates to popout
-  useEffect(() => {
-    console.log("[App] Sending session status to popout:", sessionActive);
-    if (window.electron?.ipcRenderer) {
-      try {
-        const send = (window.electron.ipcRenderer as any).send;
-        if (send) {
-          send('popout:session-status', sessionActive);
-        }
-      } catch (e) {
-        console.error("[App] Failed to send session status to popout:", e);
-      }
-    }
-  }, [sessionActive]);
-
-  // Start both log watcher and session
-  const start = async () => {
-    console.log("[App] start() called");
     // Clear any viewed session first
     setViewedSession(null);
     setViewedStats(null);
+
     try {
       const res = await startLog();
       console.log("[App] startLog result:", res);
     } catch (e) {
       console.error("[App] startLog failed:", e);
     }
+
     try {
-      startSession();
-      console.log("[App] startSession invoked");
+      startSession(name, tags);
+      console.log("[App] startSession invoked with name:", name, "tags:", tags);
     } catch (e) {
       console.error("[App] startSession failed:", e);
     }
+
     // Switch to live tab
     setActiveTab("live");
-    console.log("[App] start() complete");
+    console.log("[App] handleStartSessionConfirm complete");
   };
 
   // Stop both log watcher and active session
@@ -797,6 +788,15 @@ function App() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Start Session Modal */}
+      {showStartSessionModal && (
+        <StartSessionModal
+          onConfirm={handleStartSessionConfirm}
+          onCancel={() => setShowStartSessionModal(false)}
+          availableTags={availableTags}
+        />
       )}
 
       {/* Update Notification */}

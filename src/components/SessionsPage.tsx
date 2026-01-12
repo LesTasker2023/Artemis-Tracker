@@ -22,6 +22,10 @@ import {
   Eye,
   RotateCcw,
   AlertTriangle,
+  Tag,
+  Filter,
+  ArrowUpDown,
+  X,
 } from "lucide-react";
 import type { Session, LoadoutBreakdown } from "../core/session";
 import { calculateSessionStats } from "../core/session";
@@ -41,10 +45,55 @@ interface SessionsPageProps {
 interface SessionListProps {
   sessions: SessionMeta[];
   onSelect: (id: string) => void;
+  onDeleteAll: () => void;
   loading: boolean;
 }
 
-function SessionList({ sessions, onSelect, loading }: SessionListProps) {
+function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name-asc' | 'name-desc'>('newest');
+
+  // Extract all unique tags from all sessions
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    sessions.forEach(session => {
+      session.tags?.forEach(tag => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [sessions]);
+
+  // Filter and sort sessions
+  const filteredAndSortedSessions = useMemo(() => {
+    let filtered = sessions;
+
+    // Filter by tags (if any tags selected, session must have at least one of them)
+    if (selectedTags.length > 0) {
+      filtered = sessions.filter(session =>
+        selectedTags.some(tag => session.tags?.includes(tag))
+      );
+    }
+
+    // Sort
+    const sorted = [...filtered];
+    switch (sortBy) {
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+        break;
+      case 'oldest':
+        sorted.sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
+        break;
+      case 'name-asc':
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'name-desc':
+        sorted.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+    }
+
+    return sorted;
+  }, [sessions, selectedTags, sortBy]);
+
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString("en-US", {
       month: "short",
@@ -63,6 +112,31 @@ function SessionList({ sessions, onSelect, loading }: SessionListProps) {
     const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
+  };
+
+  const handleDeleteAllClick = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    onDeleteAll();
+    setConfirmDelete(false);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDelete(false);
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag)
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedTags([]);
   };
 
   if (loading) {
@@ -91,45 +165,279 @@ function SessionList({ sessions, onSelect, loading }: SessionListProps) {
   }
 
   return (
-    <div style={listStyles.container}>
-      {sessions.map((meta) => (
-        <div
-          key={meta.id}
-          style={listStyles.card}
-          onClick={() => onSelect(meta.id)}
-        >
-          <div style={listStyles.cardHeader}>
-            <div>
-              <h3 style={listStyles.cardTitle}>{meta.name}</h3>
-              <div style={listStyles.cardMeta}>
-                <Clock size={12} />
-                <span>{formatDate(meta.startedAt)}</span>
-                <span style={listStyles.dot}>•</span>
-                <span>{formatDuration(meta.startedAt, meta.endedAt)}</span>
+    <div style={listStyles.wrapper}>
+      {/* Header with title, filters, sort, and delete */}
+      <div style={listStyles.header}>
+        <h2 style={listStyles.headerTitle}>Sessions</h2>
+
+        {sessions.length > 0 && (
+          <>
+            {/* Sort */}
+            <div style={listStyles.filterGroup}>
+              <ArrowUpDown size={14} style={{ color: '#64748b' }} />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                style={listStyles.sortSelect}
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+              </select>
+            </div>
+
+            {/* Tag Filters */}
+            {allTags.length > 0 && (
+              <div style={listStyles.filterGroup}>
+                <Filter size={14} style={{ color: '#64748b' }} />
+                <div style={listStyles.tagFilters}>
+                  {allTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      style={{
+                        ...listStyles.filterTag,
+                        ...(selectedTags.includes(tag) ? listStyles.filterTagActive : {})
+                      }}
+                    >
+                      <Tag size={10} />
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <ChevronRight size={20} style={{ color: "#64748b" }} />
-          </div>
-          <div style={listStyles.cardStats}>
-            <div style={listStyles.statItem}>
-              <Zap size={14} style={{ color: "#f59e0b" }} />
-              <span>{meta.eventCount} events</span>
-            </div>
-            {meta.endedAt ? (
-              <span style={listStyles.badge}>Completed</span>
-            ) : (
-              <span style={{ ...listStyles.badge, ...listStyles.badgeActive }}>
-                Active
-              </span>
             )}
+
+            {/* Clear Filters */}
+            {selectedTags.length > 0 && (
+              <button onClick={clearFilters} style={listStyles.clearFiltersButton}>
+                <X size={12} />
+                Clear ({selectedTags.length})
+              </button>
+            )}
+
+            {/* Results Count */}
+            <div style={listStyles.resultsCount}>
+              {filteredAndSortedSessions.length} of {sessions.length}
+            </div>
+
+            {/* Delete All */}
+            <div style={listStyles.headerActions}>
+              {confirmDelete ? (
+                <>
+                  <button
+                    onClick={handleDeleteAllClick}
+                    style={{ ...listStyles.deleteButton, ...listStyles.deleteButtonConfirm }}
+                  >
+                    <AlertTriangle size={14} />
+                    Confirm Delete All
+                  </button>
+                  <button
+                    onClick={handleCancelDelete}
+                    style={listStyles.cancelButton}
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleDeleteAllClick}
+                  style={listStyles.deleteButton}
+                >
+                  <Trash2 size={14} />
+                  Delete All
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Session list */}
+      <div style={listStyles.container}>
+        {filteredAndSortedSessions.length === 0 ? (
+          <div style={listStyles.empty}>
+            <div style={listStyles.emptyIcon}>
+              <Filter size={48} />
+            </div>
+            <p style={listStyles.emptyTitle}>No sessions match filters</p>
+            <p style={listStyles.emptySubtitle}>
+              Try adjusting your tag filters
+            </p>
           </div>
-        </div>
-      ))}
+        ) : (
+          filteredAndSortedSessions.map((meta) => (
+            <div
+              key={meta.id}
+              style={listStyles.card}
+              onClick={() => onSelect(meta.id)}
+            >
+            <div style={listStyles.cardHeader}>
+              <div>
+                <h3 style={listStyles.cardTitle}>{meta.name}</h3>
+                <div style={listStyles.cardMeta}>
+                  <Clock size={12} />
+                  <span>{formatDate(meta.startedAt)}</span>
+                  <span style={listStyles.dot}>•</span>
+                  <span>{formatDuration(meta.startedAt, meta.endedAt)}</span>
+                </div>
+                {meta.tags && meta.tags.length > 0 && (
+                  <div style={listStyles.tagContainer}>
+                    {meta.tags.map((tag) => (
+                      <span key={tag} style={listStyles.tag}>
+                        <Tag size={10} />
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <ChevronRight size={20} style={{ color: "#64748b" }} />
+            </div>
+            <div style={listStyles.cardStats}>
+              <div style={listStyles.statItem}>
+                <Zap size={14} style={{ color: "#f59e0b" }} />
+                <span>{meta.eventCount} events</span>
+              </div>
+              {meta.endedAt ? (
+                <span style={listStyles.badge}>Completed</span>
+              ) : (
+                <span style={{ ...listStyles.badge, ...listStyles.badgeActive }}>
+                  Active
+                </span>
+              )}
+            </div>
+          </div>
+        ))
+        )}
+      </div>
     </div>
   );
 }
 
 const listStyles: Record<string, React.CSSProperties> = {
+  wrapper: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    overflow: "hidden",
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "12px",
+    padding: "16px",
+    borderBottom: "1px solid hsl(220 13% 18%)",
+    backgroundColor: "hsl(220 13% 10%)",
+  },
+  headerTitle: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "hsl(0 0% 95%)",
+    margin: 0,
+  },
+  headerActions: {
+    display: "flex",
+    gap: "8px",
+  },
+  filterGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  sortSelect: {
+    padding: "6px 10px",
+    backgroundColor: "hsl(220 13% 15%)",
+    color: "hsl(0 0% 85%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: "6px",
+    fontSize: "13px",
+    fontWeight: "500",
+    fontFamily: "inherit",
+    cursor: "pointer",
+    outline: "none",
+  },
+  tagFilters: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+  },
+  filterTag: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "6px 10px",
+    backgroundColor: "hsl(220 13% 15%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: "6px",
+    color: "hsl(0 0% 70%)",
+    fontSize: "12px",
+    fontWeight: "500",
+    fontFamily: "inherit",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  filterTagActive: {
+    backgroundColor: "rgba(99, 102, 241, 0.2)",
+    borderColor: "rgba(99, 102, 241, 0.4)",
+    color: "#a5b4fc",
+  },
+  clearFiltersButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "6px 10px",
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
+    border: "1px solid rgba(239, 68, 68, 0.3)",
+    borderRadius: "6px",
+    color: "#ef4444",
+    fontSize: "12px",
+    fontWeight: "500",
+    fontFamily: "inherit",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  resultsCount: {
+    marginLeft: "auto",
+    fontSize: "12px",
+    color: "hsl(220 13% 45%)",
+    fontWeight: "500",
+  },
+  deleteButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 14px",
+    backgroundColor: "hsl(220 13% 15%)",
+    color: "hsl(0 0% 85%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  deleteButtonConfirm: {
+    backgroundColor: "rgba(239, 68, 68, 0.2)",
+    borderColor: "#ef4444",
+    color: "#ef4444",
+  },
+  cancelButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 14px",
+    backgroundColor: "hsl(220 13% 15%)",
+    color: "hsl(0 0% 85%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
   container: {
     display: "flex",
     flexDirection: "column",
@@ -167,6 +475,24 @@ const listStyles: Record<string, React.CSSProperties> = {
   },
   dot: {
     color: "hsl(220 13% 25%)",
+  },
+  tagContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+    marginTop: "8px",
+  },
+  tag: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "3px 8px",
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
+    border: "1px solid rgba(99, 102, 241, 0.3)",
+    borderRadius: "10px",
+    color: "#a5b4fc",
+    fontSize: "11px",
+    fontWeight: "500",
   },
   cardStats: {
     display: "flex",
@@ -925,6 +1251,19 @@ export function SessionsPage({
     }
   };
 
+  const handleDeleteAll = async () => {
+    try {
+      // Delete all sessions
+      for (const session of sessions) {
+        await window.electron?.session.delete(session.id);
+      }
+      // Reload the session list
+      loadSessions();
+    } catch (err) {
+      console.error("[SessionsPage] Failed to delete all sessions:", err);
+    }
+  };
+
   if (selectedSession) {
     return (
       <SessionDetail
@@ -941,6 +1280,7 @@ export function SessionsPage({
     <SessionList
       sessions={sessions}
       onSelect={handleSelectSession}
+      onDeleteAll={handleDeleteAll}
       loading={loading}
     />
   );

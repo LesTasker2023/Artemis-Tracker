@@ -21,16 +21,12 @@ import { useLoadouts } from "../hooks/useLoadouts";
 // Storage keys
 const CONFIG_KEY = "artemis-popout-v2-config";
 
-type PopoutMode = "stats" | "asteroid";
-
 interface PopoutConfigV2 {
-  mode: PopoutMode;
   stats: string[]; // configurable stat tiles
   collapsed: boolean; // collapsed minimal mode
 }
 
 const DEFAULT_CONFIG: PopoutConfigV2 = {
-  mode: "stats",
   stats: [
     "netProfit",
     "returnRate",
@@ -104,8 +100,6 @@ export function PopoutStatsV2() {
   const [showSettings, setShowSettings] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
-  const [sessionActive, setSessionActive] = useState(false);
-  console.log(sessionActive);
 
   // Loadout management
   const {
@@ -124,24 +118,15 @@ export function PopoutStatsV2() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Listen for stats updates
+  // Listen for stats updates from main window
   useEffect(() => {
     const unsubscribe = window.electron?.popout?.onStatsUpdate(
       (data: LiveStats) => {
         setStats(data);
       }
     );
+    // Request initial stats on mount
     window.electron?.popout?.requestStats();
-    return () => unsubscribe?.();
-  }, []);
-
-  // Listen for session status updates
-  useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate(
-      (isActive: boolean) => {
-        setSessionActive(isActive);
-      }
-    );
     return () => unsubscribe?.();
   }, []);
 
@@ -181,6 +166,10 @@ export function PopoutStatsV2() {
   const handleClose = () => {
     window.electron?.popout?.close();
   };
+
+  // const handleToggleCollapsed = () => {
+  //   setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
+  // };
 
   // Calculate responsive columns based on window width
   const getColumns = () => {
@@ -256,7 +245,7 @@ export function PopoutStatsV2() {
           {/* Minimal Stats Display */}
           <div style={styles.collapsedStats}>
             {/* User-configured stats in order */}
-            {config.stats.slice(0, 4).map((statKey) => {
+            {config.stats.map((statKey) => {
               const stat = STAT_MAP.get(statKey);
               if (!stat) return null;
               const value = stat.getValue(statData);
@@ -300,18 +289,13 @@ export function PopoutStatsV2() {
     <div style={styles.container}>
       {/* Draggable Header */}
       <div style={styles.header}>
-        {/* Mode Tabs (hidden) */}
-        <div style={styles.modeTabs} />
-
         {/* Duration Display */}
-        {config.mode === "stats" && (
-          <div style={styles.durationDisplay}>
-            <Clock size={10} style={{ color: colors.textMuted }} />
-            <span style={styles.durationText}>
-              {formatDuration(stats.duration)}
-            </span>
-          </div>
-        )}
+        <div style={styles.durationDisplay}>
+          <Clock size={10} style={{ color: colors.textMuted }} />
+          <span style={styles.durationText}>
+            {formatDuration(stats.duration)}
+          </span>
+        </div>
 
         {/* Drag Handle */}
         <div style={styles.dragHandle}>
@@ -320,20 +304,16 @@ export function PopoutStatsV2() {
 
         {/* Header Actions */}
         <div style={styles.headerActions}>
-          {config.mode === "stats" && (
-            <>
-              <button
-                onClick={() => setShowSettings(!showSettings)}
-                style={{
-                  ...styles.headerButton,
-                  backgroundColor: showSettings ? colors.bgCard : "transparent",
-                }}
-                title="Settings"
-              >
-                <Settings size={12} />
-              </button>
-            </>
-          )}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            style={{
+              ...styles.headerButton,
+              backgroundColor: showSettings ? colors.bgCard : "transparent",
+            }}
+            title="Settings"
+          >
+            <Settings size={12} />
+          </button>
           <button
             onClick={handleClose}
             style={styles.headerButton}
@@ -345,7 +325,7 @@ export function PopoutStatsV2() {
       </div>
 
       {/* Settings Panel */}
-      {config.mode === "stats" && showSettings && (
+      {showSettings && (
         <div style={styles.settingsPanel}>
           <div style={styles.settingsRow}>
             <span style={styles.settingsLabel}>Configuration</span>
@@ -364,72 +344,49 @@ export function PopoutStatsV2() {
         </div>
       )}
 
-      {/* Stats Mode */}
-      {config.mode === "stats" && (
-        <div style={styles.content}>
-          {/* Loadout Dropdown and Session Controls */}
-          <div style={styles.loadoutRow}>
-            <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
-              <div style={{ width: "100%" }}>
-                <LoadoutDropdown
-                  loadouts={loadouts}
-                  activeLoadout={activeLoadout}
-                  onSelect={setActiveLoadout}
-                  compact
-                />
-              </div>
-            </div>
-
-            {/* Session Controls */}
-            {/* <div style={styles.sessionControls}>
-              {sessionActive ? (
-                <button
-                  onClick={handleStopSession}
-                  style={styles.sessionButton}
-                  title="Stop Session"
-                >
-                  <Square size={12} />
-                </button>
-              ) : (
-                <button
-                  onClick={handleStartSession}
-                  style={styles.sessionButton}
-                  title="Start Session"
-                >
-                  <Play size={12} />
-                </button>
-              )}
-            </div> */}
-          </div>
-
-          {/* Stats Grid */}
-          <div
-            style={{
-              ...styles.statsGrid,
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            }}
-          >
-            {config.stats.map((statKey, index) => (
-              <StatCard
-                key={`stat-${index}`}
-                statKey={statKey}
-                data={statData}
-                onChange={(newKey) => handleChangeStat(index, newKey)}
-                onRemove={() => handleRemoveStat(index)}
-                settingsMode={showSettings}
-                canRemove={config.stats.length > 1}
+      {/* Stats Grid */}
+      <div style={styles.content}>
+        {/* Loadout Dropdown */}
+        <div style={styles.loadoutRow}>
+          <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
+            <div style={{ width: "100%" }}>
+              <LoadoutDropdown
+                loadouts={loadouts}
+                activeLoadout={activeLoadout}
+                onSelect={setActiveLoadout}
+                compact
               />
-            ))}
+            </div>
           </div>
-
-          {/* Add Card Button */}
-          {showSettings && (
-            <button onClick={handleAddStat} style={styles.addCardButton}>
-              + Add Stat Card
-            </button>
-          )}
         </div>
-      )}
+
+        {/* Stats Grid */}
+        <div
+          style={{
+            ...styles.statsGrid,
+            gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          }}
+        >
+          {config.stats.map((statKey, index) => (
+            <StatCard
+              key={`stat-${index}`}
+              statKey={statKey}
+              data={statData}
+              onChange={(newKey) => handleChangeStat(index, newKey)}
+              onRemove={() => handleRemoveStat(index)}
+              settingsMode={showSettings}
+              canRemove={config.stats.length > 1}
+            />
+          ))}
+        </div>
+
+        {/* Add Card Button */}
+        {showSettings && (
+          <button onClick={handleAddStat} style={styles.addCardButton}>
+            + Add Stat Card
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -703,23 +660,6 @@ const styles: Record<string, React.CSSProperties> = {
     // @ts-expect-error Electron specific
     WebkitAppRegion: "drag",
   },
-  modeTabs: {
-    display: "flex",
-    gap: 2,
-    // @ts-expect-error Electron specific
-    WebkitAppRegion: "no-drag",
-  },
-  modeTab: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 20,
-    height: 18,
-    border: "none",
-    borderRadius: radius.xs,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
   durationDisplay: {
     display: "flex",
     alignItems: "center",
@@ -820,25 +760,6 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     gap: spacing.sm,
     width: "100%",
-  },
-  sessionControls: {
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.xs,
-    flexShrink: 0,
-  },
-  sessionButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 24,
-    height: 24,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgCard,
-    color: colors.textPrimary,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
   },
   cardActions: {
     position: "absolute",

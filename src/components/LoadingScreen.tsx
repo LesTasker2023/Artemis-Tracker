@@ -1,113 +1,123 @@
 /**
  * LoadingScreen - Shown during app initialization
- * Displays loading spinner and status messages
+ * Displays Artemis logo and loading progress
  */
 
-import { Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import projectLogo from "../../data/artemis logo.png";
+import { colors } from "./ui";
 
 interface LoadingScreenProps {
   message?: string;
   progress?: number;
 }
 
-export function LoadingScreen({
-  message = "Loading...",
-  progress,
-}: LoadingScreenProps) {
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#0f172a",
-        color: "white",
-        fontFamily: "'Inter', system-ui, sans-serif",
-      }}
-    >
-      {/* Logo/Title */}
-      <div
-        style={{
-          marginBottom: "32px",
-          textAlign: "center",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "32px",
-            fontWeight: 700,
-            marginBottom: "8px",
-            background: "linear-gradient(135deg, #06b6d4 0%, #00122e 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          ARTEMIS
-        </h1>
-      </div>
+const wittyMessages = [
+  "Calibrating targeting systems...",
+  "Polishing the scope...",
+  "Counting virtual bullets...",
+  "Training the AI to dodge...",
+  "Optimizing loot algorithms...",
+  "Warming up the damage calculator...",
+  "Teaching statistics to behave...",
+  "Convincing numbers to cooperate...",
+  "Bribing the RNG gods...",
+  "Reticulating splines...",
+  "Spawning mobs respectfully...",
+  "Negotiating with the loot table...",
+  "Installing combat awareness...",
+  "Buffing the user interface...",
+  "Debuffing loading times...",
+];
 
-      {/* Spinner */}
-      <div
-        style={{
-          marginBottom: "24px",
-        }}
-      >
-        <Loader2
-          size={48}
-          style={{
-            color: "#06b6d4",
-            animation: "spin 1s linear infinite",
-          }}
-        />
+export function LoadingScreen({ message }: LoadingScreenProps) {
+  const [currentMessage, setCurrentMessage] = useState(0);
+
+  useEffect(() => {
+    // Only rotate messages if no specific message is provided
+    if (!message) {
+      const interval = setInterval(() => {
+        setCurrentMessage((prev) => (prev + 1) % wittyMessages.length);
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [message]);
+
+  const displayMessage = message || wittyMessages[currentMessage];
+
+  return (
+    <div style={styles.container}>
+      {/* Artemis Logo */}
+      <div style={styles.logoSection}>
+        <img src={projectLogo} alt="Artemis" style={styles.logo} />
       </div>
 
       {/* Status Message */}
-      <div
-        style={{
-          fontSize: "14px",
-          color: "#94a3b8",
-          marginBottom: progress !== undefined ? "16px" : "0",
-        }}
-      >
-        {message}
+      <div style={styles.message}>{displayMessage}</div>
+
+      {/* Loading Bar */}
+      <div style={styles.progressBar}>
+        <div style={styles.progressFill} />
       </div>
 
-      {/* Progress Bar (optional) */}
-      {progress !== undefined && (
-        <div
-          style={{
-            width: "300px",
-            height: "4px",
-            backgroundColor: "#1e293b",
-            borderRadius: "2px",
-            overflow: "hidden",
-          }}
-        >
-          <div
-            style={{
-              width: `${progress}%`,
-              height: "100%",
-              backgroundColor: "#001e24",
-              transition: "width 0.3s ease",
-            }}
-          />
-        </div>
-      )}
-
       <style>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
+        @keyframes slideRight {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(400%); }
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
       `}</style>
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    position: "fixed",
+    inset: 0,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.bgBase,
+    fontFamily: "system-ui, sans-serif",
+  },
+  logoSection: {
+    textAlign: "center",
+    marginBottom: "48px",
+    animation: "fadeIn 0.6s ease-out",
+  },
+  logo: {
+    height: "120px",
+    objectFit: "contain",
+  },
+  message: {
+    fontSize: "14px",
+    fontWeight: 500,
+    color: colors.textSecondary,
+    marginBottom: "24px",
+    minHeight: "24px",
+    textAlign: "center",
+    animation: "fadeIn 0.3s ease-out",
+  },
+  progressBar: {
+    position: "relative",
+    width: "280px",
+    height: "4px",
+    backgroundColor: colors.border,
+    borderRadius: "2px",
+    overflow: "hidden",
+  },
+  progressFill: {
+    position: "absolute",
+    height: "100%",
+    width: "25%",
+    backgroundColor: colors.info,
+    borderRadius: "2px",
+    animation: "slideRight 1.5s ease-in-out infinite",
+  },
+};

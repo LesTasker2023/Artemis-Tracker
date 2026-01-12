@@ -29,6 +29,7 @@ interface EquipmentAPI {
 interface SessionMeta {
   id: string;
   name: string;
+  tags: string[];
   startedAt: string;
   endedAt?: string;
   eventCount: number;
@@ -75,9 +76,6 @@ interface PopoutAPI {
   requestStats: () => void;
   onStatsRequest: (callback: () => void) => () => void;
   onClose: (callback: () => void) => () => void;
-  startSession: () => void;
-  stopSession: () => void;
-  onSessionStatusUpdate: (callback: (isActive: boolean) => void) => () => void;
 }
 
 interface AsteroidLoot {

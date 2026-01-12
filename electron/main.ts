@@ -3,7 +3,7 @@
  * SECURITY: Context isolation enabled, node integration disabled
  */
 
-const { app, BrowserWindow, ipcMain, dialog, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, nativeImage, Menu } = require('electron');
 const path = require('path');
 import fs from 'fs';
 const os = require('os');
@@ -536,13 +536,13 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      devTools: false,
     },
   });
 
   // Load app
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
-    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
@@ -591,14 +591,13 @@ function createPopoutWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      devTools: false,
     },
   });
 
   // Load popout page
   if (process.env.VITE_DEV_SERVER_URL) {
     popoutWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/popout.html');
-    // Open DevTools automatically in development for easier debugging
-    popoutWindow.webContents.openDevTools();
   } else {
     popoutWindow.loadFile(path.join(__dirname, '../dist/popout.html'));
   }
@@ -906,6 +905,7 @@ ipcMain.handle('session:list', () => {
       return {
         id: session.id,
         name: session.name,
+        tags: session.tags || [],
         startedAt: session.startedAt,
         endedAt: session.endedAt,
         eventCount: session.events?.length ?? 0,
@@ -987,27 +987,6 @@ ipcMain.on('popout:stats', (_event: unknown, stats: unknown) => {
 ipcMain.on('popout:request-stats', () => {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('popout:stats-requested');
-  }
-});
-
-// Popout requests session start
-ipcMain.on('popout:session-start', () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('popout:session-start-requested');
-  }
-});
-
-// Popout requests session stop
-ipcMain.on('popout:session-stop', () => {
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('popout:session-stop-requested');
-  }
-});
-
-// Main window sends session status to popout
-ipcMain.on('popout:session-status', (_event: unknown, isActive: boolean) => {
-  if (popoutWindow && !popoutWindow.isDestroyed()) {
-    popoutWindow.webContents.send('popout:session-status', isActive);
   }
 });
 
@@ -1122,6 +1101,9 @@ ipcMain.handle('update:install', () => {
 // ==================== App Lifecycle ====================
 
 app.whenReady().then(() => {
+  // Remove menu bar completely (File, Edit, View, etc.)
+  Menu.setApplicationMenu(null);
+
   if (process.platform === 'darwin') {
     const icns = getIconPath();
     if (fs.existsSync(icns)) {
