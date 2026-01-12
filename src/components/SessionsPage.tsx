@@ -41,10 +41,13 @@ interface SessionsPageProps {
 interface SessionListProps {
   sessions: SessionMeta[];
   onSelect: (id: string) => void;
+  onDeleteAll: () => void;
   loading: boolean;
 }
 
-function SessionList({ sessions, onSelect, loading }: SessionListProps) {
+function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleDateString("en-US", {
       month: "short",
@@ -63,6 +66,19 @@ function SessionList({ sessions, onSelect, loading }: SessionListProps) {
     const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
+  };
+
+  const handleDeleteAllClick = () => {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    onDeleteAll();
+    setConfirmDelete(false);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDelete(false);
   };
 
   if (loading) {
@@ -91,13 +107,49 @@ function SessionList({ sessions, onSelect, loading }: SessionListProps) {
   }
 
   return (
-    <div style={listStyles.container}>
-      {sessions.map((meta) => (
-        <div
-          key={meta.id}
-          style={listStyles.card}
-          onClick={() => onSelect(meta.id)}
-        >
+    <div style={listStyles.wrapper}>
+      {/* Header with Delete All button */}
+      <div style={listStyles.header}>
+        <h2 style={listStyles.headerTitle}>Sessions</h2>
+        {sessions.length > 0 && (
+          <div style={listStyles.headerActions}>
+            {confirmDelete ? (
+              <>
+                <button
+                  onClick={handleDeleteAllClick}
+                  style={{ ...listStyles.deleteButton, ...listStyles.deleteButtonConfirm }}
+                >
+                  <AlertTriangle size={14} />
+                  Confirm Delete All
+                </button>
+                <button
+                  onClick={handleCancelDelete}
+                  style={listStyles.cancelButton}
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleDeleteAllClick}
+                style={listStyles.deleteButton}
+              >
+                <Trash2 size={14} />
+                Delete All
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Session list */}
+      <div style={listStyles.container}>
+        {sessions.map((meta) => (
+          <div
+            key={meta.id}
+            style={listStyles.card}
+            onClick={() => onSelect(meta.id)}
+          >
           <div style={listStyles.cardHeader}>
             <div>
               <h3 style={listStyles.cardTitle}>{meta.name}</h3>
@@ -125,11 +177,69 @@ function SessionList({ sessions, onSelect, loading }: SessionListProps) {
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }
 
 const listStyles: Record<string, React.CSSProperties> = {
+  wrapper: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    overflow: "hidden",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px",
+    borderBottom: "1px solid hsl(220 13% 18%)",
+    backgroundColor: "hsl(220 13% 10%)",
+  },
+  headerTitle: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "hsl(0 0% 95%)",
+    margin: 0,
+  },
+  headerActions: {
+    display: "flex",
+    gap: "8px",
+  },
+  deleteButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 14px",
+    backgroundColor: "hsl(220 13% 15%)",
+    color: "hsl(0 0% 85%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
+  deleteButtonConfirm: {
+    backgroundColor: "rgba(239, 68, 68, 0.2)",
+    borderColor: "#ef4444",
+    color: "#ef4444",
+  },
+  cancelButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 14px",
+    backgroundColor: "hsl(220 13% 15%)",
+    color: "hsl(0 0% 85%)",
+    border: "1px solid hsl(220 13% 25%)",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: "500",
+    cursor: "pointer",
+    transition: "all 0.2s",
+  },
   container: {
     display: "flex",
     flexDirection: "column",
@@ -925,6 +1035,19 @@ export function SessionsPage({
     }
   };
 
+  const handleDeleteAll = async () => {
+    try {
+      // Delete all sessions
+      for (const session of sessions) {
+        await window.electron?.session.delete(session.id);
+      }
+      // Reload the session list
+      loadSessions();
+    } catch (err) {
+      console.error("[SessionsPage] Failed to delete all sessions:", err);
+    }
+  };
+
   if (selectedSession) {
     return (
       <SessionDetail
@@ -941,6 +1064,7 @@ export function SessionsPage({
     <SessionList
       sessions={sessions}
       onSelect={handleSelectSession}
+      onDeleteAll={handleDeleteAll}
       loading={loading}
     />
   );
