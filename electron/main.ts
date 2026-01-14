@@ -538,12 +538,9 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      devTools: true,
+      devTools: false,
     },
   });
-
-  // Open DevTools on startup for debugging
-  mainWindow.webContents.openDevTools();
 
   // Load app
   if (process.env.VITE_DEV_SERVER_URL) {

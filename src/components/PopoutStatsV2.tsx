@@ -13,7 +13,27 @@ import {
   Edit2,
   ToggleLeft,
   ToggleRight,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
 import { STAT_MAP, type StatData } from "./popout/stat-definitions";
@@ -154,6 +174,19 @@ export function PopoutStatsV2() {
   const [showMarkup, setShowMarkup] = useState(true); // Show markup values by default
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required to start dragging
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Loadout management
   const {
@@ -190,6 +223,25 @@ export function PopoutStatsV2() {
   }, [config]);
 
   const statData: StatData = { ...stats, showMarkup };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setConfig((prev) => {
+        const oldIndex = prev.stats.indexOf(active.id as string);
+        const newIndex = prev.stats.indexOf(over.id as string);
+        const newStats = arrayMove(prev.stats, oldIndex, newIndex);
+        return { ...prev, stats: newStats };
+      });
+    }
+
+    setActiveId(null);
+  };
 
   const handleChangeStat = (index: number, newStatKey: string) => {
     setConfig((prev) => {
@@ -488,24 +540,47 @@ export function PopoutStatsV2() {
         </div>
 
         {/* Stats Grid */}
-        <div
-          style={{
-            ...styles.statsGrid,
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          }}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
         >
-          {config.stats.map((statKey, index) => (
-            <StatCard
-              key={`stat-${index}`}
-              statKey={statKey}
-              data={statData}
-              onChange={(newKey) => handleChangeStat(index, newKey)}
-              onRemove={() => handleRemoveStat(index)}
-              settingsMode={showSettings}
-              canRemove={config.stats.length > 1}
-            />
-          ))}
-        </div>
+          <SortableContext items={config.stats} strategy={rectSortingStrategy}>
+            <div
+              style={{
+                ...styles.statsGrid,
+                gridTemplateColumns: `repeat(${columns}, 1fr)`,
+              }}
+            >
+              {config.stats.map((statKey, index) => (
+                <SortableStatCard
+                  key={statKey}
+                  id={statKey}
+                  statKey={statKey}
+                  data={statData}
+                  onChange={(newKey) => handleChangeStat(index, newKey)}
+                  onRemove={() => handleRemoveStat(index)}
+                  settingsMode={showSettings}
+                  canRemove={config.stats.length > 1}
+                />
+              ))}
+            </div>
+          </SortableContext>
+
+          <DragOverlay>
+            {activeId ? (
+              <div style={{ ...styles.statCard, opacity: 0.9, cursor: "grabbing" }}>
+                <StatCardContent
+                  statKey={activeId}
+                  data={statData}
+                  settingsMode={false}
+                  isDragOverlay
+                />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
 
         {/* Add Card Button */}
         {showSettings && (
@@ -518,8 +593,9 @@ export function PopoutStatsV2() {
   );
 }
 
-// Stat Card Component
-function StatCard({
+// Sortable Stat Card Component (with drag-and-drop)
+function SortableStatCard({
+  id,
   statKey,
   data,
   onChange,
@@ -527,12 +603,65 @@ function StatCard({
   settingsMode,
   canRemove,
 }: {
+  id: string;
   statKey: string;
   data: StatData;
   onChange: (newKey: string) => void;
   onRemove: () => void;
   settingsMode: boolean;
   canRemove: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div style={styles.statCard}>
+        <StatCardContent
+          statKey={statKey}
+          data={data}
+          onChange={onChange}
+          onRemove={onRemove}
+          settingsMode={settingsMode}
+          canRemove={canRemove}
+          dragHandleProps={{ ...attributes, ...listeners }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Stat Card Content Component
+function StatCardContent({
+  statKey,
+  data,
+  onChange,
+  onRemove,
+  settingsMode,
+  canRemove,
+  dragHandleProps,
+  isDragOverlay = false,
+}: {
+  statKey: string;
+  data: StatData;
+  onChange?: (newKey: string) => void;
+  onRemove?: () => void;
+  settingsMode: boolean;
+  canRemove?: boolean;
+  dragHandleProps?: any;
+  isDragOverlay?: boolean;
 }) {
   const [showSelector, setShowSelector] = useState(false);
   const stat = STAT_MAP.get(statKey);
@@ -542,14 +671,28 @@ function StatCard({
   const Icon = stat.icon;
 
   return (
-    <div style={styles.statCard}>
+    <>
       {/* Background Icon */}
       <div style={styles.statIcon}>
         <Icon size={32} />
       </div>
 
+      {/* Drag Handle (only visible when hovering) */}
+      {!isDragOverlay && (
+        <div
+          {...dragHandleProps}
+          style={{
+            ...styles.dragHandleCard,
+            opacity: settingsMode ? 1 : 0,
+          }}
+          title="Drag to reorder"
+        >
+          <GripVertical size={14} />
+        </div>
+      )}
+
       {/* Card Actions (only in settings mode) */}
-      {settingsMode && (
+      {settingsMode && !isDragOverlay && (
         <div style={styles.cardActions}>
           <button
             onClick={() => setShowSelector(true)}
@@ -558,7 +701,7 @@ function StatCard({
           >
             <Edit2 size={10} />
           </button>
-          {canRemove && (
+          {canRemove && onRemove && (
             <button
               onClick={onRemove}
               style={styles.removeButton}
@@ -570,7 +713,7 @@ function StatCard({
         </div>
       )}
 
-      {showSelector && (
+      {showSelector && onChange && (
         <StatSelector
           currentKey={statKey}
           onSelect={(newKey) => {
@@ -589,7 +732,7 @@ function StatCard({
         {value.value}
         {value.unit && <span style={styles.statUnit}> {value.unit}</span>}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -977,6 +1120,25 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
+    cursor: "default",
+    transition: "all 0.2s ease",
+  },
+  dragHandleCard: {
+    position: "absolute",
+    left: "50%",
+    top: spacing.xs,
+    transform: "translateX(-50%) rotate(90deg)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: colors.textMuted,
+    cursor: "grab",
+    zIndex: 3,
+    padding: 2,
+    borderRadius: radius.xs,
+    transition: "all 0.2s ease",
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
   },
   statIcon: {
     position: "absolute",

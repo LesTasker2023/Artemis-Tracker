@@ -64,8 +64,14 @@ export interface Loadout {
   // Armor plates (enhancers) - decay when hit
   armorPlates: ArmorPlate[];
   
-  // Weapon enhancers: Each adds +10% damage and 0.0103 PED cost per shot
-  weaponEnhancerSlots: number;  // 0-10 slots filled
+  // Weapon enhancers: 10 total slots, mix and match between types
+  damageEnhancers: number;      // Each adds +10% damage
+  accuracyEnhancers: number;    // Each adds accuracy bonus
+  rangeEnhancers: number;       // Each adds +5% range
+  economyEnhancers: number;     // Each reduces decay
+  
+  // Legacy field for backward compatibility
+  weaponEnhancerSlots?: number;
   
   // Armor enhancers: No per-shot cost, they decay when you take damage
   armorEnhancerSlots: number;   // 0-10 slots filled (for tracking only)
@@ -77,6 +83,11 @@ export interface Loadout {
   // Manual override bypasses calculation
   manualCostPerShot?: number;
   useManualCost: boolean;
+  
+  // Player skills (0-100) - affects damage range, hit rate, and crit rate
+  // Default to 100 (maxed skills) for backwards compatibility
+  hitProfession?: number;      // Affects hit rate and crit rate
+  damageProfession?: number;   // Affects damage range (min damage)
   
   createdAt: number;
   updatedAt: number;
@@ -133,11 +144,15 @@ export function calculateAttachmentCost(equipment?: Equipment): number {
 
 /**
  * Calculate weapon enhancer cost based on slots filled
- * Each enhancer: 103 PEC ammo burn = 0.0103 PED per shot
+ * Each damage enhancer: 103 PEC ammo burn = 0.0103 PED per shot
+ * Economy enhancers reduce total cost by 1.1% each (multiplicative)
  */
-export function calculateWeaponEnhancerCost(slots: number, override?: number): number {
+export function calculateWeaponEnhancerCost(damageSlots: number, economySlots: number, override?: number): number {
   if (override !== undefined && override > 0) return override;
-  return slots * WEAPON_ENHANCER_COST_PED;
+  const baseCost = damageSlots * WEAPON_ENHANCER_COST_PED;
+  // Economy enhancers: each reduces cost by 1.1% (multiply by 0.989 per enhancer)
+  const economyMultiplier = Math.pow(0.989, economySlots);
+  return baseCost * economyMultiplier;
 }
 
 /**
@@ -184,21 +199,33 @@ export function isLimitedItem(name: string): boolean {
 /**
  * Calculate full loadout costs breakdown
  * Includes ammo burn, decay, and enhancer costs for all equipment.
+ * Damage enhancers increase weapon decay and ammo burn by 10% each.
  */
 export function calculateLoadoutCosts(loadout: Loadout): LoadoutCosts {
-  // Weapon and amp costs (ammo burn + decay)
-  const weaponCost = calculateWeaponCost(loadout.weapon);
+  // Get base weapon and amp costs
+  const baseWeaponCost = calculateWeaponCost(loadout.weapon);
   const ampCost = calculateWeaponCost(loadout.amp);
 
   // Scope and sight costs (decay only, no ammo burn)
   const scopeCost = calculateAttachmentCost(loadout.scope);
   const sightCost = calculateAttachmentCost(loadout.sight);
   
-  // Weapon enhancer cost: auto-calculated unless overridden
-  const weaponEnhancerCost = calculateWeaponEnhancerCost(
-    loadout.weaponEnhancerSlots ?? 0,
-    loadout.weaponEnhancerCostOverride
-  );
+  // Damage enhancers increase weapon decay and ammo burn by 10% each
+  // Support legacy weaponEnhancerSlots for backward compatibility
+  const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
+  const economyEnhancers = loadout.economyEnhancers || 0;
+  
+  // Apply damage enhancer multiplier to weapon cost (1 + 0.1 per enhancer)
+  const damageMultiplier = 1 + (damageEnhancers * 0.1);
+  const weaponCostWithDamage = baseWeaponCost * damageMultiplier;
+  
+  // Economy enhancers reduce weapon and amp costs by 1.1% each (multiplicative)
+  const economyMultiplier = Math.pow(0.989, economyEnhancers);
+  const finalWeaponCost = weaponCostWithDamage * economyMultiplier;
+  const finalAmpCost = ampCost * economyMultiplier;
+  
+  // No separate enhancer cost line item - it's built into the weapon cost increase
+  const weaponEnhancerCost = 0;
   
   // Armor enhancers: no per-shot cost (decay when hit)
   const armorEnhancerCost = loadout.armorEnhancerCostOverride ?? 0;
@@ -207,13 +234,13 @@ export function calculateLoadoutCosts(loadout: Loadout): LoadoutCosts {
   const armorDecayPerHit = calculateArmorDecayPerHit(loadout.armor);
   
   return {
-    weaponCost,
-    ampCost,
+    weaponCost: finalWeaponCost,
+    ampCost: finalAmpCost,
     scopeCost,
     sightCost,
     weaponEnhancerCost,
     armorEnhancerCost,
-    totalPerShot: weaponCost + ampCost + scopeCost + sightCost + weaponEnhancerCost + armorEnhancerCost,
+    totalPerShot: finalWeaponCost + finalAmpCost + scopeCost + sightCost + weaponEnhancerCost + armorEnhancerCost,
     armorDecayPerHit,
   };
 }
@@ -239,12 +266,19 @@ export function calculateEnhancedDamage(loadout: Loadout): DamageRange {
   
   // 1. Base weapon damage
   const totalBaseDamage = calculateTotalDamage(loadout.weapon);
-  const weaponBaseMin = totalBaseDamage * 0.5;  // Min hit = 50% of max
+  
+  // Base weapon damage range - affected by damage profession skill
+  // At 100 skill: 50% to 100% (0.25 + 0.25 * 1.0 = 0.5)
+  // At 0 skill: 25% to 100% (0.25 + 0.25 * 0.0 = 0.25)
+  const damageProfession = loadout.damageProfession ?? 100;
+  const minDamageMultiplier = 0.25 + 0.25 * (damageProfession / 100);
+  const weaponBaseMin = totalBaseDamage * minDamageMultiplier;
   const weaponBaseMax = totalBaseDamage * 1.0;
   
-  // 2. Apply enhancer multiplier (1 + slots × 0.1)
-  const enhancerSlots = loadout.weaponEnhancerSlots ?? 0;
-  const enhancerMultiplier = 1 + (enhancerSlots * 0.1);
+  // 2. Apply damage enhancer multiplier (1 + slots × 0.1)
+  // Support legacy weaponEnhancerSlots for backward compatibility
+  const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
+  const enhancerMultiplier = 1 + (damageEnhancers * 0.1);
   
   let enhancedMin = weaponBaseMin * enhancerMultiplier;
   let enhancedMax = weaponBaseMax * enhancerMultiplier;
@@ -265,16 +299,109 @@ export function calculateEnhancedDamage(loadout: Loadout): DamageRange {
 }
 
 /**
+ * Calculate effective damage accounting for hit rate and critical hits
+ * Based on entropia-calc formula with skill-based calculations
+ * - Hit rate: 0.8 + (hitProf / 100) / 10 (90% at 100 skill, 80% at 0 skill)
+ * - Crit rate: (sqrt(hitProf) / 10 + 1) / 100 (2% at 100 skill, 1% at 0 skill)
+ * - Effective damage: avgDamage × hitRate + (maxDamage × critRate)
+ */
+export function calculateEffectiveDamage(loadout: Loadout): number {
+  if (!loadout.weapon) {
+    return 0;
+  }
+
+  const damage = calculateEnhancedDamage(loadout);
+  const avgDamage = (damage.min + damage.max) / 2;
+  
+  // Use player's actual hit profession (default to 100 for maxed skills)
+  const hitProf = loadout.hitProfession ?? 100;
+  
+  // Hit rate: 0.8 + (hitProf / 100) / 10
+  // At 100 skill: 0.8 + 1.0/10 = 0.9 (90%)
+  // At 0 skill: 0.8 + 0.0/10 = 0.8 (80%)
+  const hitAbility = hitProf / 100;
+  const hitRate = 0.8 + hitAbility / 10;
+  
+  // Crit rate: (sqrt(hitProf) / 10 + 1) / 100 + accuracy enhancers
+  // At 100 skill: (10/10 + 1) / 100 = 0.02 (2%)
+  // At 0 skill: (0/10 + 1) / 100 = 0.01 (1%)
+  // Accuracy enhancers: +0.2% (0.002) per enhancer
+  const critAbility = Math.sqrt(hitProf) / 10;
+  const baseCritRate = (critAbility + 1) / 100;
+  const accuracyBonus = (loadout.accuracyEnhancers || 0) * 0.002;
+  const critRate = baseCritRate + accuracyBonus;
+  const critDamage = damage.max * critRate;
+  
+  return avgDamage * hitRate + critDamage;
+}
+
+/**
+ * Get player's actual hit rate based on hit profession skill
+ */
+export function getHitRate(loadout: Loadout): number {
+  const hitProf = loadout.hitProfession ?? 100;
+  const hitAbility = hitProf / 100;
+  return 0.8 + hitAbility / 10;
+}
+
+/**
+ * Get player's actual crit rate based on hit profession skill and accuracy enhancers
+ */
+export function getCritRate(loadout: Loadout): number {
+  const hitProf = loadout.hitProfession ?? 100;
+  const critAbility = Math.sqrt(hitProf) / 10;
+  const baseCritRate = (critAbility + 1) / 100;
+  const accuracyBonus = (loadout.accuracyEnhancers || 0) * 0.002;
+  return baseCritRate + accuracyBonus;
+}
+
+/**
+ * Get modified weapon decay (PEC) with damage and economy enhancers applied
+ */
+export function getModifiedDecay(loadout: Loadout): number {
+  if (!loadout.weapon) return 0;
+  
+  const baseDecay = loadout.weapon.economy.decay;
+  const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
+  const economyEnhancers = loadout.economyEnhancers || 0;
+  
+  // Damage enhancers increase decay by 10% each
+  const damageMultiplier = 1 + (damageEnhancers * 0.1);
+  // Economy enhancers reduce by 1.1% each
+  const economyMultiplier = Math.pow(0.989, economyEnhancers);
+  
+  return baseDecay * damageMultiplier * economyMultiplier;
+}
+
+/**
+ * Get modified ammo burn with damage and economy enhancers applied
+ */
+export function getModifiedAmmo(loadout: Loadout): number {
+  if (!loadout.weapon) return 0;
+  
+  const baseAmmo = loadout.weapon.economy.ammoBurn;
+  const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
+  const economyEnhancers = loadout.economyEnhancers || 0;
+  
+  // Damage enhancers increase ammo by 10% each
+  const damageMultiplier = 1 + (damageEnhancers * 0.1);
+  // Economy enhancers reduce by 1.1% each
+  const economyMultiplier = Math.pow(0.989, economyEnhancers);
+  
+  return baseAmmo * damageMultiplier * economyMultiplier;
+}
+
+/**
  * Calculate Damage per PED (DPP) - key efficiency metric
+ * Uses effective damage (accounting for hit rate and crits)
  */
 export function calculateDPP(loadout: Loadout): number {
   const costPerShot = getEffectiveCostPerShot(loadout);
   if (costPerShot <= 0) return 0;
   
-  const damage = calculateEnhancedDamage(loadout);
-  const avgDamage = (damage.min + damage.max) / 2;
+  const effectiveDamage = calculateEffectiveDamage(loadout);
   
-  return avgDamage / costPerShot;
+  return effectiveDamage / costPerShot;
 }
 
 /**
@@ -295,7 +422,10 @@ export function createLoadout(name: string): Loadout {
     id: crypto.randomUUID(),
     name,
     armorPlates: [],
-    weaponEnhancerSlots: 0,
+    damageEnhancers: 0,
+    accuracyEnhancers: 0,
+    rangeEnhancers: 0,
+    economyEnhancers: 0,
     armorEnhancerSlots: 0,
     useManualCost: false,
     createdAt: Date.now(),

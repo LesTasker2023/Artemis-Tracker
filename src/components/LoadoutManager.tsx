@@ -13,7 +13,12 @@ import {
   calculateLoadoutCosts,
   getEffectiveCostPerShot,
   calculateEnhancedDamage,
+  calculateEffectiveDamage,
   calculateDPP,
+  getHitRate,
+  getCritRate,
+  getModifiedDecay,
+  getModifiedAmmo,
 } from "../core/loadout";
 import { useLoadouts } from "../hooks/useLoadouts";
 import { EquipmentAutocomplete } from "./EquipmentAutocomplete";
@@ -219,6 +224,143 @@ function LoadoutDropdown({
   );
 }
 
+// ==================== Enhancer Row Component ====================
+
+interface EnhancerRowProps {
+  label: string;
+  color: string;
+  value: number;
+  max: number;
+  total: number;
+  bonus: string;
+  onChange: (value: number) => void;
+}
+
+function EnhancerRow({
+  label,
+  color,
+  value,
+  max,
+  total,
+  bonus,
+  onChange,
+}: EnhancerRowProps) {
+  const canIncrease = total < 10;
+  const canDecrease = value > 0;
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "6px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <span
+            style={{
+              fontSize: "12px",
+              fontWeight: 600,
+              color: "hsl(0 0% 95%)",
+            }}
+          >
+            {label}
+          </span>
+          <span
+            style={{
+              fontSize: "11px",
+              fontFamily: "monospace",
+              color,
+              fontWeight: 600,
+            }}
+          >
+            {bonus}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <button
+            type="button"
+            onClick={() => canDecrease && onChange(value - 1)}
+            disabled={!canDecrease}
+            style={{
+              width: "24px",
+              height: "24px",
+              borderRadius: "4px",
+              border: "1px solid hsl(220 13% 25%)",
+              backgroundColor: canDecrease
+                ? "hsl(220 13% 18%)"
+                : "hsl(220 13% 12%)",
+              color: canDecrease ? "hsl(0 0% 95%)" : "hsl(220 13% 35%)",
+              cursor: canDecrease ? "pointer" : "not-allowed",
+              fontSize: "16px",
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            -
+          </button>
+          <span
+            style={{
+              fontSize: "13px",
+              fontFamily: "monospace",
+              fontWeight: 700,
+              color: "hsl(0 0% 95%)",
+              minWidth: "20px",
+              textAlign: "center",
+            }}
+          >
+            {value}
+          </span>
+          <button
+            type="button"
+            onClick={() => canIncrease && onChange(value + 1)}
+            disabled={!canIncrease}
+            style={{
+              width: "24px",
+              height: "24px",
+              borderRadius: "4px",
+              border: "1px solid hsl(220 13% 25%)",
+              backgroundColor: canIncrease
+                ? "hsl(220 13% 18%)"
+                : "hsl(220 13% 12%)",
+              color: canIncrease ? "hsl(0 0% 95%)" : "hsl(220 13% 35%)",
+              cursor: canIncrease ? "pointer" : "not-allowed",
+              fontSize: "16px",
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            +
+          </button>
+        </div>
+      </div>
+      <div
+        style={{
+          height: "6px",
+          backgroundColor: "hsl(220 13% 18%)",
+          borderRadius: "3px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            height: "100%",
+            width: `${(value / max) * 100}%`,
+            backgroundColor: color,
+            transition: "width 0.2s ease",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ==================== Equipment Card with Autocomplete ====================
 
 interface EquipmentCardProps {
@@ -226,8 +368,6 @@ interface EquipmentCardProps {
   type: "weapon" | "amp" | "scope" | "sight";
   equipment?: Equipment;
   onChange: (eq: Equipment | undefined) => void;
-  enhancerSlots?: number;
-  onEnhancerChange?: (slots: number) => void;
 }
 
 function EquipmentCard({
@@ -235,55 +375,16 @@ function EquipmentCard({
   type,
   equipment,
   onChange,
-  enhancerSlots = 0,
-  onEnhancerChange,
 }: EquipmentCardProps) {
-  const [decay, setDecay] = useState(
-    equipment?.economy.decay ? (equipment.economy.decay * 100).toString() : ""
-  );
-  const [ammoBurn, setAmmoBurn] = useState(
-    equipment?.economy.ammoBurn.toString() ?? ""
-  );
-
-  useEffect(() => {
-    setDecay(
-      equipment?.economy.decay ? (equipment.economy.decay * 100).toString() : ""
-    );
-    setAmmoBurn(equipment?.economy.ammoBurn.toString() ?? "");
-  }, [equipment]);
-
   const handleAutocomplete = (name: string, record?: EquipmentRecord) => {
     if (!name.trim()) {
       onChange(undefined);
-      setDecay("");
-      setAmmoBurn("");
       return;
     }
 
     if (record) {
-      setDecay((record.decay * 100).toString());
-      setAmmoBurn(record.ammoBurn.toString());
       onChange(createEquipmentFromRecord(record));
-    } else {
-      onChange(
-        createEquipmentManual(
-          name,
-          (parseFloat(decay) || 0) / 100,
-          parseFloat(ammoBurn) || 0
-        )
-      );
     }
-  };
-
-  const handleManualChange = () => {
-    if (!equipment?.name) return;
-    onChange(
-      createEquipmentManual(
-        equipment.name,
-        (parseFloat(decay) || 0) / 100,
-        parseFloat(ammoBurn) || 0
-      )
-    );
   };
 
   return (
@@ -322,155 +423,73 @@ function EquipmentCard({
         onChange={handleAutocomplete}
       />
 
-      {/* Decay and Ammo inputs */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "10px",
-          marginTop: "10px",
-        }}
-      >
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "10px",
-              color: "hsl(220 13% 45%)",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              marginBottom: "6px",
-            }}
-          >
-            Decay (PEC)
-          </label>
-          <input
-            className={styles.smallInput}
-            type="number"
-            value={decay}
-            onChange={(e) => setDecay(e.target.value)}
-            onBlur={handleManualChange}
-            placeholder="0.00"
-            step="0.01"
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              backgroundColor: "hsl(220 13% 8%)",
-              border: "1px solid hsl(220 13% 25%)",
-              borderRadius: "6px",
-              fontSize: "13px",
-              color: "hsl(0 0% 95%)",
-              fontFamily: "monospace",
-              textAlign: "right",
-            }}
-          />
-        </div>
-        <div>
-          <label
-            style={{
-              display: "block",
-              fontSize: "10px",
-              color: "hsl(220 13% 45%)",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              marginBottom: "6px",
-            }}
-          >
-            Ammo Burn
-          </label>
-          <input
-            className={styles.smallInput}
-            type="number"
-            value={ammoBurn}
-            onChange={(e) => setAmmoBurn(e.target.value)}
-            onBlur={handleManualChange}
-            placeholder="0"
-            step="1"
-            style={{
-              width: "100%",
-              padding: "8px 10px",
-              backgroundColor: "hsl(220 13% 8%)",
-              border: "1px solid hsl(220 13% 25%)",
-              borderRadius: "6px",
-              fontSize: "13px",
-              color: "hsl(0 0% 95%)",
-              fontFamily: "monospace",
-              textAlign: "right",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Weapon Enhancers (only for weapon type) */}
-      {type === "weapon" && onEnhancerChange && (
+      {/* Decay and Ammo display (read-only) */}
+      {equipment && (
         <div
           style={{
-            marginTop: "12px",
-            paddingTop: "12px",
-            borderTop: "1px solid hsl(220 13% 18%)",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "10px",
+            marginTop: "10px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "8px",
-            }}
-          >
-            <span
+          <div>
+            <label
               style={{
-                fontSize: "11px",
-                color: "hsl(220 13% 65%)",
+                display: "block",
+                fontSize: "10px",
+                color: "hsl(220 13% 45%)",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
+                marginBottom: "6px",
               }}
             >
-              Enhancers
-            </span>
-            <span
+              Decay (PEC)
+            </label>
+            <div
               style={{
-                fontSize: "11px",
-                color: "hsl(217 91% 68%)",
+                width: "100%",
+                padding: "8px 10px",
+                backgroundColor: "hsl(220 13% 8%)",
+                border: "1px solid hsl(220 13% 25%)",
+                borderRadius: "6px",
+                fontSize: "13px",
+                color: "hsl(220 13% 65%)",
                 fontFamily: "monospace",
+                textAlign: "right",
               }}
             >
-              +{enhancerSlots * 10}% dmg
-            </span>
+              {(equipment.economy.decay * 100).toFixed(2)}
+            </div>
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(10, 1fr)",
-              gap: "4px",
-            }}
-          >
-            {[...Array(10)].map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() =>
-                  onEnhancerChange(i + 1 === enhancerSlots ? i : i + 1)
-                }
-                style={{
-                  aspectRatio: "1",
-                  borderRadius: "4px",
-                  fontSize: "11px",
-                  fontFamily: "monospace",
-                  fontWeight: 600,
-                  border: "1px solid",
-                  cursor: "pointer",
-                  backgroundColor:
-                    i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 18%)",
-                  borderColor:
-                    i < enhancerSlots ? "hsl(217 91% 68%)" : "hsl(220 13% 25%)",
-                  color: i < enhancerSlots ? "white" : "hsl(220 13% 45%)",
-                  transition: "all 0.15s",
-                }}
-              >
-                {i + 1}
-              </button>
-            ))}
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "10px",
+                color: "hsl(220 13% 45%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                marginBottom: "6px",
+              }}
+            >
+              Ammo Burn
+            </label>
+            <div
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                backgroundColor: "hsl(220 13% 8%)",
+                border: "1px solid hsl(220 13% 25%)",
+                borderRadius: "6px",
+                fontSize: "13px",
+                color: "hsl(220 13% 65%)",
+                fontFamily: "monospace",
+                textAlign: "right",
+              }}
+            >
+              {equipment.economy.ammoBurn.toFixed(0)}
+            </div>
           </div>
         </div>
       )}
@@ -848,13 +867,6 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   type="weapon"
                   equipment={draft.weapon}
                   onChange={(eq) => updateEquipment("weapon", eq)}
-                  enhancerSlots={draft.weaponEnhancerSlots || 0}
-                  onEnhancerChange={(slots) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      weaponEnhancerSlots: slots,
-                    }))
-                  }
                 />
                 <EquipmentCard
                   label="Amplifier"
@@ -876,12 +888,288 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                 />
               </div>
             </div>
+
+            {/* Weapon Enhancers Section */}
+            <div>
+              <h3
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "hsl(220 13% 65%)",
+                  marginBottom: "16px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                Weapon Enhancers (10 Slots Total)
+              </h3>
+              <div
+                style={{
+                  padding: "16px",
+                  backgroundColor: "hsl(220 13% 12%)",
+                  borderRadius: "8px",
+                  border: "1px solid hsl(220 13% 18%)",
+                }}
+              >
+                {/* Enhancer Type Rows */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "12px",
+                  }}
+                >
+                  {/* Damage Enhancers */}
+                  <EnhancerRow
+                    label="Damage"
+                    color="hsl(0 72% 60%)"
+                    value={draft.damageEnhancers || 0}
+                    max={10}
+                    total={
+                      (draft.damageEnhancers || 0) +
+                      (draft.accuracyEnhancers || 0) +
+                      (draft.rangeEnhancers || 0) +
+                      (draft.economyEnhancers || 0)
+                    }
+                    bonus={`+${(draft.damageEnhancers || 0) * 10}% dmg`}
+                    onChange={(val) =>
+                      setDraft((prev) => ({ ...prev, damageEnhancers: val }))
+                    }
+                  />
+
+                  {/* Accuracy Enhancers */}
+                  <EnhancerRow
+                    label="Accuracy"
+                    color="hsl(142 71% 55%)"
+                    value={draft.accuracyEnhancers || 0}
+                    max={10}
+                    total={
+                      (draft.damageEnhancers || 0) +
+                      (draft.accuracyEnhancers || 0) +
+                      (draft.rangeEnhancers || 0) +
+                      (draft.economyEnhancers || 0)
+                    }
+                    bonus={`+${((draft.accuracyEnhancers || 0) * 0.2).toFixed(
+                      1
+                    )}% crit`}
+                    onChange={(val) =>
+                      setDraft((prev) => ({ ...prev, accuracyEnhancers: val }))
+                    }
+                  />
+
+                  {/* Range Enhancers */}
+                  <EnhancerRow
+                    label="Range"
+                    color="hsl(217 91% 68%)"
+                    value={draft.rangeEnhancers || 0}
+                    max={10}
+                    total={
+                      (draft.damageEnhancers || 0) +
+                      (draft.accuracyEnhancers || 0) +
+                      (draft.rangeEnhancers || 0) +
+                      (draft.economyEnhancers || 0)
+                    }
+                    bonus={`+${(draft.rangeEnhancers || 0) * 5}% rng`}
+                    onChange={(val) =>
+                      setDraft((prev) => ({ ...prev, rangeEnhancers: val }))
+                    }
+                  />
+
+                  {/* Economy Enhancers */}
+                  <EnhancerRow
+                    label="Economy"
+                    color="hsl(45 100% 60%)"
+                    value={draft.economyEnhancers || 0}
+                    max={10}
+                    total={
+                      (draft.damageEnhancers || 0) +
+                      (draft.accuracyEnhancers || 0) +
+                      (draft.rangeEnhancers || 0) +
+                      (draft.economyEnhancers || 0)
+                    }
+                    bonus={`-${(
+                      (1 - Math.pow(0.989, draft.economyEnhancers || 0)) *
+                      100
+                    ).toFixed(1)}% cost`}
+                    onChange={(val) =>
+                      setDraft((prev) => ({ ...prev, economyEnhancers: val }))
+                    }
+                  />
+                </div>
+
+                {/* Total Slots Display */}
+                <div
+                  style={{
+                    marginTop: "14px",
+                    paddingTop: "14px",
+                    borderTop: "1px solid hsl(220 13% 18%)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "hsl(220 13% 65%)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Slots Used
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      fontFamily: "monospace",
+                      fontWeight: 700,
+                      color:
+                        (draft.damageEnhancers || 0) +
+                          (draft.accuracyEnhancers || 0) +
+                          (draft.rangeEnhancers || 0) +
+                          (draft.economyEnhancers || 0) >
+                        10
+                          ? "hsl(0 72% 60%)"
+                          : "hsl(217 91% 68%)",
+                    }}
+                  >
+                    {(draft.damageEnhancers || 0) +
+                      (draft.accuracyEnhancers || 0) +
+                      (draft.rangeEnhancers || 0) +
+                      (draft.economyEnhancers || 0)}{" "}
+                    / 10
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Right Column - Cost Summary */}
           <div
             style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
+            {/* Player Skills */}
+            <div
+              style={{
+                padding: "16px",
+                backgroundColor: "hsl(220 13% 12%)",
+                borderRadius: "8px",
+                border: "1px solid hsl(220 13% 18%)",
+              }}
+            >
+              <h4
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  color: "hsl(220 13% 65%)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  marginBottom: "12px",
+                }}
+              >
+                Player Skills (0-100)
+              </h4>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "12px",
+                      color: "hsl(220 13% 70%)",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    Hit Profession
+                    <span
+                      style={{
+                        color: "hsl(220 13% 50%)",
+                        fontSize: "11px",
+                        marginLeft: "6px",
+                      }}
+                    >
+                      (affects hit rate & crit rate)
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={draft.hitProfession ?? 100}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setDraft((prev) => ({
+                        ...prev,
+                        hitProfession: isNaN(val)
+                          ? 100
+                          : Math.max(0, Math.min(100, val)),
+                      }));
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      backgroundColor: "hsl(220 13% 8%)",
+                      border: "1px solid hsl(220 13% 25%)",
+                      borderRadius: "6px",
+                      color: "hsl(0 0% 95%)",
+                      fontSize: "14px",
+                      fontFamily: "monospace",
+                    }}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "12px",
+                      color: "hsl(220 13% 70%)",
+                      marginBottom: "6px",
+                    }}
+                  >
+                    Damage Profession
+                    <span
+                      style={{
+                        color: "hsl(220 13% 50%)",
+                        fontSize: "11px",
+                        marginLeft: "6px",
+                      }}
+                    >
+                      (affects min damage)
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={draft.damageProfession ?? 100}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setDraft((prev) => ({
+                        ...prev,
+                        damageProfession: isNaN(val)
+                          ? 100
+                          : Math.max(0, Math.min(100, val)),
+                      }));
+                    }}
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      backgroundColor: "hsl(220 13% 8%)",
+                      border: "1px solid hsl(220 13% 25%)",
+                      borderRadius: "6px",
+                      color: "hsl(0 0% 95%)",
+                      fontSize: "14px",
+                      fontFamily: "monospace",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Manual Override */}
             <div
               style={{
@@ -989,6 +1277,63 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   label="Weapon Enhancers"
                   value={costs.weaponEnhancerCost}
                 />
+
+                {/* Combat Rates Display */}
+                <div
+                  style={{
+                    height: "1px",
+                    backgroundColor: "hsl(220 13% 18%)",
+                    margin: "10px 0",
+                  }}
+                />
+                <div style={{ marginTop: "8px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "baseline",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: "13px", color: "hsl(220 13% 75%)" }}
+                    >
+                      Hit Rate
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "monospace",
+                        color: "hsl(142 71% 65%)",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {(getHitRate(draft) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "baseline",
+                    }}
+                  >
+                    <span
+                      style={{ fontSize: "13px", color: "hsl(220 13% 75%)" }}
+                    >
+                      Crit Rate
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "monospace",
+                        color: "hsl(45 100% 65%)",
+                        fontSize: "13px",
+                      }}
+                    >
+                      {(getCritRate(draft) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+
                 <div
                   style={{
                     height: "1px",
@@ -1026,105 +1371,383 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               </div>
             </div>
 
-            {/* Damage Summary */}
+            {/* Stats Sheet */}
             {draft.weapon && (
-              <div
-                style={{
-                  padding: "16px",
-                  backgroundColor: "hsl(220 13% 12%)",
-                  borderRadius: "8px",
-                  border: "1px solid hsl(220 13% 18%)",
-                }}
-              >
-                <h4
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    color: "hsl(220 13% 65%)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    marginBottom: "14px",
-                  }}
-                >
-                  Damage & Efficiency
-                </h4>
+              <>
+                {/* Offense Stats */}
                 <div
                   style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
+                    padding: "16px",
+                    backgroundColor: "hsl(220 13% 12%)",
+                    borderRadius: "8px",
+                    border: "1px solid hsl(220 13% 18%)",
                   }}
                 >
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
+                  <h4
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: "hsl(220 13% 65%)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      marginBottom: "14px",
+                    }}
                   >
-                    <span
-                      style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}
-                    >
-                      Min Damage
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        color: "hsl(33 100% 50%)",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {damage.min.toFixed(1)}
-                    </span>
-                  </div>
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <span
-                      style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}
-                    >
-                      Max Damage
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        color: "hsl(33 100% 50%)",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      {damage.max.toFixed(1)}
-                    </span>
-                  </div>
+                    Offense
+                  </h4>
                   <div
                     style={{
-                      height: "1px",
-                      backgroundColor: "hsl(220 13% 18%)",
-                      margin: "4px 0",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
                     }}
-                  />
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
                   >
-                    <span
+                    <div
                       style={{
-                        fontSize: "14px",
-                        fontWeight: 600,
-                        color: "hsl(0 0% 95%)",
+                        display: "flex",
+                        justifyContent: "space-between",
                       }}
                     >
-                      DPP (Dmg/PEC)
-                    </span>
-                    <span
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Total Damage
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {damage.max.toFixed(2)}
+                      </span>
+                    </div>
+                    <div
                       style={{
-                        fontFamily: "monospace",
-                        color: "hsl(142 76% 60%)",
-                        fontSize: "16px",
-                        fontWeight: 700,
+                        display: "flex",
+                        justifyContent: "space-between",
                       }}
                     >
-                      {(dpp / 100).toFixed(2)}
-                    </span>
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Range
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {draft.weapon.economy.decay > 0 ? "110.2m" : "N/A"}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Critical Chance
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(getCritRate(draft) * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Critical Damage
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        100%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Effective Damage
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(33 100% 60%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {calculateEffectiveDamage(draft).toFixed(2)}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Reload
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        1.00s
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Uses/min
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        60
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        DPS
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(33 100% 60%)",
+                          fontSize: "14px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {calculateEffectiveDamage(draft).toFixed(4)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
+
+                {/* Economy Stats */}
+                <div
+                  style={{
+                    padding: "16px",
+                    backgroundColor: "hsl(220 13% 12%)",
+                    borderRadius: "8px",
+                    border: "1px solid hsl(220 13% 18%)",
+                  }}
+                >
+                  <h4
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: "hsl(220 13% 65%)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    Economy
+                  </h4>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Efficiency
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(getHitRate(draft) * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Decay
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(getModifiedDecay(draft) * 100).toFixed(4)} PEC
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Ammo
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {Math.round(getModifiedAmmo(draft))}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Cost
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(costs.totalPerShot * 100).toFixed(4)} PEC
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        DPP
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(142 76% 60%)",
+                          fontSize: "14px",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {(dpp / 100).toFixed(4)}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <span
+                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
+                      >
+                        Total Uses
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          color: "hsl(0 0% 95%)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {getModifiedDecay(draft) > 0
+                          ? Math.floor(
+                              100 / (getModifiedDecay(draft) * 100)
+                            ).toLocaleString()
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </div>
