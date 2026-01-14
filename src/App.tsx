@@ -8,18 +8,17 @@ import {
   Play,
   Square,
   AlertTriangle,
-  Crosshair,
   History,
   ExternalLink,
   Activity,
   BookOpen,
   Package,
   Swords,
-  DollarSign,
   Eye,
   X,
   Settings,
   Target,
+  TrendingUp,
 } from "lucide-react";
 
 // Logo for header
@@ -32,22 +31,23 @@ import { UpdateNotification } from "./components/UpdateNotification";
 import { LoadoutManager, LoadoutDropdown } from "./components/LoadoutManager";
 import { useLoadouts } from "./hooks/useLoadouts";
 import { SessionsPage } from "./components/SessionsPage";
-import { LiveDashboard } from "./components/LiveDashboard";
-import { SkillsDeepDive } from "./components/SkillsDeepDive";
+import { Dashboard } from "./components/Dashboard";
+import { SkillsProgress } from "./components/SkillsProgress";
 import { LootAnalysis } from "./components/LootAnalysis";
 import { CombatAnalytics } from "./components/CombatAnalytics";
-import { EconomyTracker } from "./components/EconomyTracker";
 import { StartSessionModal } from "./components/StartSessionModal";
+import { MarkupManager } from "./components/MarkupManager";
+import { useMarkupLibrary } from "./hooks/useMarkupLibrary";
 import type { Session, SessionStats } from "./core/session";
 import { calculateSessionStats } from "./core/session";
 import { getActiveLoadout } from "./core/loadout";
 
 type Tab =
-  | "live"
-  | "combat"
+  | "dashboard"
   | "skills"
+  | "combat"
   | "loot"
-  | "economy"
+  | "market"
   | "loadouts"
   | "sessions"
   | "settings";
@@ -110,6 +110,27 @@ function App() {
     clear: _clear,
     selectFile,
   } = useLogEvents();
+
+  // Auto-start log watcher after initialization (uses saved path from settings if available)
+  useEffect(() => {
+    if (!isInitializing && !isWatching) {
+      console.log("[App] Auto-starting log watcher after initialization");
+      startLog().then((res) => {
+        console.log("[App] Auto-start log result:", res);
+      }).catch((e) => {
+        console.log("[App] Auto-start log failed (may be normal if no saved path):", e);
+      });
+    }
+  }, [isInitializing]); // Only run once after initialization completes
+
+  // Markup library - load once for the app
+  const {
+    library: markupLibrary,
+    config: markupConfig,
+    refresh: refreshMarkupLibrary,
+  } = useMarkupLibrary();
+  const [showMarkup, setShowMarkup] = useState(true); // Default to showing markup values
+
   const {
     session,
     stats,
@@ -119,14 +140,17 @@ function App() {
     resume: resumeSession,
     addEvent,
     recalculateStats,
-  } = useSession();
+  } = useSession({
+    markupLibrary,
+    defaultMarkupPercent: markupConfig?.defaultMarkupPercent || 100,
+  });
   const { playerName, setPlayerName, hasPlayerName } = usePlayerName();
   const {
     loadouts,
     activeLoadout,
     setActive: setActiveLoadout,
   } = useLoadouts();
-  const [activeTab, setActiveTab] = useState<Tab>("live");
+  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
   // First-time name setup - show modal if no name is set
   const [showNameSetup, setShowNameSetup] = useState(false);
@@ -205,6 +229,14 @@ function App() {
     }
   }, [sessionActive, events.length]);
 
+  // Recalculate stats when markup library changes
+  useEffect(() => {
+    if (markupLibrary && sessionActive) {
+      console.log("[App] Markup library changed, recalculating stats");
+      recalculateStats();
+    }
+  }, [markupLibrary, sessionActive, recalculateStats]);
+
   // Send stats to popout window whenever session updates
   useEffect(() => {
     if (session && stats) {
@@ -231,7 +263,19 @@ function App() {
         skillEvents: stats.skills.totalSkillEvents,
         duration: stats.duration,
         lastEvent,
+        // Markup-adjusted values
+        lootValueWithMarkup: stats.lootValueWithMarkup,
+        netProfitWithMarkup: stats.netProfitWithMarkup,
+        returnRateWithMarkup: stats.returnRateWithMarkup,
+        markupEnabled: stats.markupEnabled,
       };
+      console.log("[App] Sending to popout:", {
+        markupEnabled: liveStats.markupEnabled,
+        returnRate: liveStats.returnRate,
+        returnRateWithMarkup: liveStats.returnRateWithMarkup,
+        lootValue: liveStats.lootValue,
+        lootValueWithMarkup: liveStats.lootValueWithMarkup,
+      });
       window.electron?.popout?.sendStats(liveStats);
     }
   }, [session?.events.length, stats, events.length]);
@@ -263,6 +307,11 @@ function App() {
           skillEvents: stats.skills.totalSkillEvents,
           duration: stats.duration,
           lastEvent,
+          // Markup-adjusted values
+          lootValueWithMarkup: stats.lootValueWithMarkup,
+          netProfitWithMarkup: stats.netProfitWithMarkup,
+          returnRateWithMarkup: stats.returnRateWithMarkup,
+          markupEnabled: stats.markupEnabled,
         };
         window.electron?.popout?.sendStats(liveStats);
       }
@@ -301,8 +350,8 @@ function App() {
       console.error("[App] startSession failed:", e);
     }
 
-    // Switch to live tab
-    setActiveTab("live");
+    // Switch to dashboard tab
+    setActiveTab("dashboard");
     console.log("[App] handleStartSessionConfirm complete");
   };
 
@@ -323,8 +372,8 @@ function App() {
       console.error("[App] Failed to stop session:", e);
     }
 
-    // Keep the user on the Live tab but show session ended state
-    setActiveTab("live");
+    // Keep the user on the Dashboard tab but show session ended state
+    setActiveTab("dashboard");
     console.log("[App] stop() complete");
   };
 
@@ -388,10 +437,12 @@ function App() {
     const stats = calculateSessionStats(
       sessionToView,
       playerName || undefined,
-      loadout
+      loadout,
+      markupLibrary,
+      markupConfig?.defaultMarkupPercent || 100
     );
     setViewedStats(stats);
-    setActiveTab("live"); // Switch to live tab to show the session data
+    setActiveTab("dashboard"); // Switch to dashboard to show the session data
   };
 
   // Clear viewed session and return to live
@@ -421,8 +472,8 @@ function App() {
       console.error("[App] startLog (resume) failed:", e);
     }
 
-    // Switch to live tab
-    setActiveTab("live");
+    // Switch to dashboard tab
+    setActiveTab("dashboard");
   };
 
   console.log("[App] Render - before return", {
@@ -484,7 +535,7 @@ function App() {
             />
           </div>
 
-          {!isWatching ? (
+          {!sessionActive ? (
             <button onClick={start} style={styles.buttonPrimary}>
               <Play size={14} style={{ marginRight: 6 }} /> Start
             </button>
@@ -540,19 +591,13 @@ function App() {
         </div>
       </header>
 
-      {/* Tab Bar */}
+      {/* Tab Bar - Simplified */}
       <div style={styles.tabBar}>
         <button
-          onClick={() => setActiveTab("live")}
-          style={activeTab === "live" ? styles.tabActive : styles.tab}
+          onClick={() => setActiveTab("dashboard")}
+          style={activeTab === "dashboard" ? styles.tabActive : styles.tab}
         >
-          <Activity size={14} /> Live
-        </button>
-        <button
-          onClick={() => setActiveTab("combat")}
-          style={activeTab === "combat" ? styles.tabActive : styles.tab}
-        >
-          <Swords size={14} /> Combat
+          <Activity size={14} /> Dashboard
         </button>
         <button
           onClick={() => setActiveTab("skills")}
@@ -561,23 +606,29 @@ function App() {
           <BookOpen size={14} /> Skills
         </button>
         <button
+          onClick={() => setActiveTab("combat")}
+          style={activeTab === "combat" ? styles.tabActive : styles.tab}
+        >
+          <Swords size={14} /> Combat
+        </button>
+        <button
           onClick={() => setActiveTab("loot")}
           style={activeTab === "loot" ? styles.tabActive : styles.tab}
         >
           <Package size={14} /> Loot
         </button>
-        <button
-          onClick={() => setActiveTab("economy")}
-          style={activeTab === "economy" ? styles.tabActive : styles.tab}
-        >
-          <DollarSign size={14} /> Economy
-        </button>
         <div style={styles.tabDivider} />
+        <button
+          onClick={() => setActiveTab("market")}
+          style={activeTab === "market" ? styles.tabActive : styles.tab}
+        >
+          <TrendingUp size={14} /> Market
+        </button>
         <button
           onClick={() => setActiveTab("loadouts")}
           style={activeTab === "loadouts" ? styles.tabActive : styles.tab}
         >
-          <Crosshair size={14} /> Loadouts
+          <Target size={14} /> Loadouts
         </button>
         <button
           onClick={() => setActiveTab("sessions")}
@@ -615,12 +666,20 @@ function App() {
       )}
 
       {/* Tab Content */}
-      {activeTab === "live" && (
+      {activeTab === "dashboard" && (
         <div style={styles.tabContent}>
-          <LiveDashboard
+          <Dashboard
             stats={displayStats}
             isActive={sessionActive && !isViewingPastSession}
+            showMarkup={showMarkup}
+            onToggleMarkup={() => setShowMarkup(!showMarkup)}
           />
+        </div>
+      )}
+
+      {activeTab === "skills" && (
+        <div style={styles.tabContent}>
+          <SkillsProgress stats={displayStats} />
         </div>
       )}
 
@@ -630,21 +689,18 @@ function App() {
         </div>
       )}
 
-      {activeTab === "skills" && (
-        <div style={styles.tabContent}>
-          <SkillsDeepDive stats={displayStats} />
-        </div>
-      )}
-
       {activeTab === "loot" && (
         <div style={styles.tabContent}>
           <LootAnalysis stats={displayStats} />
         </div>
       )}
 
-      {activeTab === "economy" && (
+      {activeTab === "market" && (
         <div style={styles.tabContent}>
-          <EconomyTracker stats={displayStats} />
+          <MarkupManager
+            onMarkupChange={refreshMarkupLibrary}
+            sessionLoot={displayStats?.loot?.byItem}
+          />
         </div>
       )}
 
@@ -728,16 +784,7 @@ function App() {
                           );
                         }
                       }
-
-                      try {
-                        startSession();
-                        console.log("[App] startSession invoked (select file)");
-                      } catch (e) {
-                        console.error(
-                          "[App] startSession failed (select file):",
-                          e
-                        );
-                      }
+                      // Note: Don't auto-start a session here - user can start manually
                     }
                   }}
                   style={{ ...styles.buttonSecondary, flexShrink: 0 }}

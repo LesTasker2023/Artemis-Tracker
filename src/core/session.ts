@@ -11,7 +11,7 @@
  */
 
 import { ParsedEvent, isAmmoConsumingEvent } from "./parser";
-import { Loadout, getEffectiveCostPerShot, calculateArmorDecayPerHit, calculateSinglePlateDecayPerHit, isLimitedItem } from "./loadout";
+import { Loadout, getEffectiveCostPerShot, calculateArmorDecayPerHit, calculateSinglePlateDecayPerHit } from "./loadout";
 import { 
   SkillBreakdown, 
   SkillStats, 
@@ -21,6 +21,8 @@ import {
   CombatBreakdown,
   getSkillCategory 
 } from "./types";
+import type { MarkupLibrary } from "./markup";
+import { calculateLootMarkup } from "./markup";
 
 // ==================== Types ====================
 
@@ -89,15 +91,23 @@ export interface SessionStats {
   deflects: number;
   healed: number;
   
-  // Economy
+  // Economy (TT values - base)
   lootCount: number;
-  lootValue: number;
-  totalSpend: number;    // Ammo burn + weapon/amp/scope/sight decay + enhancer costs
-  profit: number;        // lootValue - totalSpend (gross profit before armor decay)
-  netProfit: number;     // lootValue - totalSpend - armor decay (net profit after all costs)
-  returnRate: number;    // lootValue / totalSpend as percentage
-  decay: number;         // Armor decay only (weapon decay is in totalSpend)
-  repairBill: number;    // Repair cost for UL items only (L items = TT loss, not repair)
+  lootValue: number;        // Total loot in TT value
+  totalSpend: number;       // Ammo burn + weapon/amp/scope/sight decay + enhancer costs
+  profit: number;           // lootValue - totalSpend (gross profit before armor decay)
+  netProfit: number;        // lootValue - totalSpend - armor decay (net profit after all costs)
+  returnRate: number;       // lootValue / totalSpend as percentage
+  decay: number;            // Armor decay only (weapon decay is in totalSpend)
+  repairBill: number;       // Repair cost for UL items only (L items = TT loss, not repair)
+  
+  // Markup-adjusted economy (NEW)
+  markupValue: number;      // Total markup value (value above TT)
+  lootValueWithMarkup: number;  // lootValue + markupValue
+  profitWithMarkup: number;     // profit adjusted for markup
+  netProfitWithMarkup: number;  // netProfit adjusted for markup
+  returnRateWithMarkup: number; // Return rate using markup-adjusted loot value
+  markupEnabled: boolean;   // Whether markup calculations were applied
   
   // Gains (backwards compatible)
   skillGains: number;  // Total skill point value
@@ -190,8 +200,16 @@ export function endSession(session: Session): Session {
  * @param session The session to calculate stats for
  * @param playerName Optional player name to filter globals (only count player's own globals)
  * @param activeLoadout Optional loadout for accurate armor decay calculation
+ * @param markupLibrary Optional markup library for calculating markup-adjusted values
+ * @param defaultMarkupPercent Default markup to apply if item not in library (default 100 = no markup)
  */
-export function calculateSessionStats(session: Session, playerName?: string, activeLoadout?: Loadout | null): SessionStats {
+export function calculateSessionStats(
+  session: Session, 
+  playerName?: string, 
+  activeLoadout?: Loadout | null,
+  markupLibrary?: MarkupLibrary | null,
+  defaultMarkupPercent: number = 100
+): SessionStats {
   const events = session.events;
   
   // Time
@@ -646,6 +664,29 @@ export function calculateSessionStats(session: Session, playerName?: string, act
     avgSkillPerEvent: totalSkillEvents > 0 ? totalSkillGains / totalSkillEvents : 0,
   };
   
+  // ==================== Markup Calculation ====================
+  // Calculate markup-adjusted values if markup library is provided
+  let markupValue = 0;
+  let lootValueWithMarkup = totalLootValue;
+  const markupEnabled = markupLibrary !== null && markupLibrary !== undefined;
+  
+  if (markupEnabled && markupLibrary) {
+    // Convert loot items to format expected by calculateLootMarkup
+    const lootItemsForMarkup = Object.values(lootByItem).map(item => ({
+      itemName: item.itemName,
+      value: item.totalValue,
+    }));
+    
+    const markupResult = calculateLootMarkup(lootItemsForMarkup, markupLibrary, defaultMarkupPercent);
+    markupValue = markupResult.totalMarkup;
+    lootValueWithMarkup = markupResult.totalWithMarkup;
+  }
+  
+  // Markup-adjusted profit calculations
+  const profitWithMarkup = lootValueWithMarkup - totalSpend;
+  const netProfitWithMarkup = profitWithMarkup - decay;
+  const returnRateWithMarkup = totalSpend > 0 ? (lootValueWithMarkup / totalSpend) * 100 : 0;
+  
   // Build loot breakdown
   const loot: LootBreakdown = {
     totalValue: totalLootValue,
@@ -674,7 +715,7 @@ export function calculateSessionStats(session: Session, playerName?: string, act
     healed: totalHealed,
     deaths: combat.deaths,
     
-    // Economy
+    // Economy (TT values)
     lootCount: totalLootItems,
     lootValue: totalLootValue,
     totalSpend,
@@ -683,6 +724,14 @@ export function calculateSessionStats(session: Session, playerName?: string, act
     returnRate,
     decay,
     repairBill,
+    
+    // Markup-adjusted economy
+    markupValue,
+    lootValueWithMarkup,
+    profitWithMarkup,
+    netProfitWithMarkup,
+    returnRateWithMarkup,
+    markupEnabled,
     
     // Skills (backwards compatible - total points)
     skillGains: totalSkillGains,

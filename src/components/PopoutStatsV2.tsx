@@ -11,6 +11,8 @@ import {
   X,
   Clock,
   Edit2,
+  ToggleLeft,
+  ToggleRight,
 } from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius, typography } from "./ui";
@@ -20,6 +22,7 @@ import { useLoadouts } from "../hooks/useLoadouts";
 
 // Storage keys
 const CONFIG_KEY = "artemis-popout-v2-config";
+const CUSTOM_LAYOUT_KEY = "artemis-popout-v2-custom-layout";
 
 interface PopoutConfigV2 {
   stats: string[]; // configurable stat tiles
@@ -37,6 +40,34 @@ const DEFAULT_CONFIG: PopoutConfigV2 = {
   ],
   collapsed: false,
 };
+
+// Preset Layouts
+const ECONOMY_PRESET: string[] = [
+  "netProfit",
+  "lootValue",
+  "totalSpend",
+  "returnRate",
+  "decay",
+  "lootPerHour",
+];
+
+const EFFICIENCY_PRESET: string[] = [
+  "avgLootPerKill",
+  "lootPerHour",
+  "costPerKill",
+  "costPerHour",
+  "hitRate",
+  "critRate",
+];
+
+const SKILLS_PRESET: string[] = [
+  "skillGains",
+  "skillEvents",
+  "avgSkillPerEvent",
+  "kills",
+  "hitRate",
+  "kdr",
+];
 
 // Load config from localStorage
 function loadConfig(): PopoutConfigV2 {
@@ -59,6 +90,28 @@ function saveConfig(config: PopoutConfigV2) {
   } catch {
     // Ignore
   }
+}
+
+// Save custom layout to localStorage
+function saveCustomLayout(stats: string[]) {
+  try {
+    localStorage.setItem(CUSTOM_LAYOUT_KEY, JSON.stringify(stats));
+  } catch {
+    // Ignore
+  }
+}
+
+// Load custom layout from localStorage
+function loadCustomLayout(): string[] | null {
+  try {
+    const stored = localStorage.getItem(CUSTOM_LAYOUT_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch {
+    // Ignore
+  }
+  return null;
 }
 
 // Format duration
@@ -98,6 +151,7 @@ export function PopoutStatsV2() {
 
   const [config, setConfig] = useState<PopoutConfigV2>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
+  const [showMarkup, setShowMarkup] = useState(true); // Show markup values by default
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [windowHeight, setWindowHeight] = useState(window.innerHeight);
 
@@ -135,7 +189,7 @@ export function PopoutStatsV2() {
     saveConfig(config);
   }, [config]);
 
-  const statData: StatData = stats;
+  const statData: StatData = { ...stats, showMarkup };
 
   const handleChangeStat = (index: number, newStatKey: string) => {
     setConfig((prev) => {
@@ -161,6 +215,21 @@ export function PopoutStatsV2() {
 
   const handleReset = () => {
     setConfig(DEFAULT_CONFIG);
+  };
+
+  const handleLoadPreset = (preset: string[]) => {
+    setConfig((prev) => ({ ...prev, stats: preset }));
+  };
+
+  const handleSaveCustom = () => {
+    saveCustomLayout(config.stats);
+  };
+
+  const handleLoadCustom = () => {
+    const customLayout = loadCustomLayout();
+    if (customLayout) {
+      setConfig((prev) => ({ ...prev, stats: customLayout }));
+    }
   };
 
   const handleClose = () => {
@@ -304,6 +373,25 @@ export function PopoutStatsV2() {
 
         {/* Header Actions */}
         <div style={styles.headerActions}>
+          {/* Markup Toggle */}
+          <button
+            onClick={() => setShowMarkup(!showMarkup)}
+            style={{
+              ...styles.headerButton,
+              backgroundColor: showMarkup ? colors.info + "30" : "transparent",
+              color: showMarkup ? colors.info : colors.textMuted,
+              border: showMarkup
+                ? `1px solid ${colors.info}40`
+                : "1px solid transparent",
+              gap: 2,
+              width: "auto",
+              padding: "0 6px",
+            }}
+            title={showMarkup ? "Showing Markup Values" : "Showing TT Values"}
+          >
+            {showMarkup ? <ToggleRight size={11} /> : <ToggleLeft size={11} />}
+            <span style={{ fontSize: 9, fontWeight: 600 }}>MU</span>
+          </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
             style={{
@@ -328,9 +416,48 @@ export function PopoutStatsV2() {
       {showSettings && (
         <div style={styles.settingsPanel}>
           <div style={styles.settingsRow}>
+            <span style={styles.settingsLabel}>Layout Presets</span>
+          </div>
+          <div style={styles.presetGrid}>
+            <button
+              onClick={() => handleLoadPreset(ECONOMY_PRESET)}
+              style={styles.presetButton}
+            >
+              Economy
+            </button>
+            <button
+              onClick={() => handleLoadPreset(EFFICIENCY_PRESET)}
+              style={styles.presetButton}
+            >
+              Efficiency
+            </button>
+            <button
+              onClick={() => handleLoadPreset(SKILLS_PRESET)}
+              style={styles.presetButton}
+            >
+              Skills
+            </button>
+            <button
+              onClick={handleLoadCustom}
+              style={{
+                ...styles.presetButton,
+                opacity: loadCustomLayout() ? 1 : 0.5,
+              }}
+              disabled={!loadCustomLayout()}
+            >
+              Custom
+            </button>
+          </div>
+
+          <div style={styles.settingsDivider} />
+
+          <div style={styles.settingsRow}>
             <span style={styles.settingsLabel}>Configuration</span>
           </div>
           <div style={styles.settingsRow}>
+            <button onClick={handleSaveCustom} style={styles.settingsActionButton}>
+              Save as Custom
+            </button>
             <button onClick={handleReset} style={styles.settingsActionButton}>
               <RotateCcw size={11} />
               Reset to Defaults
@@ -736,6 +863,25 @@ const styles: Record<string, React.CSSProperties> = {
     transition: "all 0.15s ease",
     width: "100%",
     justifyContent: "center",
+  },
+  presetGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: spacing.xs,
+  },
+  presetButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: `${spacing.sm}px ${spacing.xs}px`,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgCard,
+    color: colors.textPrimary,
+    fontSize: 10,
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
   },
   settingsDivider: {
     height: 1,

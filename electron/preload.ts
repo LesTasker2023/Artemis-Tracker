@@ -149,5 +149,18 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.removeListener(channel, callback);
     },
   },
+  markup: {
+    loadLibrary: () => ipcRenderer.invoke('markup:load-library'),
+    saveLibrary: (library: unknown) => ipcRenderer.invoke('markup:save-library', library),
+    loadConfig: () => ipcRenderer.invoke('markup:load-config'),
+    saveConfig: (config: unknown) => ipcRenderer.invoke('markup:save-config', config),
+    sync: (forceRefresh?: boolean) => ipcRenderer.invoke('markup:sync', forceRefresh),
+    updateItem: (itemName: string, updates: unknown) => ipcRenderer.invoke('markup:update-item', itemName, updates),
+    search: (query: string, options?: unknown) => ipcRenderer.invoke('markup:search', query, options),
+    getStats: () => ipcRenderer.invoke('markup:get-stats'),
+    exportCSV: () => ipcRenderer.invoke('markup:export-csv'),
+    importCSV: (csvContent: string, mode: 'merge' | 'replace') => ipcRenderer.invoke('markup:import-csv', csvContent, mode),
+    bulkUpdate: (updates: Array<{ itemName: string; updates: unknown }>) => ipcRenderer.invoke('markup:bulk-update', updates),
+  },
 });
 

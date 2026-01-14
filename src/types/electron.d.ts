@@ -65,6 +65,11 @@ interface LiveStats {
   skillEvents: number;
   duration: number;
   lastEvent?: string;
+  // Markup-adjusted values
+  lootValueWithMarkup?: number;
+  netProfitWithMarkup?: number;
+  returnRateWithMarkup?: number;
+  markupEnabled?: boolean;
 }
 
 interface PopoutAPI {
@@ -119,6 +124,52 @@ interface UpdateAPI {
   onDownloaded: (callback: (info: UpdateInfo) => void) => () => void;
 }
 
+// Import markup types for API definition
+import type { MarkupLibrary, MarkupConfig, ItemMarkupEntry, MarkupStats } from '../core/markup';
+
+interface MarkupSyncResult {
+  success: boolean;
+  itemCount: number;
+  newItems: number;
+  lastSynced: string;
+  error?: string;
+}
+
+interface MarkupImportResult {
+  success: boolean;
+  imported: number;
+  skipped: number;
+  errors: string[];
+}
+
+interface MarkupSearchOptions {
+  category?: string;
+  limit?: number;
+  customOnly?: boolean;
+}
+
+interface MarkupItemUpdate {
+  markupPercent?: number;
+  markupFixed?: number;
+  useFixed?: boolean;
+  notes?: string;
+  favorite?: boolean;
+}
+
+interface MarkupAPI {
+  loadLibrary: () => Promise<MarkupLibrary>;
+  saveLibrary: (library: MarkupLibrary) => Promise<{ success: boolean; error?: string }>;
+  loadConfig: () => Promise<MarkupConfig>;
+  saveConfig: (config: MarkupConfig) => Promise<{ success: boolean; error?: string }>;
+  sync: (forceRefresh?: boolean) => Promise<MarkupSyncResult>;
+  updateItem: (itemName: string, updates: MarkupItemUpdate) => Promise<ItemMarkupEntry | null>;
+  search: (query: string, options?: MarkupSearchOptions) => Promise<ItemMarkupEntry[]>;
+  getStats: () => Promise<MarkupStats>;
+  exportCSV: () => Promise<string>;
+  importCSV: (csvContent: string, mode: 'merge' | 'replace') => Promise<MarkupImportResult>;
+  bulkUpdate: (updates: Array<{ itemName: string; updates: MarkupItemUpdate }>) => Promise<{ success: boolean; updatedCount: number }>;
+}
+
 interface IpcRendererAPI {
   on: (channel: string, callback: (...args: unknown[]) => void) => void;
   removeListener: (channel: string, callback: (...args: unknown[]) => void) => void;
@@ -134,6 +185,7 @@ declare global {
       asteroid: AsteroidAPI;
       update: UpdateAPI;
       ipcRenderer: IpcRendererAPI;
+      markup: MarkupAPI;
     };
   }
 }
@@ -141,4 +193,4 @@ declare global {
 // Re-export for convenience
 export type { LogEvent } from '../core/types';
 
-export type { LogEvent, LogAPI, SessionAPI, SessionMeta, PopoutAPI, LiveStats, AsteroidAPI, Asteroid, AsteroidLoot, UpdateAPI, UpdateInfo, UpdateProgress, IpcRendererAPI };
+export type { LogEvent, LogAPI, SessionAPI, SessionMeta, PopoutAPI, LiveStats, AsteroidAPI, Asteroid, AsteroidLoot, UpdateAPI, UpdateInfo, UpdateProgress, IpcRendererAPI, MarkupAPI, MarkupSyncResult, MarkupImportResult, MarkupSearchOptions, MarkupItemUpdate };

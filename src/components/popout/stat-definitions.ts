@@ -62,6 +62,13 @@ export interface StatData {
   skillGains: number;
   skillEvents: number;
   duration: number;
+  // Markup-adjusted values
+  lootValueWithMarkup?: number;
+  netProfitWithMarkup?: number;
+  returnRateWithMarkup?: number;
+  markupEnabled?: boolean;
+  // UI state passed from popout
+  showMarkup?: boolean;
 }
 
 // Color helper functions
@@ -245,12 +252,20 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     icon: DollarSign,
     category: "economy",
     description: "Net profit after all costs (loot - spent - armor decay)",
-    getValue: (d) => ({
-      value: `${d.netProfit >= 0 ? "+" : ""}${formatPed(d.netProfit)}`,
-      unit: `${formatPed(d.lootValue)}/${formatPed(d.totalSpend + d.decay)}`,
-      color: profitColor(d.netProfit),
-      numericValue: d.netProfit,
-    }),
+    getValue: (d) => {
+      const profit = d.showMarkup && d.markupEnabled && d.netProfitWithMarkup !== undefined
+        ? d.netProfitWithMarkup
+        : d.netProfit;
+      const loot = d.showMarkup && d.markupEnabled && d.lootValueWithMarkup !== undefined
+        ? d.lootValueWithMarkup
+        : d.lootValue;
+      return {
+        value: `${profit >= 0 ? "+" : ""}${formatPed(profit)}`,
+        unit: `${formatPed(loot)}/${formatPed(d.totalSpend + d.decay)}`,
+        color: profitColor(profit),
+        numericValue: profit,
+      };
+    },
   },
   {
     key: "lootValue",
@@ -258,12 +273,17 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     icon: Package,
     category: "economy",
     description: "Total loot collected",
-    getValue: (d) => ({
-      value: formatPed(d.lootValue),
-      unit: "PED",
-      color: colors.success,
-      numericValue: d.lootValue,
-    }),
+    getValue: (d) => {
+      const loot = d.showMarkup && d.markupEnabled && d.lootValueWithMarkup !== undefined
+        ? d.lootValueWithMarkup
+        : d.lootValue;
+      return {
+        value: formatPed(loot),
+        unit: "PED",
+        color: colors.success,
+        numericValue: loot,
+      };
+    },
   },
   {
     key: "totalSpend",
@@ -284,11 +304,16 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     icon: TrendingUp,
     category: "economy",
     description: "Loot vs spend percentage",
-    getValue: (d) => ({
-      value: formatPercent(d.returnRate),
-      color: returnColor(d.returnRate),
-      numericValue: d.returnRate,
-    }),
+    getValue: (d) => {
+      const rate = d.showMarkup && d.markupEnabled && d.returnRateWithMarkup !== undefined
+        ? d.returnRateWithMarkup
+        : d.returnRate;
+      return {
+        value: formatPercent(rate),
+        color: returnColor(rate),
+        numericValue: rate,
+      };
+    },
   },
   {
     key: "decay",
@@ -378,12 +403,15 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
   },
   {
     key: "lootPerHour",
-    label: "PED/HR",
+    label: "LOOT/HR",
     icon: Clock,
     category: "efficiency",
     description: "Loot collected per hour",
     getValue: (d) => {
-      const rate = d.duration > 0 ? (d.lootValue / d.duration) * 3600 : 0;
+      const loot = d.showMarkup && d.markupEnabled && d.lootValueWithMarkup !== undefined
+        ? d.lootValueWithMarkup
+        : d.lootValue;
+      const rate = d.duration > 0 ? (loot / d.duration) * 3600 : 0;
       return {
         value: formatDecimal(rate, 0),
         unit: "PED",
@@ -425,17 +453,54 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
   },
   {
     key: "avgLootPerKill",
-    label: "PED/KILL",
+    label: "LOOT/KILL",
     icon: Package,
     category: "efficiency",
     description: "Average loot value per kill",
     getValue: (d) => {
-      const avg = d.kills > 0 ? d.lootValue / d.kills : 0;
+      const loot = d.showMarkup && d.markupEnabled && d.lootValueWithMarkup !== undefined
+        ? d.lootValueWithMarkup
+        : d.lootValue;
+      const avg = d.kills > 0 ? loot / d.kills : 0;
       return {
         value: formatDecimal(avg, 2),
         unit: "PED",
-        color: colors.info,
+        color: colors.success,
         numericValue: avg,
+      };
+    },
+  },
+  {
+    key: "costPerKill",
+    label: "COST/KILL",
+    icon: ArrowDownRight,
+    category: "efficiency",
+    description: "Average cost per kill (spend + decay)",
+    getValue: (d) => {
+      const totalCost = d.totalSpend + d.decay;
+      const avg = d.kills > 0 ? totalCost / d.kills : 0;
+      return {
+        value: formatDecimal(avg, 2),
+        unit: "PED",
+        color: colors.danger,
+        numericValue: avg,
+      };
+    },
+  },
+  {
+    key: "costPerHour",
+    label: "COST/HR",
+    icon: ArrowDownRight,
+    category: "efficiency",
+    description: "Cost per hour (spend + decay)",
+    getValue: (d) => {
+      const totalCost = d.totalSpend + d.decay;
+      const rate = d.duration > 0 ? (totalCost / d.duration) * 3600 : 0;
+      return {
+        value: formatDecimal(rate, 0),
+        unit: "PED",
+        color: colors.danger,
+        numericValue: rate,
       };
     },
   },

@@ -21,6 +21,12 @@ import { LogEvent } from "../core/types";
 import { logEventToParsedEvent, isCriticalHit } from "../core/parser";
 import { getActiveLoadout } from "../core/loadout";
 import { getStoredPlayerName } from "./usePlayerName";
+import type { MarkupLibrary } from "../core/markup";
+
+interface UseSessionOptions {
+  markupLibrary?: MarkupLibrary | null;
+  defaultMarkupPercent?: number;
+}
 
 interface UseSessionReturn {
   // Current session state
@@ -39,7 +45,7 @@ interface UseSessionReturn {
   // Event handling (only works while session is active)
   addEvent: (event: LogEvent) => void;
 
-  // Recalculate stats (useful when player name changes)
+  // Recalculate stats (useful when player name changes or markup changes)
   recalculateStats: () => void;
 }
 
@@ -79,32 +85,33 @@ function useDebouncedSave(session: Session | null, delay: number = 1000) {
   }, [session, delay]);
 }
 
-export function useSession(): UseSessionReturn {
+export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
+  const { markupLibrary, defaultMarkupPercent = 100 } = options;
   const [session, setSession] = useState<Session | null>(null);
   const [stats, setStats] = useState<SessionStats | null>(null);
   
   // Auto-save session to file (debounced)
   useDebouncedSave(session, 500);
   
-  // Recalculate stats when session changes OR events are added
+  // Recalculate stats when session changes OR events are added OR markup changes
   useEffect(() => {
     if (session) {
       const playerName = getStoredPlayerName();
       const loadout = getActiveLoadout();
-      setStats(calculateSessionStats(session, playerName || undefined, loadout));
+      setStats(calculateSessionStats(session, playerName || undefined, loadout, markupLibrary, defaultMarkupPercent));
     } else {
       setStats(null);
     }
-  }, [session, session?.events.length]);
+  }, [session, session?.events.length, markupLibrary, defaultMarkupPercent]);
   
-  // Manual recalculate (when player name changes)
+  // Manual recalculate (when player name changes or markup changes)
   const recalculateStats = useCallback(() => {
     if (session) {
       const playerName = getStoredPlayerName();
       const loadout = getActiveLoadout();
-      setStats(calculateSessionStats(session, playerName || undefined, loadout));
+      setStats(calculateSessionStats(session, playerName || undefined, loadout, markupLibrary, defaultMarkupPercent));
     }
-  }, [session]);
+  }, [session, markupLibrary, defaultMarkupPercent]);
   
   // Store active session ID in localStorage for recovery
   useEffect(() => {

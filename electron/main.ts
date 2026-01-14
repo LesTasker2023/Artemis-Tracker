@@ -8,6 +8,8 @@ const path = require('path');
 import fs from 'fs';
 const os = require('os');
 import { updateEquipmentDatabase, checkForUpdates, needsInitialization } from './equipment-updater';
+import * as markupStore from './markup-store';
+import * as settingsStore from './settings-store';
 
 // Global error handlers to catch crashes and unhandled rejections
 process.on('uncaughtException', (err: any) => {
@@ -536,9 +538,12 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      devTools: false,
+      devTools: true,
     },
   });
+
+  // Open DevTools on startup for debugging
+  mainWindow.webContents.openDevTools();
 
   // Load app
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -669,8 +674,20 @@ ipcMain.handle('log:start', (event: any, manualPath?: string) => {
 
   let logPath = manualPath;
   
+  // If no manual path provided, try to use saved path from settings
   if (!logPath) {
-    logPath = detectLogPath();
+    const savedPath = settingsStore.getSetting('logPath');
+    if (savedPath && fs.existsSync(savedPath)) {
+      console.log('[Main] Using saved log path from settings:', savedPath);
+      logPath = savedPath;
+    } else {
+      // Fall back to auto-detection
+      logPath = detectLogPath();
+    }
+  } else {
+    // Save the manually selected path to settings
+    settingsStore.saveSettings({ logPath: manualPath });
+    console.log('[Main] Saved manual log path to settings:', manualPath);
   }
   
   if (logPath && fs.existsSync(logPath)) {
@@ -1018,6 +1035,114 @@ ipcMain.handle('asteroid:load', () => {
   }
 });
 
+// ==================== Markup Library IPC Handlers ====================
+
+ipcMain.handle('markup:load-library', async () => {
+  try {
+    return await markupStore.loadMarkupLibrary();
+  } catch (e) {
+    console.error('[Main] Failed to load markup library:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:save-library', async (_event: any, library: any) => {
+  try {
+    await markupStore.saveMarkupLibrary(library);
+    return { success: true };
+  } catch (e) {
+    console.error('[Main] Failed to save markup library:', e);
+    return { success: false, error: String(e) };
+  }
+});
+
+ipcMain.handle('markup:load-config', async () => {
+  try {
+    return await markupStore.loadMarkupConfig();
+  } catch (e) {
+    console.error('[Main] Failed to load markup config:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:save-config', async (_event: any, config: any) => {
+  try {
+    await markupStore.saveMarkupConfig(config);
+    return { success: true };
+  } catch (e) {
+    console.error('[Main] Failed to save markup config:', e);
+    return { success: false, error: String(e) };
+  }
+});
+
+ipcMain.handle('markup:sync', async (_event: any, forceRefresh: boolean = false) => {
+  try {
+    return await markupStore.syncFromAPI(forceRefresh);
+  } catch (e) {
+    console.error('[Main] Failed to sync markup from API:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:update-item', async (_event: any, itemName: string, updates: any) => {
+  try {
+    return await markupStore.updateItemMarkup(itemName, updates);
+  } catch (e) {
+    console.error('[Main] Failed to update item markup:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:search', async (_event: any, query: string, options?: any) => {
+  try {
+    return await markupStore.searchItems(query, options);
+  } catch (e) {
+    console.error('[Main] Failed to search markup items:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:get-stats', async () => {
+  try {
+    return await markupStore.getMarkupStats();
+  } catch (e) {
+    console.error('[Main] Failed to get markup stats:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:export-csv', async () => {
+  try {
+    return await markupStore.exportToCSV();
+  } catch (e) {
+    console.error('[Main] Failed to export markup to CSV:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:import-csv', async (_event: any, csvContent: string, mode: 'merge' | 'replace') => {
+  try {
+    return await markupStore.importFromCSV(csvContent, mode);
+  } catch (e) {
+    console.error('[Main] Failed to import markup from CSV:', e);
+    throw e;
+  }
+});
+
+ipcMain.handle('markup:bulk-update', async (_event: any, updates: Array<{ itemName: string; updates: any }>) => {
+  try {
+    const results = await Promise.all(
+      updates.map(({ itemName, updates: itemUpdates }) =>
+        markupStore.updateItemMarkup(itemName, itemUpdates)
+      )
+    );
+    return { success: true, updatedCount: results.filter(Boolean).length };
+  } catch (e) {
+    console.error('[Main] Failed to bulk update markup:', e);
+    throw e;
+  }
+});
+
 // ==================== Auto-Updater ====================
 
 let autoUpdater: any;
@@ -1103,6 +1228,10 @@ ipcMain.handle('update:install', () => {
 app.whenReady().then(() => {
   // Remove menu bar completely (File, Edit, View, etc.)
   Menu.setApplicationMenu(null);
+
+  // Load settings from disk
+  settingsStore.loadSettings();
+  console.log('[Main] Settings loaded');
 
   if (process.platform === 'darwin') {
     const icns = getIconPath();

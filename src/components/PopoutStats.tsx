@@ -4,33 +4,58 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { GripHorizontal, Settings, RotateCcw, Activity } from "lucide-react";
+import {
+  GripHorizontal,
+  Settings,
+  RotateCcw,
+  DollarSign,
+  TrendingUp,
+  ToggleLeft,
+  ToggleRight,
+} from "lucide-react";
 import type { LiveStats } from "../types/electron";
 import { colors, spacing, radius } from "./ui";
 import { STAT_MAP, type StatData } from "./popout/stat-definitions";
 import { AsteroidPanel } from "./popout/AsteroidPanel";
-import { LoadoutDropdown } from "./LoadoutManager";
-import { useLoadouts } from "../hooks/useLoadouts";
 
 // Storage key for persisted config
 const STORAGE_KEY = "artemis-popout-config";
 
 type PopoutMode = "stats" | "asteroid";
+type PopoutPreset = "economy" | "progress" | "custom";
 
 interface PopoutConfig {
   mode: PopoutMode;
+  preset: PopoutPreset;
   hero: string; // single hero stat key
   primary: string[]; // 3 primary stats
   secondary: string[]; // 3 secondary stats
   skills: string[]; // 2 skill stats
 }
 
+// Economy preset - focused on not losing money
+const ECONOMY_PRESET = {
+  hero: "returnRate",
+  primary: ["netProfit", "totalSpend", "lootValue"],
+  secondary: ["profitPerHour", "avgLootPerKill", "decay"],
+  skills: ["kills", "hitRate"],
+};
+
+// Progress preset - focused on character development
+const PROGRESS_PRESET = {
+  hero: "skillGains",
+  primary: ["skillPerHour", "avgSkillPerEvent", "skillEvents"],
+  secondary: ["hitRate", "critRate", "kills"],
+  skills: ["duration", "profitPerHour"],
+};
+
 const DEFAULT_CONFIG: PopoutConfig = {
   mode: "stats",
-  hero: "netProfit",
-  primary: ["returnRate", "kills", "hitRate"],
-  secondary: ["lootValue", "totalSpend", "damageDealt"],
-  skills: ["skillGains", "skillEvents"],
+  preset: "economy",
+  hero: "returnRate",
+  primary: ["netProfit", "totalSpend", "lootValue"],
+  secondary: ["profitPerHour", "avgLootPerKill", "decay"],
+  skills: ["kills", "hitRate"],
 };
 
 // Load config from localStorage
@@ -93,18 +118,17 @@ export function PopoutStats() {
 
   const [config, setConfig] = useState<PopoutConfig>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
-
-  // Loadout state management
-  const {
-    loadouts,
-    activeLoadout,
-    setActive: setActiveLoadout,
-  } = useLoadouts();
+  const [showMarkup, setShowMarkup] = useState(true); // Default to showing markup values
 
   // Listen for stats updates
   useEffect(() => {
     const unsubscribe = window.electron?.popout?.onStatsUpdate(
       (data: LiveStats) => {
+        console.log("[PopoutStats] Received stats:", {
+          markupEnabled: data.markupEnabled,
+          returnRate: data.returnRate,
+          returnRateWithMarkup: data.returnRateWithMarkup,
+        });
         setStats(data);
       }
     );
@@ -114,23 +138,19 @@ export function PopoutStats() {
     };
   }, []);
 
-  // Listen for session status updates
-  useEffect(() => {
-    const unsubscribe = window.electron?.popout?.onSessionStatusUpdate((isActive: boolean) => {
-      setSessionActive(isActive);
-    });
-    // Request initial session status
-    window.electron?.popout?.requestSessionStatus();
-    return () => unsubscribe?.();
-  }, []);
-
   // Save config whenever it changes
   useEffect(() => {
     saveConfig(config);
   }, [config]);
 
-  const handleModeChange = (mode: PopoutMode) => {
-    setConfig((prev) => ({ ...prev, mode }));
+  const handlePresetChange = (preset: PopoutPreset) => {
+    if (preset === "economy") {
+      setConfig((prev) => ({ ...prev, preset, ...ECONOMY_PRESET }));
+    } else if (preset === "progress") {
+      setConfig((prev) => ({ ...prev, preset, ...PROGRESS_PRESET }));
+    } else {
+      setConfig((prev) => ({ ...prev, preset: "custom" }));
+    }
   };
 
   const handleResetConfig = () => {
@@ -143,14 +163,14 @@ export function PopoutStats() {
   };
 
   const handleChangeHero = (newStatKey: string) => {
-    setConfig((prev) => ({ ...prev, hero: newStatKey }));
+    setConfig((prev) => ({ ...prev, hero: newStatKey, preset: "custom" }));
   };
 
   const handleChangePrimary = (index: number, newStatKey: string) => {
     setConfig((prev) => {
       const newPrimary = [...prev.primary];
       newPrimary[index] = newStatKey;
-      return { ...prev, primary: newPrimary };
+      return { ...prev, primary: newPrimary, preset: "custom" };
     });
   };
 
@@ -158,7 +178,7 @@ export function PopoutStats() {
     setConfig((prev) => {
       const newSecondary = [...prev.secondary];
       newSecondary[index] = newStatKey;
-      return { ...prev, secondary: newSecondary };
+      return { ...prev, secondary: newSecondary, preset: "custom" };
     });
   };
 
@@ -166,11 +186,21 @@ export function PopoutStats() {
     setConfig((prev) => {
       const newSkills = [...prev.skills];
       newSkills[index] = newStatKey;
-      return { ...prev, skills: newSkills };
+      return { ...prev, skills: newSkills, preset: "custom" };
     });
   };
 
-  const statData: StatData = stats;
+  const statData: StatData = {
+    ...stats,
+    showMarkup,
+  };
+
+  console.log("[PopoutStats] statData:", {
+    showMarkup,
+    markupEnabled: statData.markupEnabled,
+    returnRate: statData.returnRate,
+    returnRateWithMarkup: statData.returnRateWithMarkup,
+  });
 
   // Calculate kills per hour
   const killsPerHour =
@@ -180,28 +210,70 @@ export function PopoutStats() {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <div style={styles.modeTabs}>
-          <button
-            onClick={() => handleModeChange("stats")}
-            style={{
-              ...styles.modeTab,
-              backgroundColor:
-                config.mode === "stats" ? colors.bgCard : "transparent",
-              color:
-                config.mode === "stats" ? colors.textPrimary : colors.textMuted,
-            }}
-          >
-            <Activity size={10} />
-          </button>
-        </div>
+        {/* Preset Toggles */}
         {config.mode === "stats" && (
-          <div style={styles.loadoutDropdownContainer}>
-            <LoadoutDropdown
-              loadouts={loadouts}
-              activeLoadout={activeLoadout}
-              onSelect={setActiveLoadout}
-              compact
-            />
+          <div style={styles.presetTabs}>
+            <button
+              onClick={() => handlePresetChange("economy")}
+              style={{
+                ...styles.presetTab,
+                backgroundColor:
+                  config.preset === "economy"
+                    ? colors.success + "30"
+                    : "transparent",
+                color:
+                  config.preset === "economy"
+                    ? colors.success
+                    : colors.textMuted,
+                borderColor:
+                  config.preset === "economy" ? colors.success : "transparent",
+              }}
+              title="Economy Mode - Track your PED"
+            >
+              <DollarSign size={11} />
+              <span>$</span>
+            </button>
+            <button
+              onClick={() => handlePresetChange("progress")}
+              style={{
+                ...styles.presetTab,
+                backgroundColor:
+                  config.preset === "progress"
+                    ? colors.purple + "30"
+                    : "transparent",
+                color:
+                  config.preset === "progress"
+                    ? colors.purple
+                    : colors.textMuted,
+                borderColor:
+                  config.preset === "progress" ? colors.purple : "transparent",
+              }}
+              title="Progress Mode - Track your skills"
+            >
+              <TrendingUp size={11} />
+              <span>↑</span>
+            </button>
+            {/* Markup Toggle */}
+            <button
+              onClick={() => setShowMarkup(!showMarkup)}
+              style={{
+                ...styles.presetTab,
+                backgroundColor: showMarkup
+                  ? colors.info + "30"
+                  : "transparent",
+                color: showMarkup ? colors.info : colors.textMuted,
+                borderColor: showMarkup ? colors.info : "transparent",
+                marginLeft: 4,
+              }}
+              title={showMarkup ? "Showing Markup Values" : "Showing TT Values"}
+            >
+              {showMarkup ? (
+                <ToggleRight size={11} />
+              ) : (
+                <ToggleLeft size={11} />
+              )}
+              <span>MU</span>
+            </button>
           </div>
         )}
         <div style={styles.dragHandle}>
@@ -521,6 +593,27 @@ const styles: Record<string, React.CSSProperties> = {
     border: "none",
     borderRadius: radius.sm,
     cursor: "pointer",
+    transition: "all 0.15s ease",
+  },
+  presetTabs: {
+    position: "absolute",
+    left: spacing.xs,
+    display: "flex",
+    gap: 2,
+    // @ts-expect-error Electron specific
+    WebkitAppRegion: "no-drag",
+  },
+  presetTab: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+    padding: "2px 6px",
+    border: "1px solid transparent",
+    borderRadius: radius.sm,
+    cursor: "pointer",
+    fontSize: 9,
+    fontWeight: 600,
     transition: "all 0.15s ease",
   },
   loadoutDropdownContainer: {
