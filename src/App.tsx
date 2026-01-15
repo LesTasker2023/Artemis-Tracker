@@ -57,6 +57,7 @@ function App() {
 
   // Initialization state
   const [isInitializing, setIsInitializing] = useState(true);
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const [initMessage, setInitMessage] = useState<string | undefined>(undefined);
   const [initProgress, setInitProgress] = useState(0);
 
@@ -86,18 +87,30 @@ function App() {
         }
 
         setInitProgress(100);
-
-        // Small delay to show completion
-        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error) {
         console.error("[App] Initialization error:", error);
         // Continue anyway - local files may still work
-      } finally {
-        setIsInitializing(false);
       }
     }
 
-    initialize();
+    async function runWithMinDelay() {
+      const startTime = Date.now();
+      await initialize();
+
+      // Ensure minimum 3 seconds on splash screen
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 3000 - elapsed);
+      await new Promise((resolve) => setTimeout(resolve, remaining));
+
+      // Start fade out animation
+      setIsFadingOut(true);
+
+      // Wait for fade animation to complete (500ms)
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setIsInitializing(false);
+    }
+
+    runWithMinDelay();
   }, []);
 
   const {
@@ -115,11 +128,16 @@ function App() {
   useEffect(() => {
     if (!isInitializing && !isWatching) {
       console.log("[App] Auto-starting log watcher after initialization");
-      startLog().then((res) => {
-        console.log("[App] Auto-start log result:", res);
-      }).catch((e) => {
-        console.log("[App] Auto-start log failed (may be normal if no saved path):", e);
-      });
+      startLog()
+        .then((res) => {
+          console.log("[App] Auto-start log result:", res);
+        })
+        .catch((e) => {
+          console.log(
+            "[App] Auto-start log failed (may be normal if no saved path):",
+            e
+          );
+        });
     }
   }, [isInitializing]); // Only run once after initialization completes
 
@@ -491,7 +509,13 @@ function App() {
 
   // Show loading screen during initialization
   if (isInitializing) {
-    return <LoadingScreen message={initMessage} progress={initProgress} />;
+    return (
+      <LoadingScreen
+        message={initMessage}
+        progress={initProgress}
+        fadingOut={isFadingOut}
+      />
+    );
   }
 
   return (

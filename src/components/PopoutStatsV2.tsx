@@ -1,19 +1,26 @@
 /**
- * ARTEMIS PopoutStats V2 - Complete Rebuild
- * Clean, modern design using proper UI components and design tokens
+ * ARTEMIS PopoutStats V2 - Clean Multi-Layout Design
+ * Supports: Mini Bar, Horizontal Bar, Vertical Bar, Grid modes
+ * Features: Drag & drop, stat selection, markup toggle, loadout selector
  */
 
 import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import {
   GripHorizontal,
+  GripVertical,
   Settings,
   RotateCcw,
   X,
   Clock,
   Edit2,
-  ToggleLeft,
-  ToggleRight,
-  GripVertical,
+  Columns,
+  Rows,
+  Minimize2,
+  Grid3X3,
+  ChevronDown,
+  Crosshair,
+  Check,
 } from "lucide-react";
 import {
   DndContext,
@@ -31,25 +38,33 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   rectSortingStrategy,
+  horizontalListSortingStrategy,
+  verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { LiveStats } from "../types/electron";
-import { colors, spacing, radius, typography } from "./ui";
+import { colors, radius, typography } from "./ui";
 import { STAT_MAP, type StatData } from "./popout/stat-definitions";
-import { LoadoutDropdown } from "./LoadoutManager";
 import { useLoadouts } from "../hooks/useLoadouts";
+import type { Loadout } from "../core/loadout";
 
-// Storage keys
-const CONFIG_KEY = "artemis-popout-v2-config";
-const CUSTOM_LAYOUT_KEY = "artemis-popout-v2-custom-layout";
+// ─────────────────────────────────────────────────────────────────────────────
+// Config & Storage
+// ─────────────────────────────────────────────────────────────────────────────
 
-interface PopoutConfigV2 {
-  stats: string[]; // configurable stat tiles
-  collapsed: boolean; // collapsed minimal mode
+const CONFIG_KEY = "artemis-popout-v3-config";
+const CUSTOM_LAYOUT_KEY = "artemis-popout-v3-custom";
+
+type LayoutMode = "mini" | "horizontal" | "vertical" | "grid";
+
+interface PopoutConfig {
+  stats: string[];
+  layout: LayoutMode;
+  showMarkup: boolean;
 }
 
-const DEFAULT_CONFIG: PopoutConfigV2 = {
+const DEFAULT_CONFIG: PopoutConfig = {
   stats: [
     "netProfit",
     "returnRate",
@@ -58,84 +73,67 @@ const DEFAULT_CONFIG: PopoutConfigV2 = {
     "lootValue",
     "totalSpend",
   ],
-  collapsed: false,
+  layout: "grid",
+  showMarkup: true,
 };
 
-// Preset Layouts
-const ECONOMY_PRESET: string[] = [
-  "netProfit",
-  "lootValue",
-  "totalSpend",
-  "returnRate",
-  "decay",
-  "lootPerHour",
-];
+const PRESETS = {
+  economy: [
+    "netProfit",
+    "lootValue",
+    "totalSpend",
+    "returnRate",
+    "decay",
+    "lootPerHour",
+  ],
+  efficiency: [
+    "avgLootPerKill",
+    "lootPerHour",
+    "costPerKill",
+    "costPerHour",
+    "hitRate",
+    "critRate",
+  ],
+  combat: ["kills", "deaths", "kdr", "hitRate", "critRate", "damageDealt"],
+  skills: [
+    "skillGains",
+    "skillEvents",
+    "avgSkillPerEvent",
+    "kills",
+    "hitRate",
+    "kdr",
+  ],
+};
 
-const EFFICIENCY_PRESET: string[] = [
-  "avgLootPerKill",
-  "lootPerHour",
-  "costPerKill",
-  "costPerHour",
-  "hitRate",
-  "critRate",
-];
-
-const SKILLS_PRESET: string[] = [
-  "skillGains",
-  "skillEvents",
-  "avgSkillPerEvent",
-  "kills",
-  "hitRate",
-  "kdr",
-];
-
-// Load config from localStorage
-function loadConfig(): PopoutConfigV2 {
+function loadConfig(): PopoutConfig {
   try {
     const stored = localStorage.getItem(CONFIG_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return { ...DEFAULT_CONFIG, ...parsed };
-    }
-  } catch {
-    // Ignore
-  }
+    if (stored) return { ...DEFAULT_CONFIG, ...JSON.parse(stored) };
+  } catch {}
   return DEFAULT_CONFIG;
 }
 
-// Save config to localStorage
-function saveConfig(config: PopoutConfigV2) {
+function saveConfig(config: PopoutConfig) {
   try {
     localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
-  } catch {
-    // Ignore
-  }
+  } catch {}
 }
 
-// Save custom layout to localStorage
 function saveCustomLayout(stats: string[]) {
   try {
     localStorage.setItem(CUSTOM_LAYOUT_KEY, JSON.stringify(stats));
-  } catch {
-    // Ignore
-  }
+  } catch {}
 }
 
-// Load custom layout from localStorage
 function loadCustomLayout(): string[] | null {
   try {
     const stored = localStorage.getItem(CUSTOM_LAYOUT_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch {
-    // Ignore
-  }
+    if (stored) return JSON.parse(stored);
+  } catch {}
   return null;
 }
 
-// Format duration
-function formatDuration(seconds: number) {
+function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.floor(seconds % 60);
@@ -145,6 +143,10 @@ function formatDuration(seconds: number) {
       .padStart(2, "0")}`;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function PopoutStatsV2() {
   const [stats, setStats] = useState<LiveStats>({
@@ -169,376 +171,430 @@ export function PopoutStatsV2() {
     duration: 0,
   });
 
-  const [config, setConfig] = useState<PopoutConfigV2>(loadConfig);
+  const [config, setConfig] = useState<PopoutConfig>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
-  const [showMarkup, setShowMarkup] = useState(true); // Show markup values by default
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const [windowHeight, setWindowHeight] = useState(window.innerHeight);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement required to start dragging
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  // Loadout management
   const {
     loadouts,
     activeLoadout,
     setActive: setActiveLoadout,
   } = useLoadouts();
 
-  // Track window size for responsive layout
+  // Drag sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // Track window size
   useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      setWindowHeight(window.innerHeight);
-    };
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Listen for stats updates from main window
+  // Listen for stats
   useEffect(() => {
     const unsubscribe = window.electron?.popout?.onStatsUpdate(
-      (data: LiveStats) => {
-        setStats(data);
-      }
+      (data: LiveStats) => setStats(data)
     );
-    // Request initial stats on mount
     window.electron?.popout?.requestStats();
     return () => unsubscribe?.();
   }, []);
 
-  // Save config on change
+  // Persist config
   useEffect(() => {
     saveConfig(config);
   }, [config]);
 
-  const statData: StatData = { ...stats, showMarkup };
+  const statData: StatData = { ...stats, showMarkup: config.showMarkup };
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-  };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Handlers
+  // ─────────────────────────────────────────────────────────────────────────
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+  const handleDragStart = (e: DragStartEvent) =>
+    setActiveId(e.active.id as string);
 
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
     if (over && active.id !== over.id) {
       setConfig((prev) => {
-        const oldIndex = prev.stats.indexOf(active.id as string);
-        const newIndex = prev.stats.indexOf(over.id as string);
-        const newStats = arrayMove(prev.stats, oldIndex, newIndex);
-        return { ...prev, stats: newStats };
+        const oldIdx = prev.stats.indexOf(active.id as string);
+        const newIdx = prev.stats.indexOf(over.id as string);
+        return { ...prev, stats: arrayMove(prev.stats, oldIdx, newIdx) };
       });
     }
-
     setActiveId(null);
   };
 
-  const handleChangeStat = (index: number, newStatKey: string) => {
+  const handleChangeStat = (index: number, newKey: string) => {
     setConfig((prev) => {
       const newStats = [...prev.stats];
-      newStats[index] = newStatKey;
+      newStats[index] = newKey;
       return { ...prev, stats: newStats };
     });
   };
 
-  const handleAddStat = () => {
-    setConfig((prev) => ({
-      ...prev,
-      stats: [...prev.stats, "kills"], // Default to kills when adding
-    }));
-  };
-
-  const handleRemoveStat = (index: number) => {
+  const handleAddStat = () =>
+    setConfig((prev) => ({ ...prev, stats: [...prev.stats, "kills"] }));
+  const handleRemoveStat = (index: number) =>
     setConfig((prev) => ({
       ...prev,
       stats: prev.stats.filter((_, i) => i !== index),
     }));
-  };
-
-  const handleReset = () => {
-    setConfig(DEFAULT_CONFIG);
-  };
-
-  const handleLoadPreset = (preset: string[]) => {
+  const handleReset = () => setConfig(DEFAULT_CONFIG);
+  const handleLoadPreset = (preset: string[]) =>
     setConfig((prev) => ({ ...prev, stats: preset }));
-  };
-
-  const handleSaveCustom = () => {
-    saveCustomLayout(config.stats);
-  };
-
+  const handleSaveCustom = () => saveCustomLayout(config.stats);
   const handleLoadCustom = () => {
-    const customLayout = loadCustomLayout();
-    if (customLayout) {
-      setConfig((prev) => ({ ...prev, stats: customLayout }));
-    }
+    const c = loadCustomLayout();
+    if (c) setConfig((prev) => ({ ...prev, stats: c }));
   };
+  const handleClose = () => window.electron?.popout?.close();
+  const setLayout = (layout: LayoutMode) =>
+    setConfig((prev) => ({ ...prev, layout }));
+  const toggleMarkup = () =>
+    setConfig((prev) => ({ ...prev, showMarkup: !prev.showMarkup }));
 
-  const handleClose = () => {
-    window.electron?.popout?.close();
-  };
+  // Responsive columns for grid
+  const columns = windowWidth < 220 ? 1 : windowWidth < 380 ? 2 : 3;
 
-  // const handleToggleCollapsed = () => {
-  //   setConfig((prev) => ({ ...prev, collapsed: !prev.collapsed }));
-  // };
+  // ─────────────────────────────────────────────────────────────────────────
+  // Mini Bar Layout
+  // ─────────────────────────────────────────────────────────────────────────
 
-  // Calculate responsive columns based on window width
-  const getColumns = () => {
-    if (windowWidth < 220) return 1;
-    if (windowWidth < 380) return 2;
-    return 3;
-  };
-
-  const columns = getColumns();
-
-  const MIN_CONTENT_HEIGHT = 120;
-  const isMinified = config.collapsed || windowHeight < MIN_CONTENT_HEIGHT;
-
-  // When minified, remove page margins/padding and force a small document height so
-  // the native window can shrink without showing any blank area around the bar.
-  useEffect(() => {
-    try {
-      const html = document.documentElement as any;
-      const body = document.body as any;
-
-      if (isMinified) {
-        // Save previous styles so we can restore them
-        html.__prevStyle = {
-          height: html.style.height,
-          margin: html.style.margin,
-          padding: html.style.padding,
-          overflow: html.style.overflow,
-        };
-        body.__prevStyle = {
-          height: body.style.height,
-          margin: body.style.margin,
-          padding: body.style.padding,
-          overflow: body.style.overflow,
-        };
-
-        html.style.height = "20px";
-        html.style.margin = "0";
-        html.style.padding = "0";
-        html.style.overflow = "hidden";
-
-        body.style.height = "20px";
-        body.style.margin = "0";
-        body.style.padding = "0";
-        body.style.overflow = "hidden";
-      } else {
-        // Restore previous styles if present
-        if (html.__prevStyle) {
-          html.style.height = html.__prevStyle.height || "";
-          html.style.margin = html.__prevStyle.margin || "";
-          html.style.padding = html.__prevStyle.padding || "";
-          html.style.overflow = html.__prevStyle.overflow || "";
-          delete html.__prevStyle;
-        }
-        if (body.__prevStyle) {
-          body.style.height = body.__prevStyle.height || "";
-          body.style.margin = body.__prevStyle.margin || "";
-          body.style.padding = body.__prevStyle.padding || "";
-          body.style.overflow = body.__prevStyle.overflow || "";
-          delete body.__prevStyle;
-        }
-      }
-    } catch (e) {
-      // ignore DOM errors
-    }
-  }, [isMinified]);
-
-  // Collapsed/minified minimal mode (automatic on small heights)
-  if (isMinified) {
+  if (config.layout === "mini") {
     return (
-      <div style={styles.collapsedContainer}>
-        {/* Collapsed Header Bar */}
-        <div style={styles.collapsedBar}>
-          {/* Minimal Stats Display */}
-          <div style={styles.collapsedStats}>
-            {/* User-configured stats in order */}
-            {config.stats.map((statKey) => {
-              const stat = STAT_MAP.get(statKey);
+      <div style={s.miniContainer}>
+        <div style={s.miniBar}>
+          {/* Stats */}
+          <div style={s.miniStats}>
+            {config.stats.slice(0, 6).map((key) => {
+              const stat = STAT_MAP.get(key);
               if (!stat) return null;
-              const value = stat.getValue(statData);
+              const val = stat.getValue(statData);
               return (
-                <div key={statKey} style={styles.collapsedStat}>
-                  <span style={styles.collapsedLabel}>{stat.label}:</span>
-                  <span
-                    style={{ ...styles.collapsedValue, color: value.color }}
-                  >
-                    {value.value}
-                    {value.unit && ` ${value.unit}`}
+                <span key={key} style={s.miniStat}>
+                  <span style={s.miniLabel}>{stat.label}</span>
+                  <span style={{ ...s.miniValue, color: val.color }}>
+                    {val.value}
                   </span>
-                </div>
+                </span>
               );
             })}
-
-            {/* Duration */}
-            <div style={styles.collapsedStat}>
-              <Clock size={10} style={{ color: colors.textMuted }} />
-              <span style={styles.collapsedValue}>
-                {formatDuration(stats.duration)}
-              </span>
-            </div>
+            <span style={s.miniStat}>
+              <Clock size={9} style={{ opacity: 0.5 }} />
+              <span style={s.miniValue}>{formatDuration(stats.duration)}</span>
+            </span>
           </div>
 
-          {/* Close Button */}
-          <button
-            onClick={handleClose}
-            style={styles.collapseButton}
-            title="Close"
-          >
-            <X size={12} />
-          </button>
+          {/* Actions */}
+          <div style={s.miniActions}>
+            <button
+              onClick={toggleMarkup}
+              style={{
+                ...s.miniBtn,
+                color: config.showMarkup ? colors.info : colors.textMuted,
+              }}
+              title="Toggle Markup"
+            >
+              MU
+            </button>
+            <button
+              onClick={() => setLayout("horizontal")}
+              style={s.miniBtn}
+              title="Horizontal"
+            >
+              <Rows size={10} />
+            </button>
+            <button onClick={handleClose} style={s.miniBtn} title="Close">
+              <X size={10} />
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Expanded full mode
+  // ─────────────────────────────────────────────────────────────────────────
+  // Horizontal Bar Layout
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (config.layout === "horizontal") {
+    const sortingStrategy = horizontalListSortingStrategy;
+    return (
+      <div style={s.horzContainer}>
+        {/* Header */}
+        <div style={s.horzHeader}>
+          <div style={s.headerLeft}>
+            <div style={s.duration}>
+              <Clock size={10} style={{ opacity: 0.5 }} />
+              <span>{formatDuration(stats.duration)}</span>
+            </div>
+            <MiniLoadoutSelector
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+            />
+          </div>
+          <div style={s.dragHandle}>
+            <GripHorizontal size={12} style={{ opacity: 0.3 }} />
+          </div>
+          <div style={s.headerActions}>
+            <button
+              onClick={toggleMarkup}
+              style={{
+                ...s.headerBtn,
+                color: config.showMarkup ? colors.info : colors.textMuted,
+                background: config.showMarkup
+                  ? `${colors.info}20`
+                  : "transparent",
+              }}
+              title="Toggle Markup"
+            >
+              MU
+            </button>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              style={{
+                ...s.headerBtn,
+                background: showSettings ? colors.bgCard : "transparent",
+              }}
+              title="Settings"
+            >
+              <Settings size={11} />
+            </button>
+            <LayoutSwitcher current={config.layout} onChange={setLayout} />
+            <button onClick={handleClose} style={s.headerBtn} title="Close">
+              <X size={11} />
+            </button>
+          </div>
+        </div>
+
+        {/* Settings Panel */}
+        {showSettings && (
+          <SettingsPanel
+            onPreset={handleLoadPreset}
+            onSaveCustom={handleSaveCustom}
+            onLoadCustom={handleLoadCustom}
+            onReset={handleReset}
+          />
+        )}
+
+        {/* Stats Row */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={config.stats} strategy={sortingStrategy}>
+            <div style={s.horzStatsRow}>
+              {config.stats.map((key, idx) => (
+                <SortableStatChip
+                  key={key}
+                  id={key}
+                  statKey={key}
+                  data={statData}
+                  onChange={(k) => handleChangeStat(idx, k)}
+                  onRemove={() => handleRemoveStat(idx)}
+                  settingsMode={showSettings}
+                  canRemove={config.stats.length > 1}
+                />
+              ))}
+              {showSettings && config.stats.length < 8 && (
+                <button onClick={handleAddStat} style={s.addChipBtn}>
+                  +
+                </button>
+              )}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {activeId && <StatChipOverlay statKey={activeId} data={statData} />}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Vertical Bar Layout
+  // ─────────────────────────────────────────────────────────────────────────
+
+  if (config.layout === "vertical") {
+    const sortingStrategy = verticalListSortingStrategy;
+    return (
+      <div style={s.vertContainer}>
+        {/* Header */}
+        <div style={s.vertHeader}>
+          <div style={s.headerLeft}>
+            <div style={s.duration}>
+              <Clock size={10} style={{ opacity: 0.5 }} />
+              <span>{formatDuration(stats.duration)}</span>
+            </div>
+            <MiniLoadoutSelector
+              loadouts={loadouts}
+              activeLoadout={activeLoadout}
+              onSelect={setActiveLoadout}
+            />
+          </div>
+          <div style={s.headerActions}>
+            <button
+              onClick={toggleMarkup}
+              style={{
+                ...s.headerBtn,
+                color: config.showMarkup ? colors.info : colors.textMuted,
+                background: config.showMarkup
+                  ? `${colors.info}20`
+                  : "transparent",
+              }}
+              title="Toggle Markup"
+            >
+              MU
+            </button>
+            <button
+              onClick={() => setShowSettings(!showSettings)}
+              style={{
+                ...s.headerBtn,
+                color: showSettings ? colors.success : colors.textMuted,
+                background: showSettings
+                  ? `${colors.success}20`
+                  : "transparent",
+              }}
+              title="Settings"
+            >
+              <Edit2 size={11} />
+            </button>
+            <LayoutSwitcher current={config.layout} onChange={setLayout} />
+            <button
+              onClick={handleClose}
+              style={{ ...s.headerBtn, color: colors.danger }}
+              title="Close"
+            >
+              <X size={11} />
+            </button>
+          </div>
+        </div>
+
+        {/* Settings Panel */}
+        {showSettings && (
+          <SettingsPanel
+            onPreset={handleLoadPreset}
+            onSaveCustom={handleSaveCustom}
+            onLoadCustom={handleLoadCustom}
+            onReset={handleReset}
+          />
+        )}
+
+        {/* Stats Column */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={config.stats} strategy={sortingStrategy}>
+            <div style={s.vertStatsCol}>
+              {config.stats.map((key, idx) => (
+                <SortableStatRow
+                  key={key}
+                  id={key}
+                  statKey={key}
+                  data={statData}
+                  onChange={(k) => handleChangeStat(idx, k)}
+                  onRemove={() => handleRemoveStat(idx)}
+                  settingsMode={showSettings}
+                  canRemove={config.stats.length > 1}
+                />
+              ))}
+              {showSettings && config.stats.length < 10 && (
+                <button onClick={handleAddStat} style={s.addRowBtn}>
+                  + Add Stat
+                </button>
+              )}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {activeId && <StatRowOverlay statKey={activeId} data={statData} />}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Grid Layout (Default)
+  // ─────────────────────────────────────────────────────────────────────────
+
   return (
-    <div style={styles.container}>
-      {/* Draggable Header */}
-      <div style={styles.header}>
-        {/* Duration Display */}
-        <div style={styles.durationDisplay}>
-          <Clock size={10} style={{ color: colors.textMuted }} />
-          <span style={styles.durationText}>
-            {formatDuration(stats.duration)}
-          </span>
+    <div style={s.gridContainer}>
+      {/* Header */}
+      <div style={s.gridHeader}>
+        <div style={s.headerLeft}>
+          <div style={s.duration}>
+            <Clock size={10} style={{ opacity: 0.5 }} />
+            <span>{formatDuration(stats.duration)}</span>
+          </div>
+          <MiniLoadoutSelector
+            loadouts={loadouts}
+            activeLoadout={activeLoadout}
+            onSelect={setActiveLoadout}
+          />
         </div>
-
-        {/* Drag Handle */}
-        <div style={styles.dragHandle}>
-          <GripHorizontal size={14} style={{ color: colors.textMuted }} />
+        <div style={s.dragHandle}>
+          <GripHorizontal size={12} style={{ opacity: 0.3 }} />
         </div>
-
-        {/* Header Actions */}
-        <div style={styles.headerActions}>
-          {/* Markup Toggle */}
+        <div style={s.headerActions}>
           <button
-            onClick={() => setShowMarkup(!showMarkup)}
+            onClick={toggleMarkup}
             style={{
-              ...styles.headerButton,
-              backgroundColor: showMarkup ? colors.info + "30" : "transparent",
-              color: showMarkup ? colors.info : colors.textMuted,
-              border: showMarkup
-                ? `1px solid ${colors.info}40`
-                : "1px solid transparent",
-              gap: 2,
-              width: "auto",
-              padding: "0 6px",
+              ...s.headerBtn,
+              color: config.showMarkup ? colors.info : colors.textMuted,
+              background: config.showMarkup
+                ? `${colors.info}20`
+                : "transparent",
             }}
-            title={showMarkup ? "Showing Markup Values" : "Showing TT Values"}
+            title="Toggle Markup"
           >
-            {showMarkup ? <ToggleRight size={11} /> : <ToggleLeft size={11} />}
-            <span style={{ fontSize: 9, fontWeight: 600 }}>MU</span>
+            MU
           </button>
           <button
             onClick={() => setShowSettings(!showSettings)}
             style={{
-              ...styles.headerButton,
-              backgroundColor: showSettings ? colors.bgCard : "transparent",
+              ...s.headerBtn,
+              color: showSettings ? colors.success : colors.textMuted,
+              background: showSettings ? `${colors.success}20` : "transparent",
             }}
             title="Settings"
           >
-            <Settings size={12} />
+            <Edit2 size={11} />
           </button>
+          <LayoutSwitcher current={config.layout} onChange={setLayout} />
           <button
             onClick={handleClose}
-            style={styles.headerButton}
+            style={{ ...s.headerBtn, color: colors.danger }}
             title="Close"
           >
-            <X size={12} />
+            <X size={11} />
           </button>
         </div>
       </div>
 
       {/* Settings Panel */}
       {showSettings && (
-        <div style={styles.settingsPanel}>
-          <div style={styles.settingsRow}>
-            <span style={styles.settingsLabel}>Layout Presets</span>
-          </div>
-          <div style={styles.presetGrid}>
-            <button
-              onClick={() => handleLoadPreset(ECONOMY_PRESET)}
-              style={styles.presetButton}
-            >
-              Economy
-            </button>
-            <button
-              onClick={() => handleLoadPreset(EFFICIENCY_PRESET)}
-              style={styles.presetButton}
-            >
-              Efficiency
-            </button>
-            <button
-              onClick={() => handleLoadPreset(SKILLS_PRESET)}
-              style={styles.presetButton}
-            >
-              Skills
-            </button>
-            <button
-              onClick={handleLoadCustom}
-              style={{
-                ...styles.presetButton,
-                opacity: loadCustomLayout() ? 1 : 0.5,
-              }}
-              disabled={!loadCustomLayout()}
-            >
-              Custom
-            </button>
-          </div>
-
-          <div style={styles.settingsDivider} />
-
-          <div style={styles.settingsRow}>
-            <span style={styles.settingsLabel}>Configuration</span>
-          </div>
-          <div style={styles.settingsRow}>
-            <button onClick={handleSaveCustom} style={styles.settingsActionButton}>
-              Save as Custom
-            </button>
-            <button onClick={handleReset} style={styles.settingsActionButton}>
-              <RotateCcw size={11} />
-              Reset to Defaults
-            </button>
-          </div>
-
-          <div style={styles.settingsDivider} />
-          <div style={styles.settingsHint}>
-            Click edit buttons on cards to change stats
-          </div>
-        </div>
+        <SettingsPanel
+          onPreset={handleLoadPreset}
+          onSaveCustom={handleSaveCustom}
+          onLoadCustom={handleLoadCustom}
+          onReset={handleReset}
+        />
       )}
 
-      {/* Stats Grid */}
-      <div style={styles.content}>
-        {/* Loadout Dropdown */}
-        <div style={styles.loadoutRow}>
-          <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
-            <div style={{ width: "100%" }}>
-              <LoadoutDropdown
-                loadouts={loadouts}
-                activeLoadout={activeLoadout}
-                onSelect={setActiveLoadout}
-                compact
-              />
-            </div>
-          </div>
-        </div>
-
+      {/* Content */}
+      <div style={s.gridContent}>
         {/* Stats Grid */}
         <DndContext
           sensors={sensors}
@@ -549,42 +605,32 @@ export function PopoutStatsV2() {
           <SortableContext items={config.stats} strategy={rectSortingStrategy}>
             <div
               style={{
-                ...styles.statsGrid,
+                ...s.statsGrid,
                 gridTemplateColumns: `repeat(${columns}, 1fr)`,
               }}
             >
-              {config.stats.map((statKey, index) => (
+              {config.stats.map((key, idx) => (
                 <SortableStatCard
-                  key={statKey}
-                  id={statKey}
-                  statKey={statKey}
+                  key={key}
+                  id={key}
+                  statKey={key}
                   data={statData}
-                  onChange={(newKey) => handleChangeStat(index, newKey)}
-                  onRemove={() => handleRemoveStat(index)}
+                  onChange={(k) => handleChangeStat(idx, k)}
+                  onRemove={() => handleRemoveStat(idx)}
                   settingsMode={showSettings}
                   canRemove={config.stats.length > 1}
                 />
               ))}
             </div>
           </SortableContext>
-
           <DragOverlay>
-            {activeId ? (
-              <div style={{ ...styles.statCard, opacity: 0.9, cursor: "grabbing" }}>
-                <StatCardContent
-                  statKey={activeId}
-                  data={statData}
-                  settingsMode={false}
-                  isDragOverlay
-                />
-              </div>
-            ) : null}
+            {activeId && <StatCardOverlay statKey={activeId} data={statData} />}
           </DragOverlay>
         </DndContext>
 
-        {/* Add Card Button */}
+        {/* Add Button */}
         {showSettings && (
-          <button onClick={handleAddStat} style={styles.addCardButton}>
+          <button onClick={handleAddStat} style={s.addCardBtn}>
             + Add Stat Card
           </button>
         )}
@@ -593,7 +639,196 @@ export function PopoutStatsV2() {
   );
 }
 
-// Sortable Stat Card Component (with drag-and-drop)
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout Switcher
+// ─────────────────────────────────────────────────────────────────────────────
+
+function LayoutSwitcher({
+  current,
+  onChange,
+}: {
+  current: LayoutMode;
+  onChange: (l: LayoutMode) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const layouts: { key: LayoutMode; icon: React.ReactNode; label: string }[] = [
+    { key: "mini", icon: <Minimize2 size={10} />, label: "Mini" },
+    { key: "horizontal", icon: <Rows size={10} />, label: "Horizontal" },
+    { key: "vertical", icon: <Columns size={10} />, label: "Vertical" },
+    { key: "grid", icon: <Grid3X3 size={10} />, label: "Grid" },
+  ];
+  const currentLayout = layouts.find((l) => l.key === current);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{ ...s.headerBtn, gap: 3 }}
+        title="Change Layout"
+      >
+        {currentLayout?.icon}
+      </button>
+      {open &&
+        ReactDOM.createPortal(
+          <>
+            <div style={s.modalBackdrop} onClick={() => setOpen(false)} />
+            <div style={s.centeredModal}>
+              <div style={s.modalHeader}>Select Layout</div>
+              {layouts.map((l) => (
+                <button
+                  key={l.key}
+                  onClick={() => {
+                    onChange(l.key);
+                    setOpen(false);
+                  }}
+                  style={{
+                    ...s.modalOption,
+                    background:
+                      l.key === current ? `${colors.info}20` : "transparent",
+                    color: l.key === current ? colors.info : colors.textPrimary,
+                  }}
+                >
+                  {l.icon} {l.label}
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body
+        )}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mini Loadout Selector (for header)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MiniLoadoutSelector({
+  loadouts,
+  activeLoadout,
+  onSelect,
+}: {
+  loadouts: Loadout[];
+  activeLoadout: Loadout | null;
+  onSelect: (id: string | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(!open)}
+        style={s.loadoutBtn}
+        title={activeLoadout ? activeLoadout.name : "Select Loadout"}
+      >
+        <Crosshair size={10} />
+        <span style={s.loadoutName}>
+          {activeLoadout ? activeLoadout.name : "None"}
+        </span>
+        <ChevronDown size={8} style={{ opacity: 0.5 }} />
+      </button>
+      {open &&
+        ReactDOM.createPortal(
+          <>
+            <div style={s.modalBackdrop} onClick={() => setOpen(false)} />
+            <div style={s.centeredModal}>
+              <div style={s.modalHeader}>Select Loadout</div>
+              <button
+                onClick={() => {
+                  onSelect(null);
+                  setOpen(false);
+                }}
+                style={{
+                  ...s.modalOption,
+                  color: !activeLoadout ? colors.info : colors.textSecondary,
+                }}
+              >
+                No Loadout
+              </button>
+              {loadouts.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => {
+                    onSelect(l.id);
+                    setOpen(false);
+                  }}
+                  style={{
+                    ...s.modalOption,
+                    background:
+                      activeLoadout?.id === l.id
+                        ? `${colors.info}15`
+                        : "transparent",
+                    color:
+                      activeLoadout?.id === l.id
+                        ? colors.info
+                        : colors.textPrimary,
+                  }}
+                >
+                  {l.name}
+                </button>
+              ))}
+            </div>
+          </>,
+          document.body
+        )}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Settings Panel
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SettingsPanel({
+  onPreset,
+  onSaveCustom,
+  onLoadCustom,
+  onReset,
+}: {
+  onPreset: (p: string[]) => void;
+  onSaveCustom: () => void;
+  onLoadCustom: () => void;
+  onReset: () => void;
+}) {
+  const hasCustom = !!loadCustomLayout();
+  return (
+    <div style={s.settingsPanel}>
+      <div style={s.presetBtns}>
+        {Object.entries(PRESETS).map(([name, preset]) => (
+          <button
+            key={name}
+            onClick={() => onPreset(preset)}
+            style={s.presetBtn}
+          >
+            {name.charAt(0).toUpperCase() + name.slice(1)}
+          </button>
+        ))}
+        <button
+          onClick={onLoadCustom}
+          style={{ ...s.presetBtn, opacity: hasCustom ? 1 : 0.4 }}
+          disabled={!hasCustom}
+        >
+          Custom
+        </button>
+      </div>
+      <div style={s.settingsSpacer} />
+      <div style={s.settingsActions}>
+        <button onClick={onSaveCustom} style={s.actionBtn}>
+          Save Custom
+        </button>
+        <button onClick={onReset} style={s.actionBtn}>
+          <RotateCcw size={10} /> Reset
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sortable Stat Card (Grid)
+// ─────────────────────────────────────────────────────────────────────────────
+
 function SortableStatCard({
   id,
   statKey,
@@ -606,7 +841,7 @@ function SortableStatCard({
   id: string;
   statKey: string;
   data: StatData;
-  onChange: (newKey: string) => void;
+  onChange: (k: string) => void;
   onRemove: () => void;
   settingsMode: boolean;
   canRemove: boolean;
@@ -617,34 +852,30 @@ function SortableStatCard({
     setNodeRef,
     transform,
     transition,
-    isDragging: isSortableDragging,
+    isDragging,
   } = useSortable({ id });
-
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isSortableDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.5 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style}>
-      <div style={styles.statCard}>
-        <StatCardContent
-          statKey={statKey}
-          data={data}
-          onChange={onChange}
-          onRemove={onRemove}
-          settingsMode={settingsMode}
-          canRemove={canRemove}
-          dragHandleProps={{ ...attributes, ...listeners }}
-        />
-      </div>
+      <StatCardInner
+        statKey={statKey}
+        data={data}
+        onChange={onChange}
+        onRemove={onRemove}
+        settingsMode={settingsMode}
+        canRemove={canRemove}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
     </div>
   );
 }
 
-// Stat Card Content Component
-function StatCardContent({
+function StatCardInner({
   statKey,
   data,
   onChange,
@@ -652,536 +883,947 @@ function StatCardContent({
   settingsMode,
   canRemove,
   dragHandleProps,
-  isDragOverlay = false,
 }: {
   statKey: string;
   data: StatData;
-  onChange?: (newKey: string) => void;
+  onChange?: (k: string) => void;
   onRemove?: () => void;
   settingsMode: boolean;
-  canRemove?: boolean;
+  canRemove: boolean;
   dragHandleProps?: any;
-  isDragOverlay?: boolean;
 }) {
   const [showSelector, setShowSelector] = useState(false);
   const stat = STAT_MAP.get(statKey);
   if (!stat) return null;
-
   const value = stat.getValue(data);
   const Icon = stat.icon;
 
   return (
-    <>
+    <div style={s.statCard}>
       {/* Background Icon */}
-      <div style={styles.statIcon}>
-        <Icon size={32} />
+      <div style={s.cardIcon}>
+        <Icon size={28} />
       </div>
 
-      {/* Drag Handle (only visible when hovering) */}
-      {!isDragOverlay && (
-        <div
-          {...dragHandleProps}
-          style={{
-            ...styles.dragHandleCard,
-            opacity: settingsMode ? 1 : 0,
-          }}
-          title="Drag to reorder"
-        >
-          <GripVertical size={14} />
+      {/* Drag Handle */}
+      {settingsMode && (
+        <div {...dragHandleProps} style={s.cardDragHandle}>
+          <GripVertical size={12} />
         </div>
       )}
 
-      {/* Card Actions (only in settings mode) */}
-      {settingsMode && !isDragOverlay && (
-        <div style={styles.cardActions}>
+      {/* Actions */}
+      {settingsMode && (
+        <div style={s.cardActions}>
           <button
             onClick={() => setShowSelector(true)}
-            style={styles.editButtonSmall}
+            style={s.cardEditBtn}
             title="Change stat"
           >
-            <Edit2 size={10} />
+            <Edit2 size={9} />
           </button>
-          {canRemove && onRemove && (
-            <button
-              onClick={onRemove}
-              style={styles.removeButton}
-              title="Remove card"
-            >
-              <X size={10} />
+          {canRemove && (
+            <button onClick={onRemove} style={s.cardRemoveBtn} title="Remove">
+              <X size={9} />
             </button>
           )}
         </div>
       )}
 
+      {/* Selector Modal */}
       {showSelector && onChange && (
-        <StatSelector
+        <StatSelectorModal
           currentKey={statKey}
-          onSelect={(newKey) => {
-            onChange(newKey);
+          onSelect={(k) => {
+            onChange(k);
             setShowSelector(false);
           }}
-          open={true}
-          modal
           onClose={() => setShowSelector(false)}
         />
       )}
 
-      {/* Always show stat value */}
-      <div style={styles.statLabel}>{stat.label}</div>
-      <div style={{ ...styles.statValue, color: value.color }}>
+      {/* Content */}
+      <div style={s.cardLabel}>{stat.label}</div>
+      <div style={{ ...s.cardValue, color: value.color }}>
         {value.value}
-        {value.unit && <span style={styles.statUnit}> {value.unit}</span>}
+        {value.unit && <span style={s.cardUnit}> {value.unit}</span>}
       </div>
-    </>
+    </div>
   );
 }
 
-// Stat Selector Dropdown
-function StatSelector({
-  currentKey,
-  onSelect,
-  open,
-  modal,
-  onClose,
+function StatCardOverlay({
+  statKey,
+  data,
 }: {
-  currentKey: string;
-  onSelect: (key: string) => void;
-  open?: boolean;
-  modal?: boolean;
-  onClose?: () => void;
+  statKey: string;
+  data: StatData;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const currentStat = STAT_MAP.get(currentKey);
-  const controlled = open !== undefined;
-  const visible = controlled ? !!open : isOpen;
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+  const value = stat.getValue(data);
+  const Icon = stat.icon;
 
-  const statsList = Array.from(STAT_MAP.values());
-  const groups = statsList.reduce((acc: any, stat) => {
-    const last = acc[acc.length - 1];
-    if (!last || last.category !== stat.category)
-      acc.push({ category: stat.category, items: [stat] });
-    else last.items.push(stat);
-    return acc;
-  }, [] as Array<{ category: string; items: any[] }>);
-
-  // Modal mode: render a centered modal with overlay
-  if (modal) {
-    if (!visible) return null;
-    return (
-      <>
-        <div
-          style={styles.selectorOverlay}
-          onClick={() => (onClose ? onClose() : setIsOpen(false))}
-        />
-        <div style={styles.selectorModal}>
-          <div style={styles.selectorDropdown}>
-            {groups.map((group: { category: string; items: any[] }) => (
-              <div key={group.category}>
-                <div style={styles.selectorGroupHeader}>{group.category}</div>
-                {group.items.map((stat: any) => (
-                  <button
-                    key={stat.key}
-                    onClick={() => {
-                      onSelect(stat.key);
-                      if (onClose) onClose();
-                      else setIsOpen(false);
-                    }}
-                    style={{
-                      ...styles.selectorOption,
-                      backgroundColor:
-                        stat.key === currentKey
-                          ? "hsl(217 91% 68% / 0.15)"
-                          : "transparent",
-                    }}
-                  >
-                    {stat.label}
-                  </button>
-                ))}
-                <div style={styles.selectorGroupDivider} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // Default dropdown behavior (unchanged)
   return (
-    <div style={{ position: "relative" }}>
-      <button onClick={() => setIsOpen(!isOpen)} style={styles.selectorButton}>
-        {currentStat?.label || "Select..."}
-      </button>
-      {isOpen && (
-        <>
-          <div
-            style={styles.selectorOverlay}
-            onClick={() => setIsOpen(false)}
-          />
-          <div style={styles.selectorDropdown}>
-            {groups.map((group: { category: string; items: any[] }) => (
-              <div key={group.category}>
-                <div style={styles.selectorGroupHeader}>{group.category}</div>
-                {group.items.map((stat: any) => (
-                  <button
-                    key={stat.key}
-                    onClick={() => {
-                      onSelect(stat.key);
-                      setIsOpen(false);
-                    }}
-                    style={{
-                      ...styles.selectorOption,
-                      backgroundColor:
-                        stat.key === currentKey
-                          ? "hsl(217 91% 68% / 0.15)"
-                          : "transparent",
-                    }}
-                  >
-                    {stat.label}
-                  </button>
-                ))}
-                <div style={styles.selectorGroupDivider} />
-              </div>
-            ))}
-          </div>
-        </>
+    <div
+      style={{
+        ...s.statCard,
+        opacity: 0.9,
+        cursor: "grabbing",
+        boxShadow: `0 4px 16px ${colors.bgBase}80`,
+      }}
+    >
+      <div style={s.cardIcon}>
+        <Icon size={28} />
+      </div>
+      <div style={s.cardLabel}>{stat.label}</div>
+      <div style={{ ...s.cardValue, color: value.color }}>
+        {value.value}
+        {value.unit && <span style={s.cardUnit}> {value.unit}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sortable Stat Chip (Horizontal)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SortableStatChip({
+  id,
+  statKey,
+  data,
+  onChange,
+  onRemove,
+  settingsMode,
+  canRemove,
+}: {
+  id: string;
+  statKey: string;
+  data: StatData;
+  onChange: (k: string) => void;
+  onRemove: () => void;
+  settingsMode: boolean;
+  canRemove: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  const [showSelector, setShowSelector] = useState(false);
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+  const value = stat.getValue(data);
+
+  return (
+    <div ref={setNodeRef} style={{ ...style, ...s.statChip }}>
+      {settingsMode && (
+        <div {...attributes} {...listeners} style={s.chipDragHandle}>
+          <GripVertical size={10} />
+        </div>
+      )}
+      <span style={s.chipLabel}>{stat.label}</span>
+      <span style={{ ...s.chipValue, color: value.color }}>
+        {value.value}
+        {value.unit && <span style={s.chipUnit}>{value.unit}</span>}
+      </span>
+      {settingsMode && (
+        <div style={s.chipActions}>
+          <button onClick={() => setShowSelector(true)} style={s.chipEditBtn}>
+            <Edit2 size={8} />
+          </button>
+          {canRemove && (
+            <button onClick={onRemove} style={s.chipRemoveBtn}>
+              <X size={8} />
+            </button>
+          )}
+        </div>
+      )}
+      {showSelector && (
+        <StatSelectorModal
+          currentKey={statKey}
+          onSelect={(k) => {
+            onChange(k);
+            setShowSelector(false);
+          }}
+          onClose={() => setShowSelector(false)}
+        />
       )}
     </div>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  container: {
+function StatChipOverlay({
+  statKey,
+  data,
+}: {
+  statKey: string;
+  data: StatData;
+}) {
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+  const value = stat.getValue(data);
+
+  return (
+    <div
+      style={{
+        ...s.statChip,
+        opacity: 0.9,
+        cursor: "grabbing",
+        boxShadow: `0 2px 8px ${colors.bgBase}80`,
+      }}
+    >
+      <span style={s.chipLabel}>{stat.label}</span>
+      <span style={{ ...s.chipValue, color: value.color }}>{value.value}</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sortable Stat Row (Vertical)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SortableStatRow({
+  id,
+  statKey,
+  data,
+  onChange,
+  onRemove,
+  settingsMode,
+  canRemove,
+}: {
+  id: string;
+  statKey: string;
+  data: StatData;
+  onChange: (k: string) => void;
+  onRemove: () => void;
+  settingsMode: boolean;
+  canRemove: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  const [showSelector, setShowSelector] = useState(false);
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+  const value = stat.getValue(data);
+  const Icon = stat.icon;
+
+  return (
+    <div ref={setNodeRef} style={{ ...style, ...s.statRow }}>
+      {settingsMode && (
+        <div {...attributes} {...listeners} style={s.rowDragHandle}>
+          <GripHorizontal size={10} />
+        </div>
+      )}
+      <div style={s.rowIcon}>
+        <Icon size={14} />
+      </div>
+      <span style={s.rowLabel}>{stat.label}</span>
+      <span style={{ ...s.rowValue, color: value.color }}>
+        {value.value}
+        {value.unit && <span style={s.rowUnit}> {value.unit}</span>}
+      </span>
+      {settingsMode && (
+        <div style={s.rowActions}>
+          <button onClick={() => setShowSelector(true)} style={s.rowEditBtn}>
+            <Edit2 size={9} />
+          </button>
+          {canRemove && (
+            <button onClick={onRemove} style={s.rowRemoveBtn}>
+              <X size={9} />
+            </button>
+          )}
+        </div>
+      )}
+      {showSelector && (
+        <StatSelectorModal
+          currentKey={statKey}
+          onSelect={(k) => {
+            onChange(k);
+            setShowSelector(false);
+          }}
+          onClose={() => setShowSelector(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function StatRowOverlay({
+  statKey,
+  data,
+}: {
+  statKey: string;
+  data: StatData;
+}) {
+  const stat = STAT_MAP.get(statKey);
+  if (!stat) return null;
+  const value = stat.getValue(data);
+  const Icon = stat.icon;
+
+  return (
+    <div
+      style={{
+        ...s.statRow,
+        opacity: 0.9,
+        cursor: "grabbing",
+        boxShadow: `0 2px 8px ${colors.bgBase}80`,
+      }}
+    >
+      <div style={s.rowIcon}>
+        <Icon size={14} />
+      </div>
+      <span style={s.rowLabel}>{stat.label}</span>
+      <span style={{ ...s.rowValue, color: value.color }}>{value.value}</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stat Selector Modal
+// ─────────────────────────────────────────────────────────────────────────────
+
+function StatSelectorModal({
+  currentKey,
+  onSelect,
+  onClose,
+}: {
+  currentKey: string;
+  onSelect: (k: string) => void;
+  onClose: () => void;
+}) {
+  const statsList = Array.from(STAT_MAP.values());
+  const groups = statsList.reduce((acc, stat) => {
+    const last = acc[acc.length - 1];
+    if (!last || last.category !== stat.category)
+      acc.push({ category: stat.category, items: [stat] });
+    else last.items.push(stat);
+    return acc;
+  }, [] as Array<{ category: string; items: typeof statsList }>);
+
+  // Category colors
+  const categoryColors: Record<string, string> = {
+    combat: colors.danger,
+    economy: colors.success,
+    skills: colors.info,
+    efficiency: colors.warning,
+    time: colors.textMuted,
+  };
+
+  return ReactDOM.createPortal(
+    <>
+      <div style={s.modalBackdrop} onClick={onClose} />
+      <div style={s.selectorModal}>
+        <div style={s.selectorHeader}>Select Stat</div>
+        <div style={s.selectorDropdown}>
+          {groups.map((group, idx) => (
+            <div
+              key={group.category}
+              style={idx > 0 ? { marginTop: 8 } : undefined}
+            >
+              <div
+                style={{
+                  ...s.selectorGroupHeader,
+                  background: `${
+                    categoryColors[group.category] || colors.textMuted
+                  }15`,
+                  borderLeft: `3px solid ${
+                    categoryColors[group.category] || colors.textMuted
+                  }`,
+                }}
+              >
+                {group.category.toUpperCase()}
+              </div>
+              {group.items.map((stat) => (
+                <button
+                  key={stat.key}
+                  onClick={() => onSelect(stat.key)}
+                  style={{
+                    ...s.selectorOption,
+                    background:
+                      stat.key === currentKey
+                        ? `${colors.success}15`
+                        : "transparent",
+                    color:
+                      stat.key === currentKey
+                        ? colors.success
+                        : colors.textPrimary,
+                  }}
+                >
+                  <span style={{ flex: 1 }}>{stat.label}</span>
+                  {stat.key === currentKey && (
+                    <Check size={12} style={{ color: colors.success }} />
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ElectronCSSProperties = React.CSSProperties & {
+  WebkitAppRegion?: "drag" | "no-drag";
+};
+
+const s: Record<string, ElectronCSSProperties> = {
+  // ─── Mini Bar ───
+  miniContainer: {
     background: colors.bgBase,
-    display: "flex",
-    flexDirection: "column",
     fontFamily: typography.sans,
+    width: "100%",
+    height: "100%",
   },
-  collapsedContainer: {
-    minHeight: 24,
-    background: colors.bgBase,
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: typography.sans,
-  },
-  collapsedBar: {
+  miniBar: {
     display: "flex",
     alignItems: "center",
-    gap: spacing.sm,
-    height: 24,
-    backgroundColor: colors.bgPanel,
+    gap: 6,
+    height: 26,
+    background: colors.bgPanel,
     borderBottom: `1px solid ${colors.borderSubtle}`,
-    padding: `0 ${spacing.xs}px`,
+    padding: "0 8px",
     cursor: "grab",
-    // @ts-expect-error Electron specific
     WebkitAppRegion: "drag",
   },
-  collapseButton: {
+  miniStats: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flex: 1,
+    overflow: "hidden",
+    WebkitAppRegion: "no-drag",
+  },
+  miniStat: {
+    display: "flex",
+    alignItems: "center",
+    gap: 3,
+    whiteSpace: "nowrap",
+  },
+  miniLabel: {
+    fontSize: 8,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+  },
+  miniValue: {
+    fontSize: 10,
+    fontWeight: 700,
+    fontFamily: typography.mono,
+    color: colors.textPrimary,
+  },
+  miniActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 2,
+    WebkitAppRegion: "no-drag",
+  },
+  miniBtn: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     width: 20,
-    height: 20,
+    height: 18,
     border: "none",
-    borderRadius: radius.xs,
-    backgroundColor: "transparent",
+    borderRadius: 3,
+    background: "transparent",
     color: colors.textMuted,
     cursor: "pointer",
-    transition: "all 0.15s ease",
-    flexShrink: 0,
-    // @ts-expect-error Electron specific
-    WebkitAppRegion: "no-drag",
-  },
-  collapsedStats: {
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.md,
-    flex: 1,
-    overflow: "hidden",
-    fontSize: 11,
-    fontFamily: typography.mono,
-  },
-  collapsedStat: {
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.xs,
-    whiteSpace: "nowrap",
-  },
-  collapsedLabel: {
-    fontSize: 10,
-    fontWeight: 600,
-    color: colors.textMuted,
-  },
-  collapsedValue: {
-    fontSize: 11,
+    fontSize: 8,
     fontWeight: 700,
-    color: colors.textPrimary,
   },
-  header: {
-    position: "relative",
+
+  // ─── Horizontal Bar ───
+  horzContainer: {
+    background: colors.bgBase,
+    fontFamily: typography.sans,
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: "100%",
+  },
+  horzHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    height: 24,
-    backgroundColor: colors.bgPanel,
+    height: 28,
+    background: colors.bgPanel,
     borderBottom: `1px solid ${colors.borderSubtle}`,
+    padding: "0 8px",
     cursor: "grab",
-    padding: `0 ${spacing.xs}px`,
-    // @ts-expect-error Electron specific
     WebkitAppRegion: "drag",
   },
-  durationDisplay: {
+  horzLoadout: {
+    padding: "6px 8px",
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+  },
+  horzStatsRow: {
     display: "flex",
     alignItems: "center",
-    gap: spacing.xs,
+    gap: 6,
+    padding: "8px",
+    flexWrap: "wrap",
+  },
+
+  // ─── Vertical Bar ───
+  vertContainer: {
+    background: colors.bgBase,
+    fontFamily: typography.sans,
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: "100%",
+  },
+  vertHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 28,
+    background: colors.bgPanel,
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+    padding: "0 8px",
+    cursor: "grab",
+    WebkitAppRegion: "drag",
+  },
+  vertLoadout: {
+    padding: "6px 8px",
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+  },
+  vertStatsCol: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 2,
+    padding: "6px 8px",
+  },
+
+  // ─── Grid ───
+  gridContainer: {
+    background: colors.bgBase,
+    fontFamily: typography.sans,
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    height: "100%",
+  },
+  gridHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 28,
+    background: colors.bgPanel,
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+    padding: "0 8px",
+    cursor: "grab",
+    WebkitAppRegion: "drag",
+  },
+  gridContent: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    padding: 8,
+    gap: 8,
+  },
+  loadoutRow: { display: "flex", alignItems: "center", gap: 8 },
+  statsGrid: {
+    display: "grid",
+    gap: 6,
+    gridAutoRows: "minmax(50px, auto)",
+  },
+
+  // ─── Shared Header ───
+  headerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    WebkitAppRegion: "no-drag",
+  },
+  duration: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
     fontSize: 10,
     fontFamily: typography.mono,
-    color: colors.textSecondary,
-    pointerEvents: "none",
-    marginRight: "auto",
-  },
-  durationText: {
+    color: colors.textMuted,
     fontWeight: 600,
   },
   dragHandle: {
     position: "absolute",
     left: "50%",
     transform: "translateX(-50%)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 24,
     pointerEvents: "none",
   },
   headerActions: {
     display: "flex",
+    alignItems: "center",
     gap: 2,
-    // @ts-expect-error Electron specific
     WebkitAppRegion: "no-drag",
   },
-  headerButton: {
+  headerBtn: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    width: 22,
-    height: 18,
+    width: 24,
+    height: 20,
     border: "none",
-    borderRadius: radius.xs,
+    borderRadius: 4,
+    background: "transparent",
     color: colors.textMuted,
     cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
-  settingsPanel: {
-    padding: spacing.md,
-    backgroundColor: colors.bgPanel,
-    borderBottom: `1px solid ${colors.border}`,
-    display: "flex",
-    flexDirection: "column",
-    gap: spacing.sm,
-  },
-  settingsRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  settingsLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 700,
-    color: colors.textSecondary,
-    textTransform: "uppercase",
-    letterSpacing: "0.1em",
+    transition: "all 0.15s",
   },
-  settingsActionButton: {
+
+  // ─── Mini Loadout Selector ───
+  loadoutBtn: {
     display: "flex",
     alignItems: "center",
-    gap: spacing.xs,
-    padding: `${spacing.xs}px ${spacing.md}px`,
+    gap: 4,
+    padding: "2px 6px",
     border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgCard,
+    borderRadius: 4,
+    background: colors.bgCard,
     color: colors.textPrimary,
-    fontSize: 11,
-    fontWeight: 500,
     cursor: "pointer",
-    transition: "all 0.15s ease",
-    width: "100%",
-    justifyContent: "center",
-  },
-  presetGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    gap: spacing.xs,
-  },
-  presetButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: `${spacing.sm}px ${spacing.xs}px`,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: colors.bgCard,
-    color: colors.textPrimary,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-  },
-  settingsDivider: {
-    height: 1,
-    backgroundColor: colors.borderSubtle,
-    margin: `${spacing.xs}px 0`,
-  },
-  settingsHint: {
-    fontSize: 9,
-    color: colors.textMuted,
-    textAlign: "center",
-    fontStyle: "italic",
-  },
-  content: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    padding: spacing.sm,
-    gap: spacing.sm,
-  },
-  loadoutRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.sm,
-    width: "100%",
-  },
-  cardActions: {
-    position: "absolute",
-    top: spacing.xs,
-    right: spacing.xs,
-    display: "flex",
-    gap: spacing.xs,
-    zIndex: 2,
-  },
-  editButtonSmall: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 20,
-    height: 20,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.xs,
-    backgroundColor: colors.bgPanel,
-    color: colors.textMuted,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    fontSize: 9,
-    // @ts-expect-error Electron specific
+    maxWidth: 100,
     WebkitAppRegion: "no-drag",
   },
-  removeButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: 20,
-    height: 20,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.xs,
-    backgroundColor: colors.bgPanel,
-    color: colors.danger,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    fontSize: 9,
-    // @ts-expect-error Electron specific
-    WebkitAppRegion: "no-drag",
-  },
-  addCardButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.xs,
-    padding: `${spacing.sm}px ${spacing.md}px`,
-    border: `1px dashed ${colors.border}`,
-    borderRadius: radius.sm,
-    backgroundColor: "transparent",
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: 600,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    width: "100%",
-  },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: spacing.xs,
-  },
-  statCard: {
-    position: "relative",
-    backgroundColor: colors.bgCard,
-    border: `1px solid ${colors.border}`,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    display: "flex",
-    flexDirection: "column",
+  loadoutName: {
     overflow: "hidden",
-    cursor: "default",
-    transition: "all 0.2s ease",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    flex: 1,
+    textAlign: "left",
   },
-  dragHandleCard: {
+  loadoutDropdown: {
     position: "absolute",
-    left: "50%",
-    top: spacing.xs,
-    transform: "translateX(-50%) rotate(90deg)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: colors.textMuted,
-    cursor: "grab",
-    zIndex: 3,
-    padding: 2,
-    borderRadius: radius.xs,
-    transition: "all 0.2s ease",
-    // @ts-expect-error Electron specific
-    WebkitAppRegion: "no-drag",
-  },
-  statIcon: {
-    position: "absolute",
-    right: spacing.xs,
-    top: "50%",
-    transform: "translateY(-50%)",
-    opacity: 0.05,
-    color: colors.iconWatermark,
-    pointerEvents: "none",
-  },
-  statLabel: {
-    fontSize: 9,
-    fontWeight: 600,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: "0.05em",
-    marginBottom: spacing.xs,
-    zIndex: 1,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: 700,
-    fontFamily: typography.mono,
-    zIndex: 1,
-  },
-  statUnit: {
-    fontSize: "0.7em",
-    fontWeight: 600,
-    opacity: 0.7,
-  },
-  selectorButton: {
-    width: "100%",
-    padding: `${spacing.xs}px ${spacing.sm}px`,
-    backgroundColor: colors.bgBase,
+    top: "100%",
+    left: 0,
+    marginTop: 4,
+    background: colors.bgCard,
     border: `1px solid ${colors.border}`,
-    borderRadius: radius.xs,
+    borderRadius: radius.sm,
+    minWidth: 120,
+    maxHeight: 200,
+    overflowY: "auto",
+    zIndex: 10000,
+    boxShadow: `0 4px 12px ${colors.bgBase}80`,
+  },
+  loadoutOption: {
+    display: "block",
+    width: "100%",
+    padding: "6px 10px",
+    border: "none",
+    background: "transparent",
     color: colors.textPrimary,
     fontSize: 10,
-    fontWeight: 600,
+    fontWeight: 500,
     cursor: "pointer",
     textAlign: "left",
   },
-  selectorOverlay: {
+
+  // ─── Settings Panel ───
+  settingsPanel: {
+    padding: "6px 10px",
+    background: colors.bgPanel,
+    borderBottom: `1px solid ${colors.border}`,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    flexWrap: "wrap",
+  },
+  settingsSpacer: {
+    flex: 1,
+    minWidth: 8,
+  },
+  settingsActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+  },
+  presetBtns: { display: "flex", gap: 4, flexWrap: "wrap" },
+  presetBtn: {
+    padding: "4px 8px",
+    border: `1px solid ${colors.border}`,
+    borderRadius: 4,
+    background: colors.bgCard,
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  actionBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "4px 10px",
+    border: `1px solid ${colors.border}`,
+    borderRadius: 4,
+    background: colors.bgCard,
+    color: colors.textPrimary,
+    fontSize: 10,
+    fontWeight: 500,
+    cursor: "pointer",
+  },
+
+  // ─── Stat Card (Grid) ───
+  statCard: {
+    position: "relative",
+    background: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    padding: "8px 10px",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    minHeight: 50,
+    minWidth: 0,
+    flex: "1 1 auto",
+  },
+  cardIcon: {
+    position: "absolute",
+    right: 6,
+    top: "50%",
+    transform: "translateY(-50%)",
+    opacity: 0.06,
+    color: colors.iconWatermark,
+    pointerEvents: "none",
+  },
+  cardDragHandle: {
+    position: "absolute",
+    left: "50%",
+    top: 4,
+    transform: "translateX(-50%)",
+    color: colors.textMuted,
+    cursor: "grab",
+    opacity: 0.5,
+    WebkitAppRegion: "no-drag",
+  },
+  cardActions: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    display: "flex",
+    gap: 2,
+    zIndex: 2,
+  },
+  cardEditBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 18,
+    height: 18,
+    border: `1px solid ${colors.success}50`,
+    borderRadius: 3,
+    background: `${colors.success}15`,
+    color: colors.success,
+    cursor: "pointer",
+    WebkitAppRegion: "no-drag",
+  },
+  cardRemoveBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 18,
+    height: 18,
+    border: `1px solid ${colors.danger}50`,
+    borderRadius: 3,
+    background: `${colors.danger}15`,
+    color: colors.danger,
+    cursor: "pointer",
+    WebkitAppRegion: "no-drag",
+  },
+  cardLabel: {
+    fontSize: 9,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    marginBottom: 2,
+    zIndex: 1,
+  },
+  cardValue: {
+    fontSize: "clamp(14px, 3.5vw, 18px)",
+    fontWeight: 700,
+    fontFamily: typography.mono,
+    zIndex: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
+  cardUnit: { fontSize: "0.65em", fontWeight: 600, opacity: 0.7 },
+  addCardBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "8px 12px",
+    border: `1px dashed ${colors.border}`,
+    borderRadius: radius.sm,
+    background: "transparent",
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+    width: "100%",
+  },
+
+  // ─── Stat Chip (Horizontal) ───
+  statChip: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "4px 8px",
+    background: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+  },
+  chipDragHandle: { color: colors.textMuted, cursor: "grab", opacity: 0.5 },
+  chipLabel: {
+    fontSize: 8,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+  },
+  chipValue: {
+    fontSize: 11,
+    fontWeight: 700,
+    fontFamily: typography.mono,
+    color: colors.textPrimary,
+  },
+  chipUnit: { fontSize: 8, fontWeight: 500, opacity: 0.6, marginLeft: 1 },
+  chipActions: { display: "flex", alignItems: "center", gap: 2, marginLeft: 2 },
+  chipEditBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 14,
+    height: 14,
+    border: "none",
+    borderRadius: 2,
+    background: `${colors.success}15`,
+    color: colors.success,
+    cursor: "pointer",
+  },
+  chipRemoveBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 14,
+    height: 14,
+    border: "none",
+    borderRadius: 2,
+    background: `${colors.danger}15`,
+    color: colors.danger,
+    cursor: "pointer",
+  },
+  addChipBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 24,
+    height: 24,
+    border: `1px dashed ${colors.border}`,
+    borderRadius: radius.sm,
+    background: "transparent",
+    color: colors.textMuted,
+    fontSize: 12,
+    cursor: "pointer",
+  },
+
+  // ─── Stat Row (Vertical) ───
+  statRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "6px 8px",
+    background: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+  },
+  rowDragHandle: { color: colors.textMuted, cursor: "grab", opacity: 0.5 },
+  rowIcon: { color: colors.textMuted, opacity: 0.4, flexShrink: 0 },
+  rowLabel: {
+    fontSize: 9,
+    fontWeight: 600,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    flex: 1,
+  },
+  rowValue: {
+    fontSize: 12,
+    fontWeight: 700,
+    fontFamily: typography.mono,
+    color: colors.textPrimary,
+  },
+  rowUnit: { fontSize: 9, fontWeight: 500, opacity: 0.6 },
+  rowActions: { display: "flex", alignItems: "center", gap: 2 },
+  rowEditBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 16,
+    height: 16,
+    border: "none",
+    borderRadius: 2,
+    background: `${colors.success}15`,
+    color: colors.success,
+    cursor: "pointer",
+  },
+  rowRemoveBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 16,
+    height: 16,
+    border: "none",
+    borderRadius: 2,
+    background: `${colors.danger}15`,
+    color: colors.danger,
+    cursor: "pointer",
+  },
+  addRowBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "6px",
+    border: `1px dashed ${colors.border}`,
+    borderRadius: radius.sm,
+    background: "transparent",
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+
+  // ─── Selector Modal ───
+  overlay: {
     position: "fixed",
     top: 0,
     left: 0,
@@ -1189,63 +1831,148 @@ const styles: Record<string, React.CSSProperties> = {
     bottom: 0,
     zIndex: 9999,
   },
+  portalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99999,
+    background: "transparent",
+  },
+  portalDropdown: {
+    position: "fixed",
+    zIndex: 100000,
+    background: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    boxShadow: `0 4px 16px ${colors.bgBase}`,
+    overflow: "hidden",
+  },
   selectorModal: {
     position: "fixed",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
-    zIndex: 10001,
+    zIndex: 100000,
     width: "90%",
-    maxWidth: 420,
-    padding: spacing.xs,
+    maxWidth: 300,
+    background: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.md,
+    boxShadow: `0 8px 32px ${colors.bgBase}`,
+    overflow: "hidden",
+  },
+  selectorHeader: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: colors.textPrimary,
+    padding: "12px 14px 10px",
+    borderBottom: `1px solid ${colors.border}`,
+    background: colors.bgPanel,
   },
   selectorDropdown: {
-    position: "absolute",
-    top: "100%",
+    maxHeight: 280,
+    overflowY: "auto",
+    padding: "8px 0",
+  },
+  selectorGroupHeader: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: colors.textSecondary,
+    letterSpacing: "0.5px",
+    padding: "8px 12px",
+    marginBottom: 2,
+  },
+  selectorOption: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    width: "100%",
+    padding: "8px 12px",
+    border: "none",
+    background: "transparent",
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: 500,
+    cursor: "pointer",
+    textAlign: "left",
+  },
+
+  // ─── Centered Modal (for dropdowns in small windows) ───
+  modalBackdrop: {
+    position: "fixed",
+    top: 0,
     left: 0,
     right: 0,
+    bottom: 0,
+    background: `${colors.bgBase}90`,
+    zIndex: 99999,
+  },
+  centeredModal: {
+    position: "fixed",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: colors.bgCard,
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.md,
+    minWidth: 150,
+    maxWidth: "90%",
+    maxHeight: "80%",
+    overflowY: "auto",
+    zIndex: 100000,
+    boxShadow: `0 8px 32px ${colors.bgBase}`,
+  },
+  modalHeader: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: colors.textMuted,
+    textTransform: "uppercase",
+    padding: "10px 12px 6px",
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+  },
+  modalOption: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    width: "100%",
+    padding: "10px 12px",
+    border: "none",
+    background: "transparent",
+    color: colors.textPrimary,
+    fontSize: 11,
+    fontWeight: 500,
+    cursor: "pointer",
+    textAlign: "left",
+  },
+
+  // ─── Layout Dropdown (legacy, kept for reference) ───
+  layoutDropdown: {
+    position: "absolute",
+    top: "100%",
+    right: 0,
     marginTop: 4,
-    backgroundColor: colors.bgCard,
+    background: colors.bgCard,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.sm,
-    maxHeight: 200,
-    overflowY: "auto",
+    overflow: "hidden",
     zIndex: 10000,
     boxShadow: `0 4px 12px ${colors.bgBase}80`,
   },
-  selectorOption: {
+  layoutOption: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
     width: "100%",
-    padding: `${spacing.xs}px ${spacing.sm}px`,
+    padding: "6px 12px",
     border: "none",
-    backgroundColor: "transparent",
+    background: "transparent",
     color: colors.textPrimary,
     fontSize: 10,
     fontWeight: 500,
     cursor: "pointer",
-    textAlign: "left",
-    display: "flex",
-    alignItems: "center",
-    gap: spacing.xs,
-    transition: "background-color 0.1s ease",
-  },
-  selectorCategory: {
-    fontSize: 8,
-    color: colors.textMuted,
-    textTransform: "uppercase",
-    minWidth: 50,
-    display: "none",
-  },
-  selectorGroupHeader: {
-    fontSize: 9,
-    fontWeight: 700,
-    color: colors.textSecondary,
-    textTransform: "uppercase",
-    padding: `${spacing.xs}px ${spacing.sm}px`,
-  },
-  selectorGroupDivider: {
-    height: 1,
-    backgroundColor: colors.borderSubtle,
-    margin: `${spacing.xs}px 0`,
+    whiteSpace: "nowrap",
   },
 };
 

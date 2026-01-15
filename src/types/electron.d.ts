@@ -75,6 +75,7 @@ interface LiveStats {
 interface PopoutAPI {
   open: () => Promise<{ success: boolean }>;
   close: () => Promise<{ success: boolean }>;
+  resize: (width: number, height: number) => Promise<{ success: boolean }>;
   status: () => Promise<{ open: boolean }>;
   sendStats: (stats: LiveStats) => void;
   onStatsUpdate: (callback: (stats: LiveStats) => void) => () => void;

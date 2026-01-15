@@ -24,6 +24,10 @@ export interface EquipmentRecord {
   category?: string;
   decay: number;       // PED per shot (stored internally, displayed as PEC in UI)
   ammoBurn: number;    // Raw ammo burn (multiply by 0.0001 for PED)
+  efficiency?: number; // Weapon efficiency stat (affects loot composition)
+  range?: number;      // Weapon range in meters
+  maxTT?: number;      // Max TT value in PED
+  minTT?: number;      // Min TT value in PED (repair threshold)
   damage?: DamageRecord;
 }
 
@@ -46,9 +50,13 @@ interface RawEquipmentData {
   Properties?: {
     Type?: string;
     Category?: string;
+    Range?: number;
     Economy?: {
       Decay?: number;
       AmmoBurn?: number;
+      Efficiency?: number;
+      MaxTT?: number;
+      MinTT?: number;
     };
     Damage?: RawDamageData;
   };
@@ -123,6 +131,10 @@ class EquipmentDB {
           category: item.Properties?.Category,
           decay: (item.Properties?.Economy?.Decay ?? 0) / 100,  // Convert PEC to PED at source
           ammoBurn: item.Properties?.Economy?.AmmoBurn ?? 0,
+          efficiency: item.Properties?.Economy?.Efficiency,
+          range: item.Properties?.Range,
+          maxTT: item.Properties?.Economy?.MaxTT,
+          minTT: item.Properties?.Economy?.MinTT,
         };
         
         // Add damage properties if present (weapons and amps)

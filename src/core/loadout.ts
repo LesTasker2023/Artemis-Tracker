@@ -1,4 +1,15 @@
 /**
+ * Calculate weapon range including range enhancers
+ */
+export function calculateRange(loadout: Loadout): number {
+  if (!loadout.weapon) return 0;
+  // Use weapon base range from equipment data
+  const baseRange = loadout.weapon.range ?? 0;
+  const rangeEnhancers = loadout.rangeEnhancers || 0;
+  // Each enhancer adds +5% range (multiplicative)
+  return baseRange * (1 + 0.05 * rangeEnhancers);
+}
+/**
  * Loadout System - Cost-per-shot calculation
  * Based on V2 ARTEMIS LoadoutService calculations
  * No external dependencies, pure TypeScript
@@ -9,6 +20,7 @@
 export interface EquipmentEconomy {
   decay: number;      // PED per shot (stored internally, displayed as PEC in UI)
   ammoBurn: number;   // Raw ammo burn value (multiply by 0.0001 for PED)
+  efficiency?: number; // Weapon efficiency stat (affects loot composition)
 }
 
 export interface DamageProperties {
@@ -27,6 +39,9 @@ export interface Equipment {
   name: string;
   economy: EquipmentEconomy;
   damage?: DamageProperties;
+  range?: number;      // Weapon range in meters
+  maxTT?: number;      // Max TT value in PED
+  minTT?: number;      // Min TT value in PED (repair threshold)
 }
 
 /**
@@ -57,6 +72,7 @@ export interface Loadout {
   amp?: Equipment;
   scope?: Equipment;
   sight?: Equipment;
+  sight2?: Equipment;  // Second sight slot
   
   // Armor - for decay tracking
   armor?: ArmorSet;
@@ -98,6 +114,7 @@ export interface LoadoutCosts {
   ampCost: number;
   scopeCost: number;
   sightCost: number;
+  sight2Cost: number;
   weaponEnhancerCost: number;
   armorEnhancerCost: number;
   totalPerShot: number;
@@ -209,6 +226,7 @@ export function calculateLoadoutCosts(loadout: Loadout): LoadoutCosts {
   // Scope and sight costs (decay only, no ammo burn)
   const scopeCost = calculateAttachmentCost(loadout.scope);
   const sightCost = calculateAttachmentCost(loadout.sight);
+  const sight2Cost = calculateAttachmentCost(loadout.sight2);
   
   // Damage enhancers increase weapon decay and ammo burn by 10% each
   // Support legacy weaponEnhancerSlots for backward compatibility
@@ -238,9 +256,10 @@ export function calculateLoadoutCosts(loadout: Loadout): LoadoutCosts {
     ampCost: finalAmpCost,
     scopeCost,
     sightCost,
+    sight2Cost,
     weaponEnhancerCost,
     armorEnhancerCost,
-    totalPerShot: finalWeaponCost + finalAmpCost + scopeCost + sightCost + weaponEnhancerCost + armorEnhancerCost,
+    totalPerShot: finalWeaponCost + finalAmpCost + scopeCost + sightCost + sight2Cost + weaponEnhancerCost + armorEnhancerCost,
     armorDecayPerHit,
   };
 }
@@ -356,12 +375,38 @@ export function getCritRate(loadout: Loadout): number {
 }
 
 /**
- * Get modified weapon decay (PEC) with damage and economy enhancers applied
+ * Get modified weapon + amp decay (PEC) with damage and economy enhancers applied
+ * Note: Damage enhancers only affect WEAPON decay, not amp decay
+ * Economy enhancers affect both weapon and amp decay
  */
 export function getModifiedDecay(loadout: Loadout): number {
   if (!loadout.weapon) return 0;
   
-  const baseDecay = loadout.weapon.economy.decay;
+  const weaponDecay = loadout.weapon.economy.decay;
+  const ampDecay = loadout.amp?.economy.decay ?? 0;
+  
+  const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
+  const economyEnhancers = loadout.economyEnhancers || 0;
+  
+  // Damage enhancers increase WEAPON decay only by 10% each
+  const damageMultiplier = 1 + (damageEnhancers * 0.1);
+  // Economy enhancers reduce both weapon and amp decay by 1.1% each
+  const economyMultiplier = Math.pow(0.989, economyEnhancers);
+  
+  const modifiedWeaponDecay = weaponDecay * damageMultiplier * economyMultiplier;
+  const modifiedAmpDecay = ampDecay * economyMultiplier;
+  
+  return modifiedWeaponDecay + modifiedAmpDecay;
+}
+
+/**
+ * Get modified WEAPON-ONLY decay (for Total Uses calculation)
+ * Total Uses = weapon durability, amp has separate durability
+ */
+export function getModifiedWeaponDecay(loadout: Loadout): number {
+  if (!loadout.weapon) return 0;
+  
+  const weaponDecay = loadout.weapon.economy.decay;
   const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
   const economyEnhancers = loadout.economyEnhancers || 0;
   
@@ -370,7 +415,7 @@ export function getModifiedDecay(loadout: Loadout): number {
   // Economy enhancers reduce by 1.1% each
   const economyMultiplier = Math.pow(0.989, economyEnhancers);
   
-  return baseDecay * damageMultiplier * economyMultiplier;
+  return weaponDecay * damageMultiplier * economyMultiplier;
 }
 
 /**
@@ -389,6 +434,45 @@ export function getModifiedAmmo(loadout: Loadout): number {
   const economyMultiplier = Math.pow(0.989, economyEnhancers);
   
   return baseAmmo * damageMultiplier * economyMultiplier;
+}
+
+/**
+ * Get total ammo burn including both weapon and amplifier
+ */
+export function getTotalAmmo(loadout: Loadout): number {
+  const weaponAmmo = getModifiedAmmo(loadout);
+  const ampAmmo = loadout.amp?.economy.ammoBurn || 0;
+  return weaponAmmo + ampAmmo;
+}
+
+/**
+ * Get efficiency percentage - a weapon stat that affects loot composition
+ * Combined efficiency is damage-weighted average of weapon and amp efficiency
+ */
+export function getEfficiency(loadout: Loadout): number {
+  if (!loadout.weapon) return 0;
+  
+  const weaponEfficiency = loadout.weapon.economy.efficiency ?? 0;
+  const weaponDamage = calculateTotalDamage(loadout.weapon);
+  
+  // Apply damage enhancer multiplier to weapon damage
+  const damageEnhancers = (loadout.damageEnhancers || 0) + (loadout.weaponEnhancerSlots || 0);
+  const enhancedWeaponDamage = weaponDamage * (1 + damageEnhancers * 0.1);
+  
+  // If no amp, just return weapon efficiency
+  if (!loadout.amp) {
+    return weaponEfficiency / 100;
+  }
+  
+  const ampEfficiency = loadout.amp.economy.efficiency ?? 0;
+  const ampDamage = calculateTotalDamage(loadout.amp);
+  
+  // Damage-weighted average
+  const totalDamage = enhancedWeaponDamage + ampDamage;
+  if (totalDamage <= 0) return weaponEfficiency / 100;
+  
+  const combinedEfficiency = (weaponEfficiency * enhancedWeaponDamage + ampEfficiency * ampDamage) / totalDamage;
+  return combinedEfficiency / 100;
 }
 
 /**

@@ -533,13 +533,19 @@ function createWindow() {
     height: 700,
     backgroundColor: '#0f172a',
     icon: windowIcon,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      devTools: false,
     },
+  });
+
+  // Show maximized when ready
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
+    mainWindow.show();
   });
 
   // Load app
@@ -579,8 +585,9 @@ function createPopoutWindow() {
   popoutWindow = new BrowserWindow({
     width: 220,
     height: 200,
-    minWidth: 180,
-    minHeight: 24, // Allow fully-collapsed top-bar mode (matches UI collapsed height)
+    minWidth: 120,
+    minHeight: 24,
+    useContentSize: true,
     backgroundColor: '#090d13',
     frame: false,
     transparent: true,
@@ -593,7 +600,6 @@ function createPopoutWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      devTools: false,
     },
   });
 
@@ -981,6 +987,14 @@ ipcMain.handle('popout:open', () => {
 ipcMain.handle('popout:close', () => {
   if (popoutWindow && !popoutWindow.isDestroyed()) {
     popoutWindow.close();
+  }
+  return { success: true };
+});
+
+ipcMain.handle('popout:resize', (_event: unknown, width: number, height: number) => {
+  if (popoutWindow && !popoutWindow.isDestroyed()) {
+    // Use setContentSize for accurate sizing (accounts for any frame/border)
+    popoutWindow.setContentSize(Math.round(width), Math.round(height));
   }
   return { success: true };
 });

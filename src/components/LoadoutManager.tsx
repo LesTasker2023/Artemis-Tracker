@@ -4,7 +4,6 @@
  */
 
 import { useState, useEffect } from "react";
-// Icons removed per user request
 import {
   Loadout,
   Equipment,
@@ -18,13 +17,15 @@ import {
   getHitRate,
   getCritRate,
   getModifiedDecay,
-  getModifiedAmmo,
+  getModifiedWeaponDecay,
+  getTotalAmmo,
+  getEfficiency,
+  calculateRange,
 } from "../core/loadout";
 import { useLoadouts } from "../hooks/useLoadouts";
+import { useEquipmentDB } from "../hooks/useEquipmentDB";
 import { EquipmentAutocomplete } from "./EquipmentAutocomplete";
 import { EquipmentRecord } from "../core/equipment-db";
-// @ts-ignore: CSS module declaration
-import styles from "./LoadoutManager.module.css";
 
 // ==================== Helper: Create Equipment from Record ====================
 
@@ -34,7 +35,11 @@ function createEquipmentFromRecord(record: EquipmentRecord): Equipment {
     economy: {
       decay: record.decay,
       ammoBurn: record.ammoBurn,
+      efficiency: record.efficiency,
     },
+    range: record.range,
+    maxTT: record.maxTT,
+    minTT: record.minTT,
   };
 
   if (record.damage) {
@@ -42,17 +47,6 @@ function createEquipmentFromRecord(record: EquipmentRecord): Equipment {
   }
 
   return equipment;
-}
-
-function createEquipmentManual(
-  name: string,
-  decay: number,
-  ammoBurn: number
-): Equipment {
-  return {
-    name,
-    economy: { decay, ammoBurn },
-  };
 }
 
 // ==================== Loadout Dropdown Selector ====================
@@ -224,143 +218,6 @@ function LoadoutDropdown({
   );
 }
 
-// ==================== Enhancer Row Component ====================
-
-interface EnhancerRowProps {
-  label: string;
-  color: string;
-  value: number;
-  max: number;
-  total: number;
-  bonus: string;
-  onChange: (value: number) => void;
-}
-
-function EnhancerRow({
-  label,
-  color,
-  value,
-  max,
-  total,
-  bonus,
-  onChange,
-}: EnhancerRowProps) {
-  const canIncrease = total < 10;
-  const canDecrease = value > 0;
-
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "6px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span
-            style={{
-              fontSize: "12px",
-              fontWeight: 600,
-              color: "hsl(0 0% 95%)",
-            }}
-          >
-            {label}
-          </span>
-          <span
-            style={{
-              fontSize: "11px",
-              fontFamily: "monospace",
-              color,
-              fontWeight: 600,
-            }}
-          >
-            {bonus}
-          </span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <button
-            type="button"
-            onClick={() => canDecrease && onChange(value - 1)}
-            disabled={!canDecrease}
-            style={{
-              width: "24px",
-              height: "24px",
-              borderRadius: "4px",
-              border: "1px solid hsl(220 13% 25%)",
-              backgroundColor: canDecrease
-                ? "hsl(220 13% 18%)"
-                : "hsl(220 13% 12%)",
-              color: canDecrease ? "hsl(0 0% 95%)" : "hsl(220 13% 35%)",
-              cursor: canDecrease ? "pointer" : "not-allowed",
-              fontSize: "16px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            -
-          </button>
-          <span
-            style={{
-              fontSize: "13px",
-              fontFamily: "monospace",
-              fontWeight: 700,
-              color: "hsl(0 0% 95%)",
-              minWidth: "20px",
-              textAlign: "center",
-            }}
-          >
-            {value}
-          </span>
-          <button
-            type="button"
-            onClick={() => canIncrease && onChange(value + 1)}
-            disabled={!canIncrease}
-            style={{
-              width: "24px",
-              height: "24px",
-              borderRadius: "4px",
-              border: "1px solid hsl(220 13% 25%)",
-              backgroundColor: canIncrease
-                ? "hsl(220 13% 18%)"
-                : "hsl(220 13% 12%)",
-              color: canIncrease ? "hsl(0 0% 95%)" : "hsl(220 13% 35%)",
-              cursor: canIncrease ? "pointer" : "not-allowed",
-              fontSize: "16px",
-              fontWeight: 700,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-      <div
-        style={{
-          height: "6px",
-          backgroundColor: "hsl(220 13% 18%)",
-          borderRadius: "3px",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${(value / max) * 100}%`,
-            backgroundColor: color,
-            transition: "width 0.2s ease",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
 // ==================== Equipment Card with Autocomplete ====================
 
 interface EquipmentCardProps {
@@ -515,7 +372,6 @@ function LoadoutCard({
   onDelete,
 }: LoadoutCardProps) {
   const effective = getEffectiveCostPerShot(loadout);
-  // const costs = calculateLoadoutCosts(loadout);
 
   return (
     <div
@@ -682,7 +538,50 @@ interface LoadoutEditorProps {
 
 function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
   const [draft, setDraft] = useState<Loadout>({ ...loadout });
-  const { loadouts, activeLoadout, setActive } = useLoadouts();
+  const { findByName, loaded: equipmentLoaded } = useEquipmentDB();
+
+  // Enhance equipment data when editor opens (re-fetch from DB to get latest fields like minTT)
+  useEffect(() => {
+    if (!equipmentLoaded) return;
+
+    setDraft((prev) => {
+      let updated = { ...prev };
+
+      // Enhance weapon data
+      if (prev.weapon?.name) {
+        const record = findByName(prev.weapon.name, "weapon");
+        if (record) {
+          updated.weapon = createEquipmentFromRecord(record);
+        }
+      }
+
+      // Enhance amp data
+      if (prev.amp?.name) {
+        const record = findByName(prev.amp.name, "amp");
+        if (record) {
+          updated.amp = createEquipmentFromRecord(record);
+        }
+      }
+
+      // Enhance scope data
+      if (prev.scope?.name) {
+        const record = findByName(prev.scope.name, "scope");
+        if (record) {
+          updated.scope = createEquipmentFromRecord(record);
+        }
+      }
+
+      // Enhance sight data
+      if (prev.sight?.name) {
+        const record = findByName(prev.sight.name, "sight");
+        if (record) {
+          updated.sight = createEquipmentFromRecord(record);
+        }
+      }
+
+      return updated;
+    });
+  }, [equipmentLoaded, findByName]);
 
   const updateEquipment = (key: keyof Loadout, eq: Equipment | undefined) => {
     setDraft((prev) => ({ ...prev, [key]: eq }));
@@ -694,163 +593,155 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
     : { min: 0, max: 0 };
   const dpp = draft.weapon ? calculateDPP(draft) : 0;
 
+  // Calculate total uses (limiting factor between weapon and amp)
+  const getTotalUses = () => {
+    const weaponDecay = getModifiedWeaponDecay(draft);
+    const ampDecay = draft.amp?.economy.decay ?? 0;
+
+    if (weaponDecay <= 0 || !draft.weapon?.maxTT) return null;
+
+    const weaponUses =
+      ((draft.weapon.maxTT ?? 0) - (draft.weapon.minTT ?? 0)) / weaponDecay;
+
+    if (draft.amp && ampDecay > 0 && draft.amp.maxTT) {
+      const ampUses =
+        ((draft.amp.maxTT ?? 0) - (draft.amp.minTT ?? 0)) / ampDecay;
+      return Math.floor(Math.min(weaponUses, ampUses));
+    }
+
+    return Math.floor(weaponUses);
+  };
+
+  const totalEnhancers =
+    (draft.damageEnhancers || 0) +
+    (draft.accuracyEnhancers || 0) +
+    (draft.rangeEnhancers || 0) +
+    (draft.economyEnhancers || 0);
+
   return (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(0,0,0,0.92)",
+        backgroundColor: "rgba(0,0,0,0.95)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         zIndex: 50,
-        padding: "24px",
-        overflow: "auto",
+        padding: "20px",
       }}
     >
       <div
         style={{
-          backgroundColor: "hsl(220 13% 8%)",
-          borderRadius: "12px",
-          border: "1px solid hsl(220 13% 18%)",
+          backgroundColor: "hsl(220 13% 6%)",
+          borderRadius: "16px",
+          border: "1px solid hsl(220 13% 15%)",
           width: "100%",
-          maxWidth: "1200px",
+          maxWidth: "1400px",
           maxHeight: "95vh",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: "20px 24px",
-            borderBottom: "1px solid hsl(220 13% 18%)",
+            padding: "20px 28px",
+            borderBottom: "1px solid hsl(220 13% 12%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "hsl(220 13% 8%)",
+            background:
+              "linear-gradient(180deg, hsl(220 13% 8%) 0%, hsl(220 13% 6%) 100%)",
           }}
         >
-          <div>
-            <h2
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <input
+              type="text"
+              value={draft.name}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, name: e.target.value }))
+              }
               style={{
-                fontSize: "20px",
-                fontWeight: 700,
+                padding: "10px 16px",
+                backgroundColor: "hsl(220 13% 10%)",
+                border: "1px solid hsl(220 13% 20%)",
+                borderRadius: "8px",
+                fontSize: "16px",
                 color: "hsl(0 0% 95%)",
-                marginBottom: "4px",
+                fontWeight: 600,
+                width: "280px",
               }}
-            >
-              {loadout.id ? "Edit Loadout" : "New Loadout"}
-            </h2>
-            <p style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>
-              Configure your equipment and weapon enhancers
-            </p>
+              placeholder="Loadout name..."
+            />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: "4px",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "10px",
-                  color: "hsl(220 13% 45%)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Active Loadout
-              </span>
-              <LoadoutDropdown
-                loadouts={loadouts}
-                activeLoadout={activeLoadout}
-                onSelect={setActive}
-                compact
-              />
-            </div>
             <button
               onClick={onCancel}
               style={{
-                padding: "6px 14px",
+                padding: "10px 20px",
                 backgroundColor: "transparent",
                 border: "1px solid hsl(220 13% 25%)",
-                borderRadius: "6px",
+                borderRadius: "8px",
                 color: "hsl(220 13% 65%)",
                 cursor: "pointer",
-                fontSize: "13px",
+                fontSize: "14px",
                 fontWeight: 500,
               }}
             >
-              Close
+              Cancel
+            </button>
+            <button
+              onClick={() => onSave(draft)}
+              disabled={!draft.name.trim()}
+              style={{
+                padding: "10px 24px",
+                background: draft.name.trim()
+                  ? "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)"
+                  : "hsl(220 13% 18%)",
+                color: draft.name.trim() ? "white" : "hsl(220 13% 45%)",
+                border: "none",
+                borderRadius: "8px",
+                cursor: draft.name.trim() ? "pointer" : "not-allowed",
+                fontSize: "14px",
+                fontWeight: 600,
+              }}
+            >
+              Save Loadout
             </button>
           </div>
         </div>
 
-        {/* Content - Two Column Layout */}
+        {/* Main Content - Two Column Layout */}
         <div
           style={{
             flex: 1,
             overflow: "auto",
-            padding: "24px",
             display: "grid",
-            gridTemplateColumns: "1fr 360px",
-            gap: "24px",
+            gridTemplateColumns: "1fr 400px",
+            gap: "0",
           }}
         >
-          {/* Left Column - Equipment */}
+          {/* LEFT COLUMN - Configurables */}
           <div
-            style={{ display: "flex", flexDirection: "column", gap: "24px" }}
+            style={{
+              padding: "24px",
+              overflowY: "auto",
+              borderRight: "1px solid hsl(220 13% 12%)",
+            }}
           >
-            {/* Name Input */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: "hsl(220 13% 45%)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "8px",
-                }}
-              >
-                Loadout Name
-              </label>
-              <input
-                type="text"
-                value={draft.name}
-                onChange={(e) =>
-                  setDraft((prev) => ({ ...prev, name: e.target.value }))
-                }
-                style={{
-                  width: "100%",
-                  padding: "12px 14px",
-                  backgroundColor: "hsl(220 13% 12%)",
-                  border: "1px solid hsl(220 13% 25%)",
-                  borderRadius: "8px",
-                  fontSize: "15px",
-                  color: "hsl(0 0% 95%)",
-                  fontWeight: 500,
-                }}
-                placeholder="Enter loadout name..."
-              />
-            </div>
-
-            {/* Weapons Section */}
-            <div>
+            {/* Equipment Section */}
+            <section style={{ marginBottom: "28px" }}>
               <h3
                 style={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "hsl(220 13% 65%)",
-                  marginBottom: "16px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "hsl(220 13% 50%)",
                   textTransform: "uppercase",
-                  letterSpacing: "0.05em",
+                  letterSpacing: "0.1em",
+                  marginBottom: "16px",
                 }}
               >
                 Equipment
@@ -887,937 +778,649 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   onChange={(eq) => updateEquipment("sight", eq)}
                 />
               </div>
-            </div>
+            </section>
 
-            {/* Weapon Enhancers Section */}
-            <div>
-              <h3
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "hsl(220 13% 65%)",
-                  marginBottom: "16px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                Weapon Enhancers (10 Slots Total)
-              </h3>
+            {/* Enhancers Section */}
+            <section style={{ marginBottom: "28px" }}>
               <div
-                style={{
-                  padding: "16px",
-                  backgroundColor: "hsl(220 13% 12%)",
-                  borderRadius: "8px",
-                  border: "1px solid hsl(220 13% 18%)",
-                }}
-              >
-                {/* Enhancer Type Rows */}
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "12px",
-                  }}
-                >
-                  {/* Damage Enhancers */}
-                  <EnhancerRow
-                    label="Damage"
-                    color="hsl(0 72% 60%)"
-                    value={draft.damageEnhancers || 0}
-                    max={10}
-                    total={
-                      (draft.damageEnhancers || 0) +
-                      (draft.accuracyEnhancers || 0) +
-                      (draft.rangeEnhancers || 0) +
-                      (draft.economyEnhancers || 0)
-                    }
-                    bonus={`+${(draft.damageEnhancers || 0) * 10}% dmg`}
-                    onChange={(val) =>
-                      setDraft((prev) => ({ ...prev, damageEnhancers: val }))
-                    }
-                  />
-
-                  {/* Accuracy Enhancers */}
-                  <EnhancerRow
-                    label="Accuracy"
-                    color="hsl(142 71% 55%)"
-                    value={draft.accuracyEnhancers || 0}
-                    max={10}
-                    total={
-                      (draft.damageEnhancers || 0) +
-                      (draft.accuracyEnhancers || 0) +
-                      (draft.rangeEnhancers || 0) +
-                      (draft.economyEnhancers || 0)
-                    }
-                    bonus={`+${((draft.accuracyEnhancers || 0) * 0.2).toFixed(
-                      1
-                    )}% crit`}
-                    onChange={(val) =>
-                      setDraft((prev) => ({ ...prev, accuracyEnhancers: val }))
-                    }
-                  />
-
-                  {/* Range Enhancers */}
-                  <EnhancerRow
-                    label="Range"
-                    color="hsl(217 91% 68%)"
-                    value={draft.rangeEnhancers || 0}
-                    max={10}
-                    total={
-                      (draft.damageEnhancers || 0) +
-                      (draft.accuracyEnhancers || 0) +
-                      (draft.rangeEnhancers || 0) +
-                      (draft.economyEnhancers || 0)
-                    }
-                    bonus={`+${(draft.rangeEnhancers || 0) * 5}% rng`}
-                    onChange={(val) =>
-                      setDraft((prev) => ({ ...prev, rangeEnhancers: val }))
-                    }
-                  />
-
-                  {/* Economy Enhancers */}
-                  <EnhancerRow
-                    label="Economy"
-                    color="hsl(45 100% 60%)"
-                    value={draft.economyEnhancers || 0}
-                    max={10}
-                    total={
-                      (draft.damageEnhancers || 0) +
-                      (draft.accuracyEnhancers || 0) +
-                      (draft.rangeEnhancers || 0) +
-                      (draft.economyEnhancers || 0)
-                    }
-                    bonus={`-${(
-                      (1 - Math.pow(0.989, draft.economyEnhancers || 0)) *
-                      100
-                    ).toFixed(1)}% cost`}
-                    onChange={(val) =>
-                      setDraft((prev) => ({ ...prev, economyEnhancers: val }))
-                    }
-                  />
-                </div>
-
-                {/* Total Slots Display */}
-                <div
-                  style={{
-                    marginTop: "14px",
-                    paddingTop: "14px",
-                    borderTop: "1px solid hsl(220 13% 18%)",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      color: "hsl(220 13% 65%)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Slots Used
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontFamily: "monospace",
-                      fontWeight: 700,
-                      color:
-                        (draft.damageEnhancers || 0) +
-                          (draft.accuracyEnhancers || 0) +
-                          (draft.rangeEnhancers || 0) +
-                          (draft.economyEnhancers || 0) >
-                        10
-                          ? "hsl(0 72% 60%)"
-                          : "hsl(217 91% 68%)",
-                    }}
-                  >
-                    {(draft.damageEnhancers || 0) +
-                      (draft.accuracyEnhancers || 0) +
-                      (draft.rangeEnhancers || 0) +
-                      (draft.economyEnhancers || 0)}{" "}
-                    / 10
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Cost Summary */}
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "16px" }}
-          >
-            {/* Player Skills */}
-            <div
-              style={{
-                padding: "16px",
-                backgroundColor: "hsl(220 13% 12%)",
-                borderRadius: "8px",
-                border: "1px solid hsl(220 13% 18%)",
-              }}
-            >
-              <h4
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: "hsl(220 13% 65%)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
-                  marginBottom: "12px",
-                }}
-              >
-                Player Skills (0-100)
-              </h4>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "12px",
-                }}
-              >
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "12px",
-                      color: "hsl(220 13% 70%)",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    Hit Profession
-                    <span
-                      style={{
-                        color: "hsl(220 13% 50%)",
-                        fontSize: "11px",
-                        marginLeft: "6px",
-                      }}
-                    >
-                      (affects hit rate & crit rate)
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={draft.hitProfession ?? 100}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      setDraft((prev) => ({
-                        ...prev,
-                        hitProfession: isNaN(val)
-                          ? 100
-                          : Math.max(0, Math.min(100, val)),
-                      }));
-                    }}
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      backgroundColor: "hsl(220 13% 8%)",
-                      border: "1px solid hsl(220 13% 25%)",
-                      borderRadius: "6px",
-                      color: "hsl(0 0% 95%)",
-                      fontSize: "14px",
-                      fontFamily: "monospace",
-                    }}
-                  />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      fontSize: "12px",
-                      color: "hsl(220 13% 70%)",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    Damage Profession
-                    <span
-                      style={{
-                        color: "hsl(220 13% 50%)",
-                        fontSize: "11px",
-                        marginLeft: "6px",
-                      }}
-                    >
-                      (affects min damage)
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={draft.damageProfession ?? 100}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      setDraft((prev) => ({
-                        ...prev,
-                        damageProfession: isNaN(val)
-                          ? 100
-                          : Math.max(0, Math.min(100, val)),
-                      }));
-                    }}
-                    style={{
-                      width: "100%",
-                      padding: "8px 12px",
-                      backgroundColor: "hsl(220 13% 8%)",
-                      border: "1px solid hsl(220 13% 25%)",
-                      borderRadius: "6px",
-                      color: "hsl(0 0% 95%)",
-                      fontSize: "14px",
-                      fontFamily: "monospace",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Manual Override */}
-            <div
-              style={{
-                padding: "16px",
-                backgroundColor: "hsl(220 13% 12%)",
-                borderRadius: "8px",
-                border: "1px solid hsl(220 13% 18%)",
-              }}
-            >
-              <label
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "10px",
-                  cursor: "pointer",
+                  justifyContent: "space-between",
+                  marginBottom: "16px",
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={draft.useManualCost}
-                  onChange={(e) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      useManualCost: e.target.checked,
-                    }))
-                  }
-                  style={{ width: "16px", height: "16px", cursor: "pointer" }}
-                />
+                <h3
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    color: "hsl(220 13% 50%)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  Weapon Enhancers
+                </h3>
                 <span
                   style={{
-                    fontSize: "13px",
-                    color: "hsl(0 0% 95%)",
-                    fontWeight: 500,
-                  }}
-                >
-                  Manual cost override
-                </span>
-              </label>
-              {draft.useManualCost && (
-                <input
-                  type="number"
-                  value={
-                    draft.manualCostPerShot !== undefined
-                      ? (draft.manualCostPerShot * 100).toFixed(3)
-                      : ""
-                  }
-                  onChange={(e) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      manualCostPerShot: e.target.value
-                        ? parseFloat(e.target.value) / 100
-                        : undefined,
-                    }))
-                  }
-                  step="0.001"
-                  placeholder="0.000"
-                  style={{
-                    width: "100%",
-                    marginTop: "10px",
-                    padding: "10px 12px",
-                    backgroundColor: "hsl(220 13% 8%)",
-                    border: "1px solid hsl(220 13% 25%)",
-                    borderRadius: "6px",
-                    color: "hsl(0 0% 95%)",
-                    fontSize: "14px",
+                    fontSize: "12px",
+                    color:
+                      totalEnhancers >= 10
+                        ? "hsl(0 72% 60%)"
+                        : "hsl(220 13% 50%)",
+                    fontWeight: 600,
                     fontFamily: "monospace",
                   }}
-                />
-              )}
-            </div>
-
-            {/* Cost Breakdown */}
-            <div
-              style={{
-                padding: "16px",
-                backgroundColor: "hsl(220 13% 12%)",
-                borderRadius: "8px",
-                border: "1px solid hsl(220 13% 18%)",
-              }}
-            >
-              <h4
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: "hsl(220 13% 65%)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  marginBottom: "14px",
-                }}
-              >
-                Cost Breakdown
-              </h4>
+                >
+                  {totalEnhancers} / 10
+                </span>
+              </div>
               <div
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: "12px",
                 }}
               >
-                <CostRow label="Weapon" value={costs.weaponCost} />
-                <CostRow label="Amplifier" value={costs.ampCost} />
-                <CostRow label="Scope" value={costs.scopeCost} />
-                <CostRow label="Sight" value={costs.sightCost} />
-                <CostRow
-                  label="Weapon Enhancers"
-                  value={costs.weaponEnhancerCost}
+                <EnhancerCard
+                  label="Damage"
+                  value={draft.damageEnhancers || 0}
+                  color="hsl(0 72% 55%)"
+                  effect={`+${(draft.damageEnhancers || 0) * 10}%`}
+                  max={10 - totalEnhancers + (draft.damageEnhancers || 0)}
+                  onChange={(val) =>
+                    setDraft((prev) => ({ ...prev, damageEnhancers: val }))
+                  }
                 />
+                <EnhancerCard
+                  label="Accuracy"
+                  value={draft.accuracyEnhancers || 0}
+                  color="hsl(45 100% 55%)"
+                  effect={`+${((draft.accuracyEnhancers || 0) * 0.2).toFixed(
+                    1
+                  )}%`}
+                  max={10 - totalEnhancers + (draft.accuracyEnhancers || 0)}
+                  onChange={(val) =>
+                    setDraft((prev) => ({ ...prev, accuracyEnhancers: val }))
+                  }
+                />
+                <EnhancerCard
+                  label="Range"
+                  value={draft.rangeEnhancers || 0}
+                  color="hsl(200 80% 55%)"
+                  effect={`+${(draft.rangeEnhancers || 0) * 5}%`}
+                  max={10 - totalEnhancers + (draft.rangeEnhancers || 0)}
+                  onChange={(val) =>
+                    setDraft((prev) => ({ ...prev, rangeEnhancers: val }))
+                  }
+                />
+                <EnhancerCard
+                  label="Economy"
+                  value={draft.economyEnhancers || 0}
+                  color="hsl(142 71% 50%)"
+                  effect={`-${(
+                    (1 - Math.pow(0.989, draft.economyEnhancers || 0)) *
+                    100
+                  ).toFixed(1)}%`}
+                  max={10 - totalEnhancers + (draft.economyEnhancers || 0)}
+                  onChange={(val) =>
+                    setDraft((prev) => ({ ...prev, economyEnhancers: val }))
+                  }
+                />
+              </div>
+            </section>
 
-                {/* Combat Rates Display */}
+            {/* Player Skills Section */}
+            <section>
+              <h3
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "hsl(220 13% 50%)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
+                  marginBottom: "16px",
+                }}
+              >
+                Player Skills
+              </h3>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
                 <div
                   style={{
-                    height: "1px",
-                    backgroundColor: "hsl(220 13% 18%)",
-                    margin: "10px 0",
-                  }}
-                />
-                <div style={{ marginTop: "8px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "baseline",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    <span
-                      style={{ fontSize: "13px", color: "hsl(220 13% 75%)" }}
-                    >
-                      Hit Rate
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        color: "hsl(142 71% 65%)",
-                        fontSize: "13px",
-                      }}
-                    >
-                      {(getHitRate(draft) * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "baseline",
-                    }}
-                  >
-                    <span
-                      style={{ fontSize: "13px", color: "hsl(220 13% 75%)" }}
-                    >
-                      Crit Rate
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        color: "hsl(45 100% 65%)",
-                        fontSize: "13px",
-                      }}
-                    >
-                      {(getCritRate(draft) * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    height: "1px",
-                    backgroundColor: "hsl(220 13% 18%)",
-                    margin: "6px 0",
-                  }}
-                />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "baseline",
+                    padding: "16px",
+                    backgroundColor: "hsl(220 13% 9%)",
+                    borderRadius: "10px",
+                    border: "1px solid hsl(220 13% 15%)",
                   }}
                 >
-                  <span
+                  <label
                     style={{
-                      fontSize: "14px",
-                      fontWeight: 600,
-                      color: "hsl(0 0% 95%)",
+                      display: "block",
+                      fontSize: "11px",
+                      color: "hsl(220 13% 50%)",
+                      marginBottom: "8px",
                     }}
                   >
-                    Total/Shot
-                  </span>
-                  <span
+                    Hit Profession
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={draft.hitProfession ?? 100}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        hitProfession: Math.min(
+                          100,
+                          Math.max(0, parseInt(e.target.value) || 0)
+                        ),
+                      }))
+                    }
                     style={{
-                      fontFamily: "monospace",
-                      color: "hsl(217 91% 68%)",
+                      width: "100%",
+                      padding: "10px 12px",
+                      backgroundColor: "hsl(220 13% 12%)",
+                      border: "1px solid hsl(220 13% 20%)",
+                      borderRadius: "6px",
                       fontSize: "16px",
-                      fontWeight: 700,
+                      color: "hsl(0 0% 95%)",
+                      fontFamily: "monospace",
+                      fontWeight: 600,
+                    }}
+                  />
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: "10px",
+                      color: "hsl(220 13% 40%)",
+                      marginTop: "6px",
                     }}
                   >
-                    {(costs.totalPerShot * 100).toFixed(3)} PEC
+                    Affects hit rate & crit rate
+                  </span>
+                </div>
+                <div
+                  style={{
+                    padding: "16px",
+                    backgroundColor: "hsl(220 13% 9%)",
+                    borderRadius: "10px",
+                    border: "1px solid hsl(220 13% 15%)",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "11px",
+                      color: "hsl(220 13% 50%)",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Damage Profession
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={draft.damageProfession ?? 100}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        damageProfession: Math.min(
+                          100,
+                          Math.max(0, parseInt(e.target.value) || 0)
+                        ),
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      backgroundColor: "hsl(220 13% 12%)",
+                      border: "1px solid hsl(220 13% 20%)",
+                      borderRadius: "6px",
+                      fontSize: "16px",
+                      color: "hsl(0 0% 95%)",
+                      fontFamily: "monospace",
+                      fontWeight: 600,
+                    }}
+                  />
+                  <span
+                    style={{
+                      display: "block",
+                      fontSize: "10px",
+                      color: "hsl(220 13% 40%)",
+                      marginTop: "6px",
+                    }}
+                  >
+                    Affects min damage
                   </span>
                 </div>
               </div>
+            </section>
+          </div>
+
+          {/* RIGHT COLUMN - Stats Panel */}
+          <div
+            style={{
+              padding: "24px",
+              backgroundColor: "hsl(220 13% 7%)",
+              overflowY: "auto",
+            }}
+          >
+            {/* Hero Stats */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "12px",
+                marginBottom: "24px",
+              }}
+            >
+              <HeroStat
+                label="Cost/Shot"
+                value={`${(costs.totalPerShot * 100).toFixed(2)}`}
+                unit="PEC"
+                color="hsl(217 91% 65%)"
+              />
+              <HeroStat
+                label="DPP"
+                value={(dpp / 100).toFixed(2)}
+                unit=""
+                color="hsl(142 71% 55%)"
+              />
             </div>
 
-            {/* Stats Sheet */}
-            {draft.weapon && (
-              <>
-                {/* Offense Stats */}
-                <div
-                  style={{
-                    padding: "16px",
-                    backgroundColor: "hsl(220 13% 12%)",
-                    borderRadius: "8px",
-                    border: "1px solid hsl(220 13% 18%)",
-                  }}
-                >
-                  <h4
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      color: "hsl(220 13% 65%)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      marginBottom: "14px",
-                    }}
-                  >
-                    Offense
-                  </h4>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Total Damage
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {damage.max.toFixed(2)}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Range
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {draft.weapon.economy.decay > 0 ? "110.2m" : "N/A"}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Critical Chance
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {(getCritRate(draft) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Critical Damage
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        100%
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Effective Damage
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(33 100% 60%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {calculateEffectiveDamage(draft).toFixed(2)}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Reload
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        1.00s
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Uses/min
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        60
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        DPS
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(33 100% 60%)",
-                          fontSize: "14px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {calculateEffectiveDamage(draft).toFixed(4)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+            {/* Offense Stats */}
+            <StatsCard title="Offense">
+              <StatRow
+                label="Total Damage"
+                value={damage.max.toFixed(2)}
+                highlight={
+                  draft.weapon &&
+                  damage.max !==
+                    (draft.weapon.damage?.burn ?? 0) +
+                      (draft.weapon.damage?.penetration ?? 0)
+                }
+              />
+              <StatRow
+                label="Range"
+                value={`${calculateRange(draft).toFixed(1)}m`}
+                highlight={
+                  draft.weapon &&
+                  calculateRange(draft) !== (draft.weapon.range ?? 0)
+                }
+              />
+              <StatRow
+                label="Critical Chance"
+                value={`${(getCritRate(draft) * 100).toFixed(1)}%`}
+                highlight={(draft.accuracyEnhancers ?? 0) > 0}
+              />
+              <StatRow
+                label="Effective Damage"
+                value={calculateEffectiveDamage(draft).toFixed(2)}
+                highlight={
+                  draft.weapon &&
+                  damage.max !==
+                    (draft.weapon.damage?.burn ?? 0) +
+                      (draft.weapon.damage?.penetration ?? 0)
+                }
+              />
+              <StatRow label="Uses/min" value="60" />
+              <StatRow
+                label="DPS"
+                value={calculateEffectiveDamage(draft).toFixed(2)}
+                accent
+              />
+            </StatsCard>
 
-                {/* Economy Stats */}
-                <div
-                  style={{
-                    padding: "16px",
-                    backgroundColor: "hsl(220 13% 12%)",
-                    borderRadius: "8px",
-                    border: "1px solid hsl(220 13% 18%)",
-                  }}
-                >
-                  <h4
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      color: "hsl(220 13% 65%)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      marginBottom: "14px",
-                    }}
-                  >
-                    Economy
-                  </h4>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "8px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Efficiency
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {(getHitRate(draft) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Decay
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {(getModifiedDecay(draft) * 100).toFixed(4)} PEC
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Ammo
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {Math.round(getModifiedAmmo(draft))}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Cost
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {(costs.totalPerShot * 100).toFixed(4)} PEC
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        DPP
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(142 76% 60%)",
-                          fontSize: "14px",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {(dpp / 100).toFixed(4)}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <span
-                        style={{ fontSize: "12px", color: "hsl(220 13% 65%)" }}
-                      >
-                        Total Uses
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: "monospace",
-                          color: "hsl(0 0% 95%)",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                        }}
-                      >
-                        {getModifiedDecay(draft) > 0
-                          ? Math.floor(
-                              100 / (getModifiedDecay(draft) * 100)
-                            ).toLocaleString()
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+            {/* Economy Stats */}
+            <StatsCard title="Economy">
+              <StatRow
+                label="Efficiency"
+                value={`${(getEfficiency(draft) * 100).toFixed(1)}%`}
+                highlight={
+                  draft.weapon &&
+                  getEfficiency(draft) !==
+                    (draft.weapon.economy.efficiency ?? 0)
+                }
+              />
+              <StatRow
+                label="Decay"
+                value={`${(getModifiedDecay(draft) * 100).toFixed(4)} PEC`}
+                highlight={
+                  draft.weapon &&
+                  getModifiedDecay(draft) !==
+                    draft.weapon.economy.decay + (draft.amp?.economy.decay ?? 0)
+                }
+              />
+              <StatRow
+                label="Ammo"
+                value={Math.round(getTotalAmmo(draft)).toString()}
+                highlight={
+                  draft.weapon &&
+                  Math.round(getTotalAmmo(draft)) !==
+                    draft.weapon.economy.ammoBurn +
+                      (draft.amp?.economy.ammoBurn ?? 0)
+                }
+              />
+              <StatRow
+                label="Total Uses"
+                value={getTotalUses()?.toLocaleString() ?? "N/A"}
+                highlight={
+                  (draft.damageEnhancers ?? 0) > 0 ||
+                  (draft.economyEnhancers ?? 0) > 0
+                }
+              />
+            </StatsCard>
+
+            {/* Cost Breakdown */}
+            <StatsCard title="Cost Breakdown">
+              <StatRow
+                label="Weapon"
+                value={`${(costs.weaponCost * 100).toFixed(2)} PEC`}
+                subtle
+              />
+              <StatRow
+                label="Amplifier"
+                value={`${(costs.ampCost * 100).toFixed(2)} PEC`}
+                subtle
+              />
+              <StatRow
+                label="Scope"
+                value={`${(costs.scopeCost * 100).toFixed(2)} PEC`}
+                subtle
+              />
+              <StatRow
+                label="Sight"
+                value={`${(costs.sightCost * 100).toFixed(2)} PEC`}
+                subtle
+              />
+              <StatRow
+                label="Enhancers"
+                value={`${(costs.weaponEnhancerCost * 100).toFixed(2)} PEC`}
+                subtle
+              />
+              <div
+                style={{
+                  height: "1px",
+                  backgroundColor: "hsl(220 13% 18%)",
+                  margin: "8px 0",
+                }}
+              />
+              <StatRow
+                label="Hit Rate"
+                value={`${(getHitRate(draft) * 100).toFixed(1)}%`}
+                color="hsl(142 71% 60%)"
+              />
+              <StatRow
+                label="Crit Rate"
+                value={`${(getCritRate(draft) * 100).toFixed(1)}%`}
+                color="hsl(45 100% 60%)"
+              />
+            </StatsCard>
           </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div
-          style={{
-            padding: "16px 24px",
-            borderTop: "1px solid hsl(220 13% 18%)",
-            backgroundColor: "hsl(220 13% 8%)",
-            display: "flex",
-            gap: "12px",
-            justifyContent: "flex-end",
-          }}
-        >
-          <button
-            onClick={onCancel}
-            style={{
-              padding: "10px 24px",
-              backgroundColor: "hsl(220 13% 14%)",
-              color: "hsl(0 0% 95%)",
-              border: "1px solid hsl(220 13% 25%)",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: 600,
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onSave(draft)}
-            disabled={!draft.name.trim()}
-            style={{
-              padding: "10px 24px",
-              background: draft.name.trim()
-                ? "linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 50%) 100%)"
-                : "hsl(220 13% 18%)",
-              color: draft.name.trim() ? "white" : "hsl(220 13% 45%)",
-              border: "none",
-              borderRadius: "8px",
-              cursor: draft.name.trim() ? "pointer" : "not-allowed",
-              fontSize: "14px",
-              fontWeight: 600,
-            }}
-          >
-            Save Loadout
-          </button>
         </div>
       </div>
     </div>
   );
 }
 
-// Cost Row Helper
-function CostRow({ label, value }: { label: string; value: number }) {
+// ==================== New UI Components ====================
+
+function HeroStat({
+  label,
+  value,
+  unit,
+  color,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  color: string;
+}) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between" }}>
-      <span style={{ fontSize: "13px", color: "hsl(220 13% 45%)" }}>
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: "hsl(220 13% 9%)",
+        borderRadius: "12px",
+        border: "1px solid hsl(220 13% 15%)",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "11px",
+          color: "hsl(220 13% 50%)",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          marginBottom: "8px",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: "28px",
+          fontWeight: 700,
+          color: color,
+          fontFamily: "monospace",
+          lineHeight: 1,
+        }}
+      >
+        {value}
+        {unit && (
+          <span
+            style={{
+              fontSize: "14px",
+              color: "hsl(220 13% 50%)",
+              marginLeft: "4px",
+            }}
+          >
+            {unit}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatsCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        padding: "16px",
+        backgroundColor: "hsl(220 13% 9%)",
+        borderRadius: "10px",
+        border: "1px solid hsl(220 13% 15%)",
+        marginBottom: "16px",
+      }}
+    >
+      <h4
+        style={{
+          fontSize: "11px",
+          fontWeight: 700,
+          color: "hsl(220 13% 50%)",
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          marginBottom: "14px",
+        }}
+      >
+        {title}
+      </h4>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function StatRow({
+  label,
+  value,
+  highlight,
+  accent,
+  subtle,
+  color,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  accent?: boolean;
+  subtle?: boolean;
+  color?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <span
+        style={{
+          fontSize: "12px",
+          color: subtle ? "hsl(220 13% 40%)" : "hsl(220 13% 60%)",
+        }}
+      >
         {label}
       </span>
       <span
         style={{
           fontFamily: "monospace",
-          color: "hsl(0 0% 95%)",
-          fontSize: "13px",
+          fontSize: accent ? "15px" : "13px",
+          fontWeight: accent ? 700 : 600,
+          color: color
+            ? color
+            : highlight
+            ? "hsl(33 100% 60%)"
+            : accent
+            ? "hsl(217 91% 65%)"
+            : "hsl(0 0% 90%)",
         }}
       >
-        {(value * 100).toFixed(2)} PEC
+        {value}
       </span>
+    </div>
+  );
+}
+
+function EnhancerCard({
+  label,
+  value,
+  color,
+  effect,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  effect: string;
+  max: number;
+  onChange: (val: number) => void;
+}) {
+  return (
+    <div
+      style={{
+        padding: "14px",
+        backgroundColor: "hsl(220 13% 9%)",
+        borderRadius: "10px",
+        border: `1px solid ${value > 0 ? color : "hsl(220 13% 15%)"}`,
+        opacity: value > 0 ? 1 : 0.7,
+        transition: "all 0.15s ease",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "10px",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "11px",
+            fontWeight: 600,
+            color: value > 0 ? color : "hsl(220 13% 50%)",
+            textTransform: "uppercase",
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            fontSize: "10px",
+            color: value > 0 ? color : "hsl(220 13% 40%)",
+            fontFamily: "monospace",
+          }}
+        >
+          {effect}
+        </span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <button
+          onClick={() => onChange(Math.max(0, value - 1))}
+          disabled={value <= 0}
+          style={{
+            width: "28px",
+            height: "28px",
+            backgroundColor:
+              value > 0 ? "hsl(220 13% 15%)" : "hsl(220 13% 10%)",
+            border: "none",
+            borderRadius: "6px",
+            color: value > 0 ? "hsl(0 0% 90%)" : "hsl(220 13% 30%)",
+            cursor: value > 0 ? "pointer" : "not-allowed",
+            fontSize: "16px",
+            fontWeight: 600,
+          }}
+        >
+          −
+        </button>
+        <span
+          style={{
+            flex: 1,
+            textAlign: "center",
+            fontSize: "18px",
+            fontWeight: 700,
+            fontFamily: "monospace",
+            color: value > 0 ? color : "hsl(220 13% 40%)",
+          }}
+        >
+          {value}
+        </span>
+        <button
+          onClick={() => onChange(Math.min(10, value + 1))}
+          disabled={max <= 0}
+          style={{
+            width: "28px",
+            height: "28px",
+            backgroundColor: max > 0 ? "hsl(220 13% 15%)" : "hsl(220 13% 10%)",
+            border: "none",
+            borderRadius: "6px",
+            color: max > 0 ? "hsl(0 0% 90%)" : "hsl(220 13% 30%)",
+            cursor: max > 0 ? "pointer" : "not-allowed",
+            fontSize: "16px",
+            fontWeight: 600,
+          }}
+        >
+          +
+        </button>
+      </div>
     </div>
   );
 }
@@ -1825,14 +1428,7 @@ function CostRow({ label, value }: { label: string; value: number }) {
 // ==================== Main LoadoutManager Component ====================
 
 export function LoadoutManager() {
-  const {
-    loadouts,
-    activeLoadout,
-    costPerShot: _costPerShot,
-    setActive,
-    save,
-    remove,
-  } = useLoadouts();
+  const { loadouts, activeLoadout, setActive, save, remove } = useLoadouts();
   const [editing, setEditing] = useState<Loadout | null>(null);
 
   const handleNew = () => {

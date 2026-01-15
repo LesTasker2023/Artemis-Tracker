@@ -1,6 +1,6 @@
 {
     "name": "artemis",
-    "version": "0.3.13",
+    "version": "0.3.14",
     "description": "ARTEMIS - Hunt Smarter, Not Harder.",
     "type": "module",
     "main": "dist-electron/main.cjs",

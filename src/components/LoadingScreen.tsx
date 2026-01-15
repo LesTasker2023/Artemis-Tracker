@@ -10,6 +10,7 @@ import { colors } from "./ui";
 interface LoadingScreenProps {
   message?: string;
   progress?: number;
+  fadingOut?: boolean;
 }
 
 const wittyMessages = [
@@ -30,7 +31,7 @@ const wittyMessages = [
   "Debuffing loading times...",
 ];
 
-export function LoadingScreen({ message }: LoadingScreenProps) {
+export function LoadingScreen({ message, fadingOut }: LoadingScreenProps) {
   const [currentMessage, setCurrentMessage] = useState(0);
 
   useEffect(() => {
@@ -46,10 +47,16 @@ export function LoadingScreen({ message }: LoadingScreenProps) {
   const displayMessage = message || wittyMessages[currentMessage];
 
   return (
-    <div style={styles.container}>
+    <div
+      style={{
+        ...styles.container,
+        animation: fadingOut ? "fadeOut 0.5s ease-out forwards" : undefined,
+      }}
+    >
       {/* Artemis Logo */}
       <div style={styles.logoSection}>
         <img src={projectLogo} alt="Artemis" style={styles.logo} />
+        <div style={styles.tagline}>Hunt Smarter, Not Harder</div>
       </div>
 
       {/* Status Message */}
@@ -69,6 +76,11 @@ export function LoadingScreen({ message }: LoadingScreenProps) {
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
         }
       `}</style>
     </div>
@@ -94,6 +106,14 @@ const styles: Record<string, React.CSSProperties> = {
   logo: {
     height: "120px",
     objectFit: "contain",
+  },
+  tagline: {
+    fontSize: "14px",
+    fontWeight: 500,
+    color: colors.textMuted,
+    marginTop: "12px",
+    letterSpacing: "1px",
+    fontStyle: "italic",
   },
   message: {
     fontSize: "14px",

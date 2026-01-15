@@ -1,131 +1,184 @@
-# Weapon Enhancer Mechanics
+# Entropia Universe Loadout Mechanics
 
-Based on analysis of entropia-calc.com data with A-3 Justifier Mk. 2, Improved.
+Complete documentation of cost, decay, damage, and enhancer calculations.
+**Verified against EntropiaNexus control application.**
 
-## Base Stats (No Enhancers)
+---
 
-- Total Damage: 72.00
-- Range: 110.2m
-- Critical Chance: 2.0%
-- Decay: 0.2550 PEC
-- Ammo Burn: 1500
-- Cost: 15.2550 PEC
+## Currency System
 
-## Enhancer Types and Effects
+- **100 PEC = 1 PED** (Project Entropia Cent / Dollar)
+- Decay in API/JSON is stored as PEC
+- Internal calculations use PED, display converts to PEC
 
-### 1. Damage Enhancers
+---
 
-Each damage enhancer adds:
+## Base Equipment Stats
 
-- **+10% Total Damage** (multiplicative)
-- **+10% Decay** (of base weapon decay)
-- **+10% Ammo Burn** (of base weapon ammo)
+### Weapon Properties
 
-Examples:
+| Property     | Description                                              |
+| ------------ | -------------------------------------------------------- |
+| `Decay`      | PEC lost per shot                                        |
+| `AmmoBurn`   | Ammo units consumed per shot                             |
+| `MaxTT`      | Maximum Trade Terminal value (full durability)           |
+| `MinTT`      | Minimum TT value (repair threshold for unlimited items)  |
+| `Range`      | Effective distance in meters                             |
+| `Efficiency` | Affects loot composition (higher = more ammo in returns) |
 
-- 1 damage: 79.20 dmg (+10%), 0.2805 decay, 1650 ammo
-- 2 damage: 86.40 dmg (+20%), 0.3060 decay, 1800 ammo
-- 3 damage: 93.60 dmg (+30%), 0.3315 decay, 1950 ammo
+### Amplifier Properties
 
-Formula:
+Same as weapon, but damage enhancers do NOT affect amp decay or ammo.
 
-```
-damage = base_damage × (1 + 0.10 × damage_enhancers)
-decay_increase = base_decay × 0.10 × damage_enhancers
-ammo_increase = base_ammo × 0.10 × damage_enhancers
-```
+---
 
-### 2. Accuracy Enhancers
+## Weapon Enhancers (10 Slots Total)
 
-Each accuracy enhancer adds:
+| Type         | Effect per Enhancer                                     | Ammo Cost per Shot   |
+| ------------ | ------------------------------------------------------- | -------------------- |
+| **Damage**   | +10% weapon damage, +10% weapon decay, +10% weapon ammo | 103 PEC (0.0103 PED) |
+| **Economy**  | -1.1% decay (multiplicative) on weapon AND amp          | 0 PEC                |
+| **Range**    | +5% range (multiplicative)                              | 0 PEC                |
+| **Accuracy** | +0.2% crit chance (additive)                            | 0 PEC                |
 
-- **+0.2% Critical Chance**
-- No effect on decay, ammo, or cost
+---
 
-Examples:
+## Core Formulas
 
-- 1 accuracy: 2.2% crit (+0.2%)
-- 2 accuracy: 2.4% crit (+0.4%)
-- 3 accuracy: 2.6% crit (+0.6%)
-
-Formula:
+### Multipliers
 
 ```
-crit_chance = base_crit + (0.002 × accuracy_enhancers)
+DamageMultiplier = 1 + (DamageEnhancers × 0.10)
+EconomyMultiplier = 0.989 ^ EconomyEnhancers
+RangeMultiplier = 1 + (RangeEnhancers × 0.05)
 ```
 
-### 3. Range Enhancers
-
-Each range enhancer adds:
-
-- **+5% Range**
-- No effect on damage, decay, or cost
-
-Examples:
-
-- 1 range: 115.8m (+5.1%)
-- 2 range: 121.3m (+10.1%)
-- 3 range: 126.8m (+15.1%)
-
-Formula:
+### Cost Per Shot
 
 ```
-range = base_range × (1 + 0.05 × range_enhancers)
+WeaponAmmoCost = AmmoBurn × DamageMultiplier × EconomyMultiplier × 0.0001 PED
+WeaponDecayCost = Decay × DamageMultiplier × EconomyMultiplier
+
+WeaponCost = WeaponAmmoCost + WeaponDecayCost
+
+AmpCost = (AmmoBurn × 0.0001) + (Decay × EconomyMultiplier)
+
+EnhancerCost = DamageEnhancers × 0.0103 PED
+
+TotalCost = WeaponCost + AmpCost + EnhancerCost
 ```
 
-### 4. Economy Enhancers
+**Important:** Damage enhancers only affect WEAPON costs, not amp costs.
+Economy enhancers affect BOTH weapon and amp decay.
 
-Each economy enhancer provides:
-
-- **-1.1% Decay** (multiplicative reduction)
-- **-1.1% Ammo Burn** (multiplicative reduction)
-- Applied AFTER other enhancer effects
-
-Examples:
-
-- 1 economy: 0.2522 decay (-1.1%), 1483 ammo (-1.13%)
-- 2 economy: 0.2493 decay (-2.2%), 1467 ammo (-2.2%)
-- 3 economy: 0.2465 decay (-3.3%), 1450 ammo (-3.3%)
-
-Formula (applied after all other enhancers):
+### Total Decay Display
 
 ```
-final_decay = calculated_decay × (0.989 ^ economy_enhancers)
-final_ammo = calculated_ammo × (0.989 ^ economy_enhancers)
+ModifiedWeaponDecay = WeaponDecay × DamageMultiplier × EconomyMultiplier
+ModifiedAmpDecay = AmpDecay × EconomyMultiplier
+
+TotalDecay = ModifiedWeaponDecay + ModifiedAmpDecay
 ```
 
-Note: Economy reduces by 1.1% per enhancer, so multiplier is 0.989 (1 - 0.011).
+### Total Uses (Limiting Factor)
 
-## Combined Effects
+```
+WeaponUses = (WeaponMaxTT - WeaponMinTT) / ModifiedWeaponDecay
+AmpUses = (AmpMaxTT - AmpMinTT) / ModifiedAmpDecay
 
-When mixing enhancer types, apply in this order:
+TotalUses = MIN(WeaponUses, AmpUses)
+```
 
-1. **Damage enhancers** - Apply to base damage, decay, and ammo
-2. **Accuracy enhancers** - Add to crit chance
-3. **Range enhancers** - Apply to base range
-4. **Economy enhancers** - Reduce decay and ammo (multiplicative)
+**Key Insight:** Whichever equipment piece runs out first determines practical Total Uses.
 
-### Example: 1 of Each Type
+### Damage
 
-- Damage: 72 × 1.10 = 79.20 ✓
-- Range: 110.2 × 1.05 = 115.71m ✓
-- Crit: 2.0% + 0.2% = 2.2% ✓
-- Decay: (0.2550 + 0.0255) × 0.989 = 0.2774 ✓
-- Ammo: (1500 + 150) × 0.989 = 1632 ✓
+```
+BaseDamage = WeaponDamage + AmpDamage
+EnhancedDamage = (WeaponDamage × DamageMultiplier) + AmpDamage
+```
 
-### Example: 3 of Each Type
+**Note:** Damage enhancers only boost WEAPON damage, not amp damage.
 
-- Damage: 72 × 1.30 = 93.60 ✓
-- Range: 110.2 × 1.15 = 126.73m ✓
-- Crit: 2.0% + 0.6% = 2.6% ✓
-- Decay: (0.2550 + 0.0765) × (0.989^3) = 0.3205 ✓
-- Ammo: (1500 + 450) × (0.989^3) = 1885 ✓
+### Range
+
+```
+Range = WeaponBaseRange × RangeMultiplier
+```
+
+### Critical Chance
+
+```
+CritChance = BaseCrit + (AccuracyEnhancers × 0.002)
+```
+
+### DPP (Damage Per PED)
+
+```
+DPP = EnhancedDamage / TotalCost
+```
+
+---
+
+## Worked Examples
+
+### Example 1: ArMatrix BC-30 (L) + B-Amp 20P (L) + 3 Damage Enhancers
+
+**Base Stats:**
+
+- Weapon: Decay 0.896 PEC, Ammo 1105, MaxTT 65, MinTT 1.95
+- Amp: Decay 0.32 PEC, Ammo 420, MaxTT 40, MinTT 1.2
+
+**Calculations:**
+
+| Step                  | Formula                | Result                        |
+| --------------------- | ---------------------- | ----------------------------- |
+| Damage Multiplier     | 1 + (3 × 0.10)         | **1.30**                      |
+| Modified Weapon Decay | 0.00896 × 1.30         | **0.011648 PED**              |
+| Modified Amp Decay    | 0.0032 (unchanged)     | **0.0032 PED**                |
+| Total Decay           | 0.011648 + 0.0032      | **0.014848 PED = 1.4848 PEC** |
+| Weapon Uses           | (65 - 1.95) / 0.011648 | **5,414**                     |
+| Amp Uses              | (40 - 1.2) / 0.0032    | **12,125**                    |
+| Total Uses            | MIN(5414, 12125)       | **5,412** (weapon limited)    |
+
+### Example 2: A-3 Justifier + Omegaton A105 + 10 Damage Enhancers
+
+**Base Stats:**
+
+- Weapon: Decay 0.255 PEC, Ammo 1500, MaxTT 1000, MinTT 30
+- Amp: Decay 0.473 PEC, Ammo 362, MaxTT 184, MinTT 0
+
+**Calculations:**
+
+| Step                  | Formula              | Result                      |
+| --------------------- | -------------------- | --------------------------- |
+| Damage Multiplier     | 1 + (10 × 0.10)      | **2.00**                    |
+| Modified Weapon Decay | 0.00255 × 2.0        | **0.0051 PED**              |
+| Modified Amp Decay    | 0.00473 (unchanged)  | **0.00473 PED**             |
+| Total Decay           | 0.0051 + 0.00473     | **0.00983 PED = 0.983 PEC** |
+| Weapon Uses           | (1000 - 30) / 0.0051 | **190,196**                 |
+| Amp Uses              | (184 - 0) / 0.00473  | **38,900**                  |
+| Total Uses            | MIN(190196, 38900)   | **38,900** (amp limited)    |
+
+---
 
 ## Implementation Notes
 
-1. **10 Total Slots**: Players can mix and match any combination up to 10 enhancers
-2. **Damage is multiplicative**: Each damage enhancer multiplies total damage by 1.10
-3. **Economy is multiplicative**: Each economy enhancer multiplies cost by 0.989 (reduces by 1.1%)
+1. **10 Total Slots**: Players can mix and match any combination up to 10 enhancers total
+2. **Damage is multiplicative**: Each damage enhancer multiplies weapon stats by 1.10
+3. **Economy is multiplicative**: Each economy enhancer multiplies decay by 0.989 (reduces by 1.1%)
 4. **Accuracy is additive**: Each accuracy enhancer adds flat 0.2% to crit chance
 5. **Range is multiplicative**: Each range enhancer multiplies range by 1.05
-6. **Order matters**: Economy reductions apply AFTER damage increases
+6. **Order of operations**:
+   - First: Apply damage enhancer multiplier to weapon
+   - Then: Apply economy enhancer multiplier to both weapon and amp
+7. **Amp protection**: Amp decay/ammo is NOT affected by damage enhancers
+8. **Limiting factor**: Total Uses shows whichever equipment runs out first
+
+---
+
+## Data Sources
+
+- Equipment data: EntropiaNexus API (`api.entropianexus.com`)
+- Formulas verified against: EntropiaNexus loadout calculator
+- Last verified: January 2026

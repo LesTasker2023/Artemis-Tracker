@@ -256,12 +256,9 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
       const profit = d.showMarkup && d.markupEnabled && d.netProfitWithMarkup !== undefined
         ? d.netProfitWithMarkup
         : d.netProfit;
-      const loot = d.showMarkup && d.markupEnabled && d.lootValueWithMarkup !== undefined
-        ? d.lootValueWithMarkup
-        : d.lootValue;
       return {
         value: `${profit >= 0 ? "+" : ""}${formatPed(profit)}`,
-        unit: `${formatPed(loot)}/${formatPed(d.totalSpend + d.decay)}`,
+        unit: "PED",
         color: profitColor(profit),
         numericValue: profit,
       };
