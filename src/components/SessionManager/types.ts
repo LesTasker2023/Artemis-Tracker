@@ -35,6 +35,7 @@ export interface SessionManagerProps {
 export interface FilterState {
   mode: FilterMode;
   selectedTags: string[];
+  selectedLoadoutIds: string[];
   searchQuery: string;
   sortBy: SortBy;
 }

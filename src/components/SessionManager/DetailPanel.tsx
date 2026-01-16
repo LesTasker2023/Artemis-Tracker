@@ -18,6 +18,9 @@ import {
   Shield,
   Heart,
   Wrench,
+  Edit2,
+  Check,
+  X as XIcon,
 } from "lucide-react";
 import type { Session, LoadoutBreakdown } from "../../core/session";
 import { calculateSessionStats } from "../../core/session";
@@ -52,6 +55,11 @@ interface DetailPanelProps {
   onDelete?: (session: Session) => void;
   onViewInTabs?: (session: Session) => void;
   onResume?: (session: Session) => void;
+  onCombineSessions?: () => void;
+  onSessionUpdate?: (
+    session: Session,
+    updates: { name?: string; tags?: string[] }
+  ) => void;
   isActiveSession?: boolean;
   onExpenseUpdate?: (expenses: {
     armorCost: number;
@@ -69,6 +77,8 @@ export function DetailPanel({
   onDelete,
   onViewInTabs,
   onResume,
+  onCombineSessions,
+  onSessionUpdate,
   isActiveSession,
   onExpenseUpdate,
   showMarkup = false,
@@ -78,13 +88,33 @@ export function DetailPanel({
   const stats = useMemo(() => {
     if (!session) return null;
     const playerName = getStoredPlayerName();
-    return calculateSessionStats(session, playerName || undefined, null, markupLibrary);
+    return calculateSessionStats(
+      session,
+      playerName || undefined,
+      null,
+      markupLibrary
+    );
   }, [session, markupLibrary]);
+
+  // Edit mode state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedTags, setEditedTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState("");
 
   // Expense state
   const [armorCost, setArmorCost] = useState(0);
   const [fapCost, setFapCost] = useState(0);
   const [miscCost, setMiscCost] = useState(0);
+
+  // Sync edit state when session changes
+  useEffect(() => {
+    if (session) {
+      setEditedName(session.name);
+      setEditedTags(session.tags || []);
+      setIsEditing(false);
+    }
+  }, [session?.id]);
 
   // Sync expense state when session changes
   useEffect(() => {
@@ -111,9 +141,58 @@ export function DetailPanel({
     });
   };
 
+  const handleStartEdit = () => {
+    setEditedName(session?.name || "");
+    setEditedTags(session?.tags || []);
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedName(session?.name || "");
+    setEditedTags(session?.tags || []);
+    setNewTagInput("");
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = () => {
+    if (!session || !onSessionUpdate) return;
+    onSessionUpdate(session, {
+      name: editedName.trim() || session.name,
+      tags: editedTags,
+    });
+    setIsEditing(false);
+    setNewTagInput("");
+  };
+
+  const handleAddTag = () => {
+    const tag = newTagInput.trim();
+    if (tag && !editedTags.includes(tag)) {
+      setEditedTags([...editedTags, tag]);
+      setNewTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setEditedTags(editedTags.filter((t) => t !== tagToRemove));
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+
   // Show aggregate stats view if provided
   if (aggregateStats) {
-    return <AggregateDetailView stats={aggregateStats} showMarkup={showMarkup} applyExpenses={applyExpenses} />;
+    return (
+      <AggregateDetailView
+        stats={aggregateStats}
+        showMarkup={showMarkup}
+        applyExpenses={applyExpenses}
+        onCombine={onCombineSessions}
+      />
+    );
   }
 
   if (!session || !stats) {
@@ -154,19 +233,27 @@ export function DetailPanel({
     stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
 
   // Calculate display values based on MU/AE toggles
-  const manualExpenses = (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0);
-  
+  const manualExpenses =
+    (session.manualArmorCost ?? 0) +
+    (session.manualFapCost ?? 0) +
+    (session.manualMiscCost ?? 0);
+
   // Get base values (with or without markup)
   let displayProfit = showMarkup ? stats.profitWithMarkup : stats.profit;
-  let displayLootValue = showMarkup ? stats.lootValueWithMarkup : stats.lootValue;
+  let displayLootValue = showMarkup
+    ? stats.lootValueWithMarkup
+    : stats.lootValue;
   let displayTotalSpend = stats.totalSpend;
-  let displayReturnRate = showMarkup ? stats.returnRateWithMarkup : stats.returnRate;
-  
+  let displayReturnRate = showMarkup
+    ? stats.returnRateWithMarkup
+    : stats.returnRate;
+
   // If applyExpenses is OFF, add back manual expenses
   if (!applyExpenses && manualExpenses > 0) {
     displayProfit += manualExpenses;
     displayTotalSpend -= manualExpenses;
-    displayReturnRate = displayTotalSpend > 0 ? (displayLootValue / displayTotalSpend) * 100 : 0;
+    displayReturnRate =
+      displayTotalSpend > 0 ? (displayLootValue / displayTotalSpend) * 100 : 0;
   }
 
   return (
@@ -174,51 +261,126 @@ export function DetailPanel({
       {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerInfo}>
-          <h2 style={styles.title}>{session.name}</h2>
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              style={styles.nameInput}
+              placeholder="Session name"
+              autoFocus
+            />
+          ) : (
+            <h2 style={styles.title}>{session.name}</h2>
+          )}
           <div style={styles.meta}>
             <Clock size={12} />
             <span>{formatDate(session.startedAt)}</span>
             <span style={styles.dot}>•</span>
             <span>{formatDuration(stats.duration)}</span>
           </div>
-          {session.tags && session.tags.length > 0 && (
-            <div style={styles.tags}>
-              {session.tags.map((tag) => (
-                <span key={tag} style={styles.tag}>
-                  <Tag size={10} />
-                  {tag}
-                </span>
-              ))}
+          {isEditing ? (
+            <div style={styles.editTagsContainer}>
+              <div style={styles.tags}>
+                {editedTags.map((tag) => (
+                  <span key={tag} style={styles.editTag}>
+                    <Tag size={10} />
+                    {tag}
+                    <button
+                      onClick={() => handleRemoveTag(tag)}
+                      style={styles.removeTagButton}
+                    >
+                      <XIcon size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+              <div style={styles.addTagRow}>
+                <input
+                  type="text"
+                  value={newTagInput}
+                  onChange={(e) => setNewTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  placeholder="Add tag..."
+                  style={styles.tagInput}
+                />
+                <button onClick={handleAddTag} style={styles.addTagButton}>
+                  <Tag size={12} />
+                  Add
+                </button>
+              </div>
             </div>
+          ) : (
+            session.tags &&
+            session.tags.length > 0 && (
+              <div style={styles.tags}>
+                {session.tags.map((tag) => (
+                  <span key={tag} style={styles.tag}>
+                    <Tag size={10} />
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )
           )}
         </div>
         <div style={styles.headerActions}>
-          {onResume && session.endedAt && (
-            <button
-              onClick={() => onResume(session)}
-              style={styles.actionButton}
-              title="Resume Session"
-            >
-              <RotateCcw size={14} />
-            </button>
-          )}
-          {onViewInTabs && (
-            <button
-              onClick={() => onViewInTabs(session)}
-              style={styles.actionButton}
-              title="View in Data Tabs"
-            >
-              <Eye size={14} />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={handleDelete}
-              style={styles.actionButtonDanger}
-              title="Delete Session"
-            >
-              <Trash2 size={14} />
-            </button>
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleSaveEdit}
+                style={styles.actionButtonSuccess}
+                title="Save Changes"
+              >
+                <Check size={14} />
+              </button>
+              <button
+                onClick={handleCancelEdit}
+                style={styles.actionButton}
+                title="Cancel"
+              >
+                <XIcon size={14} />
+              </button>
+            </>
+          ) : (
+            <>
+              {onSessionUpdate && (
+                <button
+                  onClick={handleStartEdit}
+                  style={styles.actionButton}
+                  title="Edit Session"
+                >
+                  <Edit2 size={14} />
+                </button>
+              )}
+              {onResume && session.endedAt && (
+                <button
+                  onClick={() => onResume(session)}
+                  style={styles.actionButton}
+                  title="Resume Session"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              )}
+              {onViewInTabs && (
+                <button
+                  onClick={() => onViewInTabs(session)}
+                  style={styles.actionButton}
+                  title="View in Data Tabs"
+                >
+                  <Eye size={14} />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={handleDelete}
+                  style={styles.actionButtonDanger}
+                  title="Delete Session"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -480,14 +642,16 @@ function LoadoutRow({ breakdown }: LoadoutRowProps) {
 }
 
 // Aggregate view for tag stats
-function AggregateDetailView({ 
-  stats, 
-  showMarkup, 
-  applyExpenses 
-}: { 
-  stats: AggregateStats; 
-  showMarkup: boolean; 
+function AggregateDetailView({
+  stats,
+  showMarkup,
+  applyExpenses,
+  onCombine,
+}: {
+  stats: AggregateStats;
+  showMarkup: boolean;
   applyExpenses: boolean;
+  onCombine?: () => void;
 }) {
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -503,18 +667,21 @@ function AggregateDetailView({
 
   // Calculate adjusted values based on toggles
   const manualExpenses = stats.manualExpenses ?? 0;
-  
+
   // Get base values (with or without markup)
   let baseProfit = showMarkup ? stats.profitWithMarkup : stats.profit;
   let baseLootValue = showMarkup ? stats.lootValueWithMarkup : stats.lootValue;
   let baseTotalCost = stats.totalCost;
-  let baseReturnRate = showMarkup ? stats.returnRateWithMarkup : stats.returnRate;
-  
+  let baseReturnRate = showMarkup
+    ? stats.returnRateWithMarkup
+    : stats.returnRate;
+
   // If applyExpenses is OFF, add back manual expenses
   if (!applyExpenses && manualExpenses > 0) {
     baseProfit += manualExpenses;
     baseTotalCost -= manualExpenses;
-    baseReturnRate = baseTotalCost > 0 ? (baseLootValue / baseTotalCost) * 100 : 0;
+    baseReturnRate =
+      baseTotalCost > 0 ? (baseLootValue / baseTotalCost) * 100 : 0;
   }
 
   const displayProfit = baseProfit;
@@ -539,6 +706,35 @@ function AggregateDetailView({
             <span>{formatDuration(stats.totalDuration)} total</span>
           </div>
         </div>
+        {onCombine && stats.sessionCount > 1 && (
+          <button
+            onClick={onCombine}
+            style={{
+              marginTop: "8px",
+              padding: "6px 12px",
+              backgroundColor: "hsl(217 91% 60%)",
+              border: "none",
+              borderRadius: "4px",
+              color: "white",
+              fontSize: "11px",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              transition: "background-color 0.15s",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.backgroundColor = "hsl(217 91% 55%)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.backgroundColor = "hsl(217 91% 60%)")
+            }
+          >
+            <Layers size={12} />
+            Combine Sessions
+          </button>
+        )}
       </div>
 
       {/* Key Stats */}
@@ -784,6 +980,92 @@ const styles: Record<string, React.CSSProperties> = {
     borderStyle: "solid",
     borderColor: "rgba(239, 68, 68, 0.25)",
     borderRadius: "6px",
+    cursor: "pointer",
+  },
+  actionButtonSuccess: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "28px",
+    height: "28px",
+    backgroundColor: "rgba(34, 197, 94, 0.15)",
+    color: "#22c55e",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(34, 197, 94, 0.25)",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+  nameInput: {
+    width: "100%",
+    padding: "8px 12px",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "hsl(0 0% 90%)",
+    backgroundColor: "hsl(220 13% 12%)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "hsl(220 13% 22%)",
+    borderRadius: "6px",
+    outline: "none",
+    marginBottom: "8px",
+  },
+  editTagsContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    marginTop: "8px",
+  },
+  editTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "3px 6px",
+    backgroundColor: "hsl(220 13% 18%)",
+    color: "hsl(220 13% 70%)",
+    borderRadius: "4px",
+    fontSize: "11px",
+    fontWeight: 500,
+  },
+  removeTagButton: {
+    background: "none",
+    border: "none",
+    padding: "0",
+    marginLeft: "2px",
+    cursor: "pointer",
+    color: "hsl(220 13% 50%)",
+    display: "flex",
+    alignItems: "center",
+  },
+  addTagRow: {
+    display: "flex",
+    gap: "6px",
+  },
+  tagInput: {
+    flex: 1,
+    padding: "6px 10px",
+    fontSize: "12px",
+    color: "hsl(0 0% 90%)",
+    backgroundColor: "hsl(220 13% 12%)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "hsl(220 13% 22%)",
+    borderRadius: "4px",
+    outline: "none",
+  },
+  addTagButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "6px 10px",
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "hsl(0 0% 90%)",
+    backgroundColor: "hsl(220 13% 18%)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "hsl(220 13% 25%)",
+    borderRadius: "4px",
     cursor: "pointer",
   },
   statusRow: {

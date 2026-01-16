@@ -12,6 +12,7 @@ import { Sidebar } from "./Sidebar";
 import { SessionList } from "./SessionList";
 import { DetailPanel, AggregateStats } from "./DetailPanel";
 import { getStoredPlayerName } from "../../hooks/usePlayerName";
+import { useLoadouts } from "../../hooks/useLoadouts";
 
 const MAX_DISPLAY_SESSIONS = 100;
 
@@ -33,6 +34,7 @@ interface SessionStatsCache {
   globalCount: number;
   hofs: number;
   manualExpenses: number; // Sum of armor + fap + misc costs
+  loadoutIds: string[]; // Loadout IDs used in this session
 }
 
 export function SessionManager({
@@ -42,6 +44,9 @@ export function SessionManager({
   activeSession,
   markupLibrary,
 }: SessionManagerProps) {
+  // Loadout data for displaying names
+  const { loadouts } = useLoadouts();
+
   // Raw data from storage
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +70,7 @@ export function SessionManager({
   const [filters, setFilters] = useState<FilterState>({
     mode: "all",
     selectedTags: [],
+    selectedLoadoutIds: [],
     searchQuery: "",
     sortBy: "newest",
   });
@@ -113,6 +119,14 @@ export function SessionManager({
           (activeSession.manualArmorCost ?? 0) +
           (activeSession.manualFapCost ?? 0) +
           (activeSession.manualMiscCost ?? 0);
+        // Extract unique loadout IDs from session
+        const loadoutIds = Array.from(
+          new Set(
+            activeSession.events
+              ?.map((e) => e.loadoutId)
+              .filter((id): id is string => !!id) ?? []
+          )
+        );
         setStatsCache((prev) => ({
           ...prev,
           [activeSessionId]: {
@@ -132,6 +146,7 @@ export function SessionManager({
             globalCount: stats.globalCount,
             hofs: stats.hofs,
             manualExpenses,
+            loadoutIds,
           },
         }));
       }
@@ -176,6 +191,14 @@ export function SessionManager({
               (session.manualArmorCost ?? 0) +
               (session.manualFapCost ?? 0) +
               (session.manualMiscCost ?? 0);
+            // Extract unique loadout IDs from session
+            const loadoutIds = Array.from(
+              new Set(
+                session.events
+                  ?.map((e) => e.loadoutId)
+                  .filter((id): id is string => !!id) ?? []
+              )
+            );
             newCache[id] = {
               profit: stats.profit,
               profitWithMarkup: stats.profitWithMarkup,
@@ -193,6 +216,7 @@ export function SessionManager({
               globalCount: stats.globalCount,
               hofs: stats.hofs,
               manualExpenses,
+              loadoutIds,
             };
           }
         } catch (err) {
@@ -245,6 +269,24 @@ export function SessionManager({
     return Array.from(tagSet).sort();
   }, [sessions]);
 
+  // Extract all unique loadout IDs used across sessions
+  const allLoadoutIds = useMemo(() => {
+    const loadoutSet = new Set<string>();
+    Object.values(statsCache).forEach((cached) => {
+      cached.loadoutIds?.forEach((id) => loadoutSet.add(id));
+    });
+    return Array.from(loadoutSet);
+  }, [statsCache]);
+
+  // Map loadout IDs to names
+  const loadoutNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    loadouts.forEach((loadout) => {
+      map[loadout.id] = loadout.name || "Unnamed Loadout";
+    });
+    return map;
+  }, [loadouts]);
+
   // Session counts for sidebar
   const sessionCounts = useMemo(() => {
     return {
@@ -275,6 +317,17 @@ export function SessionManager({
       filtered = filtered.filter((s) =>
         filters.selectedTags.some((tag) => s.tags?.includes(tag))
       );
+    }
+
+    // Apply loadout filter
+    if (filters.selectedLoadoutIds.length > 0) {
+      filtered = filtered.filter((s) => {
+        const cached = statsCache[s.id];
+        if (!cached) return false;
+        return filters.selectedLoadoutIds.some((loadoutId) =>
+          cached.loadoutIds.includes(loadoutId)
+        );
+      });
     }
 
     // Apply search filter
@@ -418,6 +471,143 @@ export function SessionManager({
     [selectedSession]
   );
 
+  // Handle session update (name, tags)
+  const handleSessionUpdate = useCallback(
+    async (
+      session: Session,
+      updates: { name?: string; tags?: string[] }
+    ) => {
+      // Update the session with new name/tags
+      const updatedSession: Session = {
+        ...session,
+        ...(updates.name !== undefined && { name: updates.name }),
+        ...(updates.tags !== undefined && { tags: updates.tags }),
+      };
+
+      // Save to storage
+      try {
+        await window.electron?.session.save(updatedSession);
+        setSelectedSession(updatedSession);
+
+        // Update the sessions list meta
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === session.id
+              ? { ...s, name: updatedSession.name, tags: updatedSession.tags }
+              : s
+          )
+        );
+
+        // If this is the active session, trigger refresh in parent
+        if (session.id === activeSessionId) {
+          // The parent component will receive the updated session through activeSession prop
+        }
+      } catch (err) {
+        console.error("[SessionManager] Failed to save session updates:", err);
+      }
+    },
+    [activeSessionId]
+  );
+
+  // Handle combining multiple sessions into one
+  const handleCombineSessions = useCallback(async () => {
+    // Get sessions matching the current filters (tags + loadouts)
+    const selectedTags = filters.selectedTags;
+    if (selectedTags.length === 0) return;
+
+    const sessionsToMerge = sessions.filter((s) =>
+      s.tags?.some((tag) => selectedTags.includes(tag))
+    );
+
+    if (sessionsToMerge.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Combine ${sessionsToMerge.length} session${
+        sessionsToMerge.length > 1 ? "s" : ""
+      } into a single session?\n\nOriginal sessions will be deleted.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Load all sessions
+      const loadedSessions = await Promise.all(
+        sessionsToMerge.map((meta) => window.electron?.session.load(meta.id))
+      );
+      const validSessions = loadedSessions.filter((s): s is Session => !!s);
+
+      if (validSessions.length === 0) return;
+
+      // Sort by startedAt
+      validSessions.sort(
+        (a, b) =>
+          new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
+      );
+
+      // Create combined session
+      const firstSession = validSessions[0];
+      const lastSession = validSessions[validSessions.length - 1];
+      const tagName =
+        selectedTags.length === 1
+          ? selectedTags[0]
+          : `${selectedTags.length} Tags`;
+
+      const combinedSession: Session = {
+        id: `combined-${Date.now()}`,
+        name: `Combined ${tagName} (${validSessions.length} sessions)`,
+        tags: selectedTags,
+        startedAt: firstSession.startedAt,
+        endedAt: lastSession.endedAt,
+        events: [],
+        loadoutSnapshots: {},
+        manualCostPerShot: 0,
+        manualArmorCost: 0,
+        manualFapCost: 0,
+        manualMiscCost: 0,
+      };
+
+      // Merge all events
+      for (const session of validSessions) {
+        combinedSession.events.push(...(session.events || []));
+        // Merge loadout snapshots
+        Object.assign(
+          combinedSession.loadoutSnapshots,
+          session.loadoutSnapshots || {}
+        );
+        // Sum manual expenses
+        combinedSession.manualArmorCost =
+          (combinedSession.manualArmorCost || 0) +
+          (session.manualArmorCost || 0);
+        combinedSession.manualFapCost =
+          (combinedSession.manualFapCost || 0) + (session.manualFapCost || 0);
+        combinedSession.manualMiscCost =
+          (combinedSession.manualMiscCost || 0) + (session.manualMiscCost || 0);
+      }
+
+      // Sort events by timestamp
+      combinedSession.events.sort((a, b) => {
+        const timeA = new Date(a.timestamp).getTime();
+        const timeB = new Date(b.timestamp).getTime();
+        return timeA - timeB;
+      });
+
+      // Save combined session
+      await window.electron?.session.save(combinedSession);
+
+      // Delete original sessions
+      for (const session of validSessions) {
+        await window.electron?.session.delete(session.id);
+      }
+
+      // Reload session list
+      loadSessions();
+      setSelectedSessionId(null);
+      setSelectedSession(null);
+    } catch (err) {
+      console.error("[SessionManager] Failed to combine sessions:", err);
+    }
+  }, [filters.selectedTags, sessions]);
+
   // Get the session to show in detail panel
   // Use live activeSession data when viewing the active session
   const detailSession = useMemo(() => {
@@ -436,13 +626,14 @@ export function SessionManager({
     }
 
     const selectedTags = filters.selectedTags;
-    const tagName = selectedTags.length === 1 
-      ? selectedTags[0] 
-      : `${selectedTags.length} Tags`;
+    const tagName =
+      selectedTags.length === 1
+        ? selectedTags[0]
+        : `${selectedTags.length} Tags`;
 
     // Find all sessions with ANY of the selected tags
-    const taggedSessions = sessions.filter((s) => 
-      s.tags?.some(tag => selectedTags.includes(tag))
+    const taggedSessions = sessions.filter((s) =>
+      s.tags?.some((tag) => selectedTags.includes(tag))
     );
     if (taggedSessions.length === 0) return null;
 
@@ -524,6 +715,8 @@ export function SessionManager({
         filters={filters}
         onFilterChange={handleFilterChange}
         allTags={allTags}
+        allLoadoutIds={allLoadoutIds}
+        loadoutNameMap={loadoutNameMap}
         sessionCounts={sessionCounts}
         showMarkup={showMarkup}
         onToggleMarkup={() => setShowMarkup(!showMarkup)}
@@ -553,11 +746,13 @@ export function SessionManager({
         onDelete={handleDelete}
         onViewInTabs={onViewSession}
         onResume={handleResume}
+        onSessionUpdate={handleSessionUpdate}
         isActiveSession={selectedSessionId === activeSessionId}
         onExpenseUpdate={handleExpenseUpdate}
         showMarkup={showMarkup}
         applyExpenses={applyExpenses}
         markupLibrary={markupLibrary}
+        onCombineSessions={handleCombineSessions}
       />
     </div>
   );

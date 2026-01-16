@@ -4,13 +4,15 @@
  */
 
 import React from "react";
-import { Clock, CheckCircle, Tag, X, Search } from "lucide-react";
+import { Clock, CheckCircle, Tag, X, Search, Package } from "lucide-react";
 import type { FilterState, FilterMode, SortBy } from "./types";
 
 interface SidebarProps {
   filters: FilterState;
   onFilterChange: (filters: Partial<FilterState>) => void;
   allTags: string[];
+  allLoadoutIds: string[];
+  loadoutNameMap: Record<string, string>;
   sessionCounts: {
     all: number;
     active: number;
@@ -26,6 +28,8 @@ export function Sidebar({
   filters,
   onFilterChange,
   allTags,
+  allLoadoutIds,
+  loadoutNameMap,
   sessionCounts,
   showMarkup,
   onToggleMarkup,
@@ -80,6 +84,17 @@ export function Sidebar({
 
   const clearTags = () => {
     onFilterChange({ selectedTags: [] });
+  };
+
+  const toggleLoadout = (loadoutId: string) => {
+    const newLoadoutIds = filters.selectedLoadoutIds.includes(loadoutId)
+      ? filters.selectedLoadoutIds.filter((id) => id !== loadoutId)
+      : [...filters.selectedLoadoutIds, loadoutId];
+    onFilterChange({ selectedLoadoutIds: newLoadoutIds });
+  };
+
+  const clearLoadouts = () => {
+    onFilterChange({ selectedLoadoutIds: [] });
   };
 
   return (
@@ -225,6 +240,40 @@ export function Sidebar({
               >
                 <Tag size={10} />
                 {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Loadouts */}
+      {allLoadoutIds.length > 0 && (
+        <div style={styles.section}>
+          <div style={styles.sectionHeader}>
+            <div style={styles.sectionTitle}>
+              <Package size={12} />
+              LOADOUTS
+            </div>
+            {filters.selectedLoadoutIds.length > 0 && (
+              <button onClick={clearLoadouts} style={styles.clearTagsButton}>
+                Clear ({filters.selectedLoadoutIds.length})
+              </button>
+            )}
+          </div>
+          <div style={styles.tagList}>
+            {allLoadoutIds.map((loadoutId) => (
+              <button
+                key={loadoutId}
+                onClick={() => toggleLoadout(loadoutId)}
+                style={{
+                  ...styles.tagButton,
+                  ...(filters.selectedLoadoutIds.includes(loadoutId)
+                    ? styles.tagButtonActive
+                    : {}),
+                }}
+              >
+                <Package size={10} />
+                {loadoutNameMap[loadoutId] || loadoutId.slice(0, 8) + "..."}
               </button>
             ))}
           </div>
