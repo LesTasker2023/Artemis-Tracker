@@ -324,61 +324,53 @@ export function DetailPanel({
             )
           )}
         </div>
-        <div style={styles.headerActions}>
+
+        {/* Action Buttons - 2x2 Grid */}
+        <div style={styles.actionGrid}>
           {isEditing ? (
             <>
-              <button
+              <ActionButton
+                icon={<Check size={14} />}
+                label="Save"
                 onClick={handleSaveEdit}
-                style={styles.actionButtonSuccess}
-                title="Save Changes"
-              >
-                <Check size={14} />
-              </button>
-              <button
+                primary
+              />
+              <ActionButton
+                icon={<XIcon size={14} />}
+                label="Cancel"
                 onClick={handleCancelEdit}
-                style={styles.actionButton}
-                title="Cancel"
-              >
-                <XIcon size={14} />
-              </button>
+              />
             </>
           ) : (
             <>
               {onSessionUpdate && (
-                <button
+                <ActionButton
+                  icon={<Edit2 size={14} />}
+                  label="Edit"
                   onClick={handleStartEdit}
-                  style={styles.actionButton}
-                  title="Edit Session"
-                >
-                  <Edit2 size={14} />
-                </button>
+                />
               )}
               {onResume && session.endedAt && (
-                <button
+                <ActionButton
+                  icon={<RotateCcw size={14} />}
+                  label="Resume"
                   onClick={() => onResume(session)}
-                  style={styles.actionButton}
-                  title="Resume Session"
-                >
-                  <RotateCcw size={14} />
-                </button>
+                />
               )}
               {onViewInTabs && (
-                <button
+                <ActionButton
+                  icon={<Eye size={14} />}
+                  label="View Data"
                   onClick={() => onViewInTabs(session)}
-                  style={styles.actionButton}
-                  title="View in Data Tabs"
-                >
-                  <Eye size={14} />
-                </button>
+                />
               )}
               {onDelete && (
-                <button
+                <ActionButton
+                  icon={<Trash2 size={14} />}
+                  label="Delete"
                   onClick={handleDelete}
-                  style={styles.actionButtonDanger}
-                  title="Delete Session"
-                >
-                  <Trash2 size={14} />
-                </button>
+                  danger
+                />
               )}
             </>
           )}
@@ -870,7 +862,7 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     width: "360px",
     minWidth: "360px",
-    backgroundColor: "hsl(220 13% 9%)",
+    backgroundColor: "#14161a",
     borderLeftWidth: "1px",
     borderLeftStyle: "solid",
     borderLeftColor: "hsl(220 13% 18%)",
@@ -891,8 +883,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   header: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: "column" as const,
+    gap: "12px",
     padding: "16px",
     borderBottomWidth: "1px",
     borderBottomStyle: "solid",
@@ -951,50 +943,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 500,
   },
   headerActions: {
-    display: "flex",
-    gap: "4px",
+    display: "none",
   },
-  actionButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "28px",
-    height: "28px",
-    backgroundColor: "hsl(220 13% 15%)",
-    color: "hsl(0 0% 75%)",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "hsl(220 13% 22%)",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-  actionButtonDanger: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "28px",
-    height: "28px",
-    backgroundColor: "rgba(239, 68, 68, 0.15)",
-    color: "#ef4444",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "rgba(239, 68, 68, 0.25)",
-    borderRadius: "6px",
-    cursor: "pointer",
-  },
-  actionButtonSuccess: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "28px",
-    height: "28px",
-    backgroundColor: "rgba(34, 197, 94, 0.15)",
-    color: "#22c55e",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: "rgba(34, 197, 94, 0.25)",
-    borderRadius: "6px",
-    cursor: "pointer",
+  actionGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
   },
   nameInput: {
     width: "100%",
@@ -1234,3 +1188,53 @@ const styles: Record<string, React.CSSProperties> = {
     color: "#ef4444",
   },
 };
+
+// Action Button Component - Shared styling with LoadoutManager
+function ActionButton({
+  icon,
+  label,
+  onClick,
+  primary,
+  danger,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  primary?: boolean;
+  danger?: boolean;
+}) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const baseColor = danger
+    ? "hsl(0 72% 50%)"
+    : primary
+    ? "hsl(217 91% 60%)"
+    : "hsl(220 13% 50%)";
+
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        padding: "8px 12px",
+        fontSize: "12px",
+        fontWeight: 600,
+        color: baseColor,
+        backgroundColor: isHovered ? `${baseColor}15` : "transparent",
+        border: `1px solid ${baseColor}`,
+        borderRadius: "6px",
+        cursor: "pointer",
+        outline: "none",
+        transition: "all 0.15s ease",
+      }}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}

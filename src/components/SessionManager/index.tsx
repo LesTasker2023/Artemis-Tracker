@@ -86,19 +86,42 @@ export function SessionManager({
     loadSessions();
   }, []);
 
+  // Auto-select and load first session after list loads
+  useEffect(() => {
+    if (sessions.length > 0 && !selectedSessionId && !loading) {
+      // Load first session
+      (async () => {
+        const firstSessionId = sessions[0].id;
+        setSelectedSessionId(firstSessionId);
+        try {
+          const session = await window.electron?.session.load(firstSessionId);
+          if (session) {
+            setSelectedSession(session);
+          }
+        } catch (err) {
+          console.error("[SessionManager] Failed to load first session:", err);
+        }
+      })();
+    }
+  }, [sessions, selectedSessionId, loading]);
+
   // Lazy loading - delay heavy operations
   useEffect(() => {
     const timer = setTimeout(() => setIsReady(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
-  // Refresh list when active session updates (to show updated event counts)
+  // Refresh list when active session updates (to show updated event counts and endedAt)
   useEffect(() => {
     if (activeSession && activeSessionId) {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === activeSessionId
-            ? { ...s, eventCount: activeSession.events?.length || s.eventCount }
+            ? {
+                ...s,
+                eventCount: activeSession.events?.length || s.eventCount,
+                endedAt: activeSession.endedAt, // Update endedAt to reflect session stop
+              }
             : s
         )
       );
@@ -459,24 +482,35 @@ export function SessionManager({
         await window.electron?.session.save(updatedSession);
         setSelectedSession(updatedSession);
 
+        // Update the sessions list meta to trigger re-renders
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === selectedSession.id
+              ? { ...s } // Trigger object reference change
+              : s
+          )
+        );
+
         // Invalidate stats cache for this session to force recalculation
         setStatsCache((prev) => {
           const { [selectedSession.id]: _, ...rest } = prev;
           return rest;
         });
+
+        // If this is the active session, send update to popout
+        if (selectedSession.id === activeSessionId) {
+          window.electron?.popout?.updateExpenses(expenses);
+        }
       } catch (err) {
         console.error("[SessionManager] Failed to save expenses:", err);
       }
     },
-    [selectedSession]
+    [selectedSession, activeSessionId]
   );
 
   // Handle session update (name, tags)
   const handleSessionUpdate = useCallback(
-    async (
-      session: Session,
-      updates: { name?: string; tags?: string[] }
-    ) => {
+    async (session: Session, updates: { name?: string; tags?: string[] }) => {
       // Update the session with new name/tags
       const updatedSession: Session = {
         ...session,

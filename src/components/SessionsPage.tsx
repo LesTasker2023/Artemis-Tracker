@@ -671,22 +671,32 @@ function SessionDetail({
         : setMiscCost;
     setter(value);
 
-    // Debounced save - update session after user stops typing
+    const newArmorCost = field === "armor" ? value : armorCost;
+    const newFapCost = field === "fap" ? value : fapCost;
+    const newMiscCost = field === "misc" ? value : miscCost;
+
+    // Update session with new expenses
     const updatedSession = {
       ...session,
-      manualArmorCost: field === "armor" ? value : armorCost,
-      manualFapCost: field === "fap" ? value : fapCost,
-      manualMiscCost: field === "misc" ? value : miscCost,
+      manualArmorCost: newArmorCost,
+      manualFapCost: newFapCost,
+      manualMiscCost: newMiscCost,
     };
     onUpdate(updatedSession);
 
-    // If this is the active session, sync expenses to popout
+    // Sync expenses to popout via IPC
+    const expenses = {
+      armorCost: newArmorCost,
+      fapCost: newFapCost,
+      miscCost: newMiscCost,
+    };
+
+    // Always update popout if it's open (regardless of active status)
+    window.electron?.popout?.updateExpenses(expenses);
+
+    // Also call the callback if provided (for active session)
     if (isActiveSession && onExpenseUpdate) {
-      onExpenseUpdate({
-        armorCost: field === "armor" ? value : armorCost,
-        fapCost: field === "fap" ? value : fapCost,
-        miscCost: field === "misc" ? value : miscCost,
-      });
+      onExpenseUpdate(expenses);
     }
   };
 
@@ -775,7 +785,7 @@ function SessionDetail({
           </div>
         </div>
         <div style={detailStyles.headerActions}>
-          {onResume && session.endedAt && (
+          {onResume && (session.endedAt || !isActiveSession) && (
             <button
               onClick={handleResumeClick}
               style={detailStyles.actionButton}
@@ -1317,7 +1327,9 @@ const detailStyles: Record<string, React.CSSProperties> = {
     borderRadius: "12px",
     padding: "20px",
     border: "1px solid hsl(220 13% 18%)",
-    textAlign: "center",
+    textAlign: "left",
+    display: "flex",
+    flexDirection: "column",
   },
   heroLabel: {
     fontSize: "12px",
@@ -1326,23 +1338,26 @@ const detailStyles: Record<string, React.CSSProperties> = {
     textTransform: "uppercase",
     letterSpacing: "0.05em",
     marginBottom: "8px",
+    textAlign: "left",
   },
   heroValue: {
-    fontSize: "32px",
+    fontSize: "48px",
     fontWeight: "700",
     fontFamily: "'JetBrains Mono', monospace",
     lineHeight: 1,
+    textAlign: "left",
   },
   heroUnit: {
-    fontSize: "14px",
+    fontSize: "21px",
     fontWeight: "500",
     marginLeft: "4px",
-    opacity: 0.7,
+    opacity: 0.7",
   },
   heroSubtext: {
-    fontSize: "12px",
+    fontSize: "18px",
     color: "hsl(220 13% 45%)",
     marginTop: "8px",
+    textAlign: "left",
   },
   heroSecondary: {
     display: "grid",
@@ -1758,6 +1773,15 @@ export function SessionsPage({
     try {
       await window.electron?.session.save(updatedSession);
       setSelectedSession(updatedSession);
+
+      // Update sessions list to reflect changes
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === updatedSession.id
+            ? { ...s, name: updatedSession.name, tags: updatedSession.tags }
+            : s
+        )
+      );
     } catch (err) {
       console.error("[SessionsPage] Failed to update session:", err);
     }

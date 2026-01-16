@@ -57,10 +57,9 @@ export function SessionCard({
   };
 
   const getStatusBadge = () => {
-    if (!session.endedAt) {
-      return (
-        <span style={styles.badgeActive}>{isActive ? "REC" : "LIVE"}</span>
-      );
+    // Only show badge for the actual active session
+    if (isActive && !session.endedAt) {
+      return <span style={styles.badgeActive}>LIVE</span>;
     }
     return null;
   };
@@ -168,7 +167,7 @@ const styles: Record<string, React.CSSProperties> = {
   row: {
     display: "flex",
     alignItems: "center",
-    padding: "10px 14px",
+    padding: "12px 16px",
     backgroundColor: "hsl(220 13% 10%)",
     borderRadius: "8px",
     cursor: "pointer",
@@ -250,25 +249,25 @@ const styles: Record<string, React.CSSProperties> = {
   statsCol: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "16px",
     flexShrink: 0,
   },
   statBox: {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-end",
-    minWidth: "44px",
+    minWidth: "70px",
   },
   statValue: {
-    fontSize: "12px",
+    fontSize: "16px",
     fontWeight: 700,
     fontFamily: "'JetBrains Mono', monospace",
     lineHeight: 1.2,
   },
   statLabel: {
-    fontSize: "9px",
-    fontWeight: 500,
-    color: "hsl(220 13% 40%)",
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "hsl(220 13% 50%)",
     textTransform: "uppercase",
     letterSpacing: "0.5px",
   },

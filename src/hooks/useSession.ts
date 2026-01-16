@@ -16,6 +16,9 @@ import {
   addEventToSession,
   endSession,
   calculateSessionStats,
+  getQuickStats,
+  QuickStats,
+  rebuildRunningStats,
 } from "../core/session";
 import { LogEvent } from "../core/types";
 import { logEventToParsedEvent, isCriticalHit } from "../core/parser";
@@ -32,6 +35,7 @@ interface UseSessionReturn {
   // Current session state
   session: Session | null;
   stats: SessionStats | null;
+  quickStats: QuickStats | null; // O(1) stats for real-time display
   isActive: boolean;
   isPaused: boolean;
 
@@ -114,14 +118,48 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
   }, []);
   
   // Recalculate stats when session changes OR events are added OR markup changes OR loadout changes OR pause state changes
+  // Throttle full recalculation to every 500ms max, use quick stats in between for performance
+  const lastFullCalcRef = useRef<number>(0);
+  const pendingCalcRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
   useEffect(() => {
     if (session) {
-      const playerName = getStoredPlayerName();
-      const loadout = getActiveLoadout();
-      setStats(calculateSessionStats(session, playerName || undefined, loadout, markupLibrary, defaultMarkupPercent));
+      const now = Date.now();
+      const timeSinceLastCalc = now - lastFullCalcRef.current;
+      
+      // Clear any pending calculation
+      if (pendingCalcRef.current) {
+        clearTimeout(pendingCalcRef.current);
+        pendingCalcRef.current = null;
+      }
+      
+      // If it's been > 500ms since last full calc, do it immediately
+      // This ensures we always have fresh data when browsing or after pauses
+      if (timeSinceLastCalc > 500) {
+        const playerName = getStoredPlayerName();
+        const loadout = getActiveLoadout();
+        setStats(calculateSessionStats(session, playerName || undefined, loadout, markupLibrary, defaultMarkupPercent));
+        lastFullCalcRef.current = now;
+      } else {
+        // Schedule a calculation for later (debounce rapid events)
+        pendingCalcRef.current = setTimeout(() => {
+          const playerName = getStoredPlayerName();
+          const loadout = getActiveLoadout();
+          setStats(calculateSessionStats(session, playerName || undefined, loadout, markupLibrary, defaultMarkupPercent));
+          lastFullCalcRef.current = Date.now();
+          pendingCalcRef.current = null;
+        }, 500 - timeSinceLastCalc);
+      }
     } else {
       setStats(null);
     }
+    
+    // Cleanup timeout on unmount
+    return () => {
+      if (pendingCalcRef.current) {
+        clearTimeout(pendingCalcRef.current);
+      }
+    };
   }, [session, session?.events.length, session?.pausedAt, session?.totalPausedTime, markupLibrary, defaultMarkupPercent, loadoutVersion]);
   
   // Manual recalculate (when player name changes or markup changes)
@@ -149,9 +187,16 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
       // Try to load the session from file
       window.electron?.session?.load(activeId).then(loaded => {
         if (loaded && !loaded.endedAt) {
-          setSession(loaded);
+          // Rebuild running stats if missing (legacy session)
+          let sessionToRestore = loaded;
+          if (!sessionToRestore.runningStats) {
+            console.log('[useSession] Rebuilding running stats on restore');
+            const playerName = getStoredPlayerName();
+            sessionToRestore = rebuildRunningStats(sessionToRestore, playerName || undefined);
+          }
+          setSession(sessionToRestore);
           // Restore pause state if session was paused
-          if (loaded.pausedAt) {
+          if (sessionToRestore.pausedAt) {
             setIsPaused(true);
           }
         } else {
@@ -165,6 +210,32 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
   
   const start = useCallback(async (name?: string, tags?: string[]) => {
     console.log('[useSession] start invoked, name:', name, 'tags:', tags);
+    
+    // End any sessions without endedAt (cleanup orphaned sessions)
+    try {
+      const allSessions = await window.electron?.session?.listAll();
+      if (allSessions) {
+        const now = new Date().toISOString();
+        const orphanedSessions = allSessions.filter(meta => !meta.endedAt);
+        
+        // End all orphaned sessions
+        for (const meta of orphanedSessions) {
+          try {
+            const fullSession = await window.electron?.session?.load(meta.id);
+            if (fullSession && !fullSession.endedAt) {
+              const ended = endSession(fullSession);
+              await window.electron?.session?.save(ended);
+              console.log('[useSession] Auto-ended orphaned session:', meta.id);
+            }
+          } catch (e) {
+            console.error('[useSession] Failed to end orphaned session:', meta.id, e);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[useSession] Failed to cleanup orphaned sessions:', e);
+    }
+    
     // End any existing active session first
     if (session && !session.endedAt) {
       const ended = endSession(session);
@@ -253,10 +324,17 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     }
     
     // Clear the endedAt to make it active again
-    const resumed: Session = {
+    let resumed: Session = {
       ...sessionToResume,
       endedAt: undefined,
     };
+    
+    // Rebuild running stats if missing (legacy session migration)
+    if (!resumed.runningStats) {
+      console.log('[useSession] Rebuilding running stats for legacy session');
+      const playerName = getStoredPlayerName();
+      resumed = rebuildRunningStats(resumed, playerName || undefined);
+    }
     
     // Save immediately
     try {
@@ -286,7 +364,9 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
       // Get current active loadout fresh from storage (not cached in hook state)
       // This ensures loadout swaps are captured correctly
       const currentLoadout = getActiveLoadout();
-      return addEventToSession(prev, parsed, currentLoadout);
+      // Pass player name for tracking player's own globals
+      const playerName = getStoredPlayerName();
+      return addEventToSession(prev, parsed, currentLoadout, playerName);
     });
     // Note: useDebouncedSave will auto-save after state updates
   }, [isPaused]);
@@ -304,9 +384,13 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     });
   }, []);
   
+  // Quick stats - O(1) access to running stats for real-time display
+  const quickStats = session ? getQuickStats(session) : null;
+  
   return {
     session,
     stats,
+    quickStats,
     isActive: session !== null && !session.endedAt,
     isPaused,
     start,

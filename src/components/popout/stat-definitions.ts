@@ -67,6 +67,8 @@ export interface StatData {
   skillGains: number;
   skillEvents: number;
   duration: number;
+  // Weapon stats for realistic DPS
+  usesPerMinute?: number;  // Attack speed from active loadout
   // Markup-adjusted values
   lootValueWithMarkup?: number;
   netProfitWithMarkup?: number;
@@ -536,16 +538,59 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
   },
   {
     key: "dps",
-    label: "COMBAT DPS",
+    label: "DPS",
     icon: Flame,
     category: "efficiency",
-    description: "Damage per second during combat",
+    description: "Realistic damage per second (avgDmg × firing rate)",
     getValue: (d) => {
+      // Calculate using realistic formula: (avgDamagePerShot) × (usesPerMin / 60)
+      if (d.usesPerMinute && d.usesPerMinute > 0 && d.shots > 0) {
+        const avgDmgPerShot = d.damageDealt / d.shots;
+        const dps = avgDmgPerShot * (d.usesPerMinute / 60);
+        return {
+          value: formatDecimal(dps, 1),
+          unit: "realistic",
+          color: colors.warning,
+          numericValue: dps,
+        };
+      }
+      // Fallback: use combat duration if usesPerMinute not available
       const dps = d.duration > 0 ? d.damageDealt / d.duration : 0;
       return {
         value: formatDecimal(dps, 1),
+        unit: "session avg",
         color: colors.warning,
         numericValue: dps,
+      };
+    },
+  },
+  {
+    key: "dpp",
+    label: "DPP",
+    icon: Swords,
+    category: "efficiency",
+    description: "Realistic damage per PEC (DPS / cost per second)",
+    getValue: (d) => {
+      // Realistic formula matching DPS: (actual dmg efficiency) × (firing rate)
+      if (d.usesPerMinute && d.usesPerMinute > 0 && d.shots > 0) {
+        const avgDmgPerShot = d.damageDealt / d.shots;
+        const costPerShotPEC = (d.totalSpend / d.shots) * 100; // PED to PEC
+        const dpp = avgDmgPerShot / costPerShotPEC;
+        return {
+          value: formatDecimal(dpp, 2),
+          unit: "dmg/PEC",
+          color: colors.warning,
+          numericValue: dpp,
+        };
+      }
+      // Fallback: simple damage per PEC spent
+      const totalSpendPEC = d.totalSpend * 100;
+      const dpp = totalSpendPEC > 0 ? d.damageDealt / totalSpendPEC : 0;
+      return {
+        value: formatDecimal(dpp, 2),
+        unit: "session avg",
+        color: colors.warning,
+        numericValue: dpp,
       };
     },
   },

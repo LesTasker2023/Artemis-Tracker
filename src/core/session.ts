@@ -43,6 +43,144 @@ export interface SessionEvent extends ParsedEvent {
 }
 
 /**
+ * Running stats - incrementally updated on each event for O(1) performance
+ * These are stored on the session to avoid recalculating from all events
+ */
+export interface RunningStats {
+  // Combat - Offensive
+  shots: number;
+  hits: number;
+  misses: number;           // Simple misses
+  criticals: number;
+  damageDealt: number;
+  criticalDamage: number;
+  maxDamageHit: number;
+  targetDodged: number;     // Target dodged your attack
+  targetEvaded: number;     // Target evaded your attack
+  targetResisted: number;   // Target resisted all damage
+  outOfRange: number;       // Shot was out of range
+  // Combat - Defensive
+  damageTaken: number;
+  criticalDamageTaken: number;
+  damageReduced: number;    // Armor damage reduction amount
+  playerDodges: number;
+  playerEvades: number;
+  deflects: number;
+  enemyMisses: number;      // Enemy attack missed you
+  // Healing
+  selfHealing: number;
+  healCount: number;
+  healedByOthers: number;
+  healingGiven: number;
+  // Loot
+  lootValue: number;
+  lootCount: number;
+  // Kills (inferred from loot)
+  kills: number;
+  deaths: number;
+  // Skills
+  skillGains: number;
+  skillEvents: number;
+  skillRanks: number;       // New ranks achieved
+  newSkillsUnlocked: number;
+  // Globals
+  globalCount: number;
+  hofs: number;
+  // Equipment
+  tierUps: number;
+  enhancerBreaks: number;
+  enhancerShrapnel: number; // PED value from enhancer breaks
+  // Mining
+  miningClaims: number;
+  miningClaimValue: number;
+  miningNoFinds: number;
+  resourceDepleted: number;
+  // Effects
+  buffsReceived: number;
+  debuffsReceived: number;
+  // Death/Revival
+  revives: number;
+  divineInterventions: number;
+  // Per-loadout shots and loot
+  loadoutShots: Record<string, number>;
+  loadoutLoot: Record<string, number>;
+  // Timestamps for duration calc
+  firstEventTime: number | null;
+  lastEventTime: number | null;
+  // Track damage since last loot (for kill inference)
+  damageEventsSinceLastLoot: number;
+}
+
+/**
+ * Create empty running stats
+ */
+export function createRunningStats(): RunningStats {
+  return {
+    // Combat - Offensive
+    shots: 0,
+    hits: 0,
+    misses: 0,
+    criticals: 0,
+    damageDealt: 0,
+    criticalDamage: 0,
+    maxDamageHit: 0,
+    targetDodged: 0,
+    targetEvaded: 0,
+    targetResisted: 0,
+    outOfRange: 0,
+    // Combat - Defensive
+    damageTaken: 0,
+    criticalDamageTaken: 0,
+    damageReduced: 0,
+    playerDodges: 0,
+    playerEvades: 0,
+    deflects: 0,
+    enemyMisses: 0,
+    // Healing
+    selfHealing: 0,
+    healCount: 0,
+    healedByOthers: 0,
+    healingGiven: 0,
+    // Loot
+    lootValue: 0,
+    lootCount: 0,
+    // Kills
+    kills: 0,
+    deaths: 0,
+    // Skills
+    skillGains: 0,
+    skillEvents: 0,
+    skillRanks: 0,
+    newSkillsUnlocked: 0,
+    // Globals
+    globalCount: 0,
+    hofs: 0,
+    // Equipment
+    tierUps: 0,
+    enhancerBreaks: 0,
+    enhancerShrapnel: 0,
+    // Mining
+    miningClaims: 0,
+    miningClaimValue: 0,
+    miningNoFinds: 0,
+    resourceDepleted: 0,
+    // Effects
+    buffsReceived: 0,
+    debuffsReceived: 0,
+    // Death/Revival
+    revives: 0,
+    divineInterventions: 0,
+    // Per-loadout
+    loadoutShots: {},
+    loadoutLoot: {},
+    // Timestamps
+    firstEventTime: null,
+    lastEventTime: null,
+    damageEventsSinceLastLoot: 0,
+  };
+}
+
+/**
  * A hunting session with all events and loadout tracking
  */
 export interface Session {
@@ -61,6 +199,8 @@ export interface Session {
   // Pause tracking
   pausedAt?: string;
   totalPausedTime?: number; // milliseconds spent paused
+  // Performance: Running stats updated incrementally (O(1) per event)
+  runningStats?: RunningStats;
 }
 
 /**
@@ -154,20 +294,236 @@ export function createSession(name?: string, tags?: string[]): Session {
     events: [],
     loadoutSnapshots: {},
     manualCostPerShot: 0.05, // Default fallback
+    runningStats: createRunningStats(), // Initialize incremental stats
+  };
+}
+
+/**
+ * Rebuild running stats from all events in a session
+ * Use this when loading a legacy session without runningStats
+ * @param session Session to rebuild stats for
+ * @param playerName Optional player name for global filtering
+ * @returns Session with rebuilt runningStats
+ */
+export function rebuildRunningStats(session: Session, playerName?: string): Session {
+  const stats = createRunningStats();
+  
+  for (const event of session.events) {
+    const timestamp = new Date(event.timestamp).getTime();
+    const loadoutKey = event.loadoutId ?? "__manual__";
+    
+    // Track first/last event times
+    if (stats.firstEventTime === null || timestamp < stats.firstEventTime) {
+      stats.firstEventTime = timestamp;
+    }
+    if (stats.lastEventTime === null || timestamp > stats.lastEventTime) {
+      stats.lastEventTime = timestamp;
+    }
+    
+    // Track ammo consuming events
+    if (isAmmoConsumingEvent(event.type)) {
+      stats.shots++;
+      stats.loadoutShots[loadoutKey] = (stats.loadoutShots[loadoutKey] || 0) + 1;
+      stats.damageEventsSinceLastLoot++;
+    }
+    
+    switch (event.type) {
+      // ==================== Combat - Offensive ====================
+      case "damage_dealt":
+      case "hit":
+        stats.hits++;
+        stats.damageDealt += event.amount ?? 0;
+        if (event.amount && event.amount > stats.maxDamageHit) {
+          stats.maxDamageHit = event.amount;
+        }
+        if (event.critical) {
+          stats.criticals++;
+          stats.criticalDamage += event.amount ?? 0;
+        }
+        break;
+        
+      case "miss":
+        stats.misses++;
+        break;
+        
+      case "target_dodged":
+        stats.targetDodged++;
+        stats.misses++;
+        break;
+        
+      case "target_evaded":
+        stats.targetEvaded++;
+        stats.misses++;
+        break;
+        
+      case "target_resisted":
+        stats.targetResisted++;
+        stats.misses++;
+        break;
+        
+      case "out_of_range":
+        stats.outOfRange++;
+        stats.misses++;
+        break;
+        
+      // ==================== Combat - Defensive ====================
+      case "damage_taken":
+        stats.damageTaken += event.amount ?? 0;
+        if (event.critical) {
+          stats.criticalDamageTaken += event.amount ?? 0;
+        }
+        break;
+        
+      case "damage_reduced":
+        stats.damageReduced += event.amount ?? 0;
+        break;
+        
+      case "player_dodged":
+        stats.playerDodges++;
+        break;
+        
+      case "player_evaded":
+      case "player_evade":
+        stats.playerEvades++;
+        break;
+        
+      case "deflect":
+        stats.deflects++;
+        break;
+        
+      case "enemy_missed":
+        stats.enemyMisses++;
+        break;
+        
+      // ==================== Healing ====================
+      case "self_heal":
+        stats.selfHealing += event.amount ?? 0;
+        stats.healCount++;
+        break;
+        
+      case "healed_by":
+        stats.healedByOthers += event.amount ?? 0;
+        break;
+        
+      case "heal_other":
+        stats.healingGiven += event.amount ?? 0;
+        break;
+        
+      // ==================== Loot ====================
+      case "loot": {
+        const itemName = event.itemName || "";
+        if (!itemName.toLowerCase().includes("universal ammo") && 
+            !itemName.toLowerCase().includes("nanocube")) {
+          stats.lootValue += event.value ?? 0;
+          stats.lootCount++;
+          stats.loadoutLoot[loadoutKey] = (stats.loadoutLoot[loadoutKey] || 0) + (event.value ?? 0);
+          if (stats.damageEventsSinceLastLoot > 0) {
+            stats.kills++;
+            stats.damageEventsSinceLastLoot = 0;
+          }
+        }
+        break;
+      }
+      
+      // ==================== Mining ====================
+      case "mining_claim":
+        stats.miningClaims++;
+        stats.miningClaimValue += event.value ?? 0;
+        break;
+        
+      case "no_find":
+        stats.miningNoFinds++;
+        break;
+        
+      case "resource_depleted":
+        stats.resourceDepleted++;
+        break;
+        
+      // ==================== Skills ====================
+      case "skill_gain":
+      case "attribute_gain":
+        stats.skillGains += event.amount ?? 0;
+        stats.skillEvents++;
+        break;
+        
+      case "skill_rank":
+        stats.skillRanks++;
+        break;
+        
+      case "skill_acquired":
+        stats.newSkillsUnlocked++;
+        break;
+        
+      // ==================== Equipment ====================
+      case "tier_up":
+        stats.tierUps++;
+        break;
+        
+      case "enhancer_broke":
+        stats.enhancerBreaks++;
+        break;
+        
+      // ==================== Effects ====================
+      case "buff":
+        stats.buffsReceived++;
+        break;
+        
+      case "debuff":
+        stats.debuffsReceived++;
+        break;
+        
+      // ==================== Death/Revival ====================
+      case "death":
+        stats.deaths++;
+        break;
+        
+      case "revived":
+        stats.revives++;
+        break;
+        
+      case "divine_intervention":
+        stats.divineInterventions++;
+        break;
+        
+      // ==================== Globals ====================
+      case "global":
+      case "global_mining":
+      case "global_craft":
+        if (!playerName || (event.player && event.player === playerName)) {
+          stats.globalCount++;
+        }
+        break;
+        
+      case "hof":
+      case "hof_mining":
+        if (!playerName || (event.player && event.player === playerName)) {
+          stats.hofs++;
+          stats.globalCount++;
+        }
+        break;
+    }
+  }
+  
+  return {
+    ...session,
+    runningStats: stats,
   };
 }
 
 /**
  * Add an event to a session with loadout tagging
+ * Also incrementally updates running stats for O(1) performance
  * @param session The session to add to
  * @param event The log event
  * @param activeLoadout Currently active loadout (if any)
+ * @param playerName Optional player name for global filtering
  * @returns Updated session (immutable)
  */
 export function addEventToSession(
   session: Session,
   event: ParsedEvent,
-  activeLoadout: Loadout | null
+  activeLoadout: Loadout | null,
+  playerName?: string
 ): Session {
   const loadoutId = activeLoadout?.id;
   
@@ -190,10 +546,228 @@ export function addEventToSession(
     };
   }
   
+  // Incrementally update running stats (O(1) per event)
+  const stats = session.runningStats ? { ...session.runningStats } : createRunningStats();
+  const loadoutKey = loadoutId ?? "__manual__";
+  
+  // Update timestamps
+  if (stats.firstEventTime === null) stats.firstEventTime = event.timestamp;
+  stats.lastEventTime = event.timestamp;
+  
+  // Process event type
+  const type = event.type;
+  
+  // Combat - ammo consuming events
+  if (isAmmoConsumingEvent(type)) {
+    stats.shots++;
+    stats.loadoutShots[loadoutKey] = (stats.loadoutShots[loadoutKey] || 0) + 1;
+    stats.damageEventsSinceLastLoot++;
+  }
+  
+  switch (type) {
+    // ==================== Combat - Offensive ====================
+    // Hits
+    case "damage_dealt":
+    case "hit":
+    case "critical":
+      stats.hits++;
+      const dmg = event.amount ?? 0;
+      stats.damageDealt += dmg;
+      if (dmg > stats.maxDamageHit) stats.maxDamageHit = dmg;
+      if (event.critical || type === "critical") {
+        stats.criticals++;
+        stats.criticalDamage += dmg;
+      }
+      break;
+      
+    // Misses (simple)
+    case "miss":
+      stats.misses++;
+      break;
+      
+    // Target dodged your attack
+    case "target_dodged":
+    case "target_dodge":
+      stats.targetDodged++;
+      stats.misses++;
+      break;
+      
+    // Target evaded your attack  
+    case "target_evaded":
+    case "target_evade":
+      stats.targetEvaded++;
+      stats.misses++;
+      break;
+      
+    // Target resisted all damage
+    case "target_resisted":
+      stats.targetResisted++;
+      stats.misses++;
+      break;
+      
+    // Out of range
+    case "out_of_range":
+      stats.outOfRange++;
+      stats.misses++;
+      break;
+      
+    // ==================== Combat - Defensive ====================
+    // Damage taken
+    case "damage_taken":
+      const dmgTaken = event.amount ?? 0;
+      stats.damageTaken += dmgTaken;
+      if (event.critical) {
+        stats.criticalDamageTaken += dmgTaken;
+      }
+      break;
+      
+    // Damage reduced by armor
+    case "damage_reduced":
+      stats.damageReduced += event.amount ?? 0;
+      break;
+      
+    // Player dodged
+    case "player_dodged":
+    case "player_dodge":
+      stats.playerDodges++;
+      break;
+      
+    // Player evaded
+    case "player_evaded":
+    case "player_evade":
+      stats.playerEvades++;
+      break;
+      
+    // Deflect
+    case "deflect":
+      stats.deflects++;
+      break;
+      
+    // Enemy missed
+    case "enemy_missed":
+      stats.enemyMisses++;
+      break;
+      
+    // ==================== Healing ====================
+    case "self_heal":
+    case "heal":
+      stats.selfHealing += event.amount ?? 0;
+      stats.healCount++;
+      break;
+      
+    case "healed_by":
+      stats.healedByOthers += event.amount ?? 0;
+      break;
+      
+    case "heal_other":
+      stats.healingGiven += event.amount ?? 0;
+      break;
+      
+    // ==================== Loot ====================
+    case "loot": {
+      const itemName = event.itemName || "";
+      // Skip universal ammo and nanocubes (false positives)
+      if (!itemName.toLowerCase().includes("universal ammo") && 
+          !itemName.toLowerCase().includes("nanocube")) {
+        stats.lootValue += event.value ?? 0;
+        stats.lootCount++;
+        stats.loadoutLoot[loadoutKey] = (stats.loadoutLoot[loadoutKey] || 0) + (event.value ?? 0);
+        // Infer kill if we had damage events
+        if (stats.damageEventsSinceLastLoot > 0) {
+          stats.kills++;
+          stats.damageEventsSinceLastLoot = 0;
+        }
+      }
+      break;
+    }
+    
+    // ==================== Mining ====================
+    case "mining_claim":
+      stats.miningClaims++;
+      stats.miningClaimValue += event.value ?? 0;
+      break;
+      
+    case "no_find":
+      stats.miningNoFinds++;
+      break;
+      
+    case "resource_depleted":
+      stats.resourceDepleted++;
+      break;
+      
+    // ==================== Skills ====================
+    case "skill_gain":
+    case "attribute_gain":
+      stats.skillGains += event.amount ?? 0;
+      stats.skillEvents++;
+      break;
+      
+    case "skill_rank":
+      stats.skillRanks++;
+      break;
+      
+    case "skill_acquired":
+      stats.newSkillsUnlocked++;
+      break;
+      
+    // ==================== Equipment ====================
+    case "tier_up":
+      stats.tierUps++;
+      break;
+      
+    case "enhancer_broke":
+      stats.enhancerBreaks++;
+      // Shrapnel value would need to be extracted from event data
+      // The event should have a shrapnel field if parsed correctly
+      break;
+      
+    // ==================== Effects ====================
+    case "buff":
+      stats.buffsReceived++;
+      break;
+      
+    case "debuff":
+      stats.debuffsReceived++;
+      break;
+      
+    // ==================== Death/Revival ====================
+    case "death":
+      stats.deaths++;
+      break;
+      
+    case "revived":
+      stats.revives++;
+      break;
+      
+    case "divine_intervention":
+      stats.divineInterventions++;
+      break;
+      
+    // ==================== Globals ====================
+    case "global":
+    case "global_mining":
+    case "global_craft":
+      // Only count if player name matches (or no filter)
+      if (!playerName || (event.player && event.player.toLowerCase() === playerName.toLowerCase())) {
+        stats.globalCount++;
+      }
+      break;
+      
+    // HOFs
+    case "hof":
+    case "hof_mining":
+      if (!playerName || (event.player && event.player.toLowerCase() === playerName.toLowerCase())) {
+        stats.hofs++;
+        stats.globalCount++;
+      }
+      break;
+  }
+  
   return {
     ...session,
     events: [...session.events, sessionEvent],
     loadoutSnapshots,
+    runningStats: stats,
   };
 }
 
@@ -204,6 +778,139 @@ export function endSession(session: Session): Session {
   return {
     ...session,
     endedAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Quick stats from running stats - O(1) operation
+ * Use this for real-time display instead of full calculateSessionStats
+ * Returns null if running stats not available (legacy session)
+ */
+export interface QuickStats {
+  duration: number;
+  // Combat - Offensive
+  shots: number;
+  hits: number;
+  misses: number;
+  criticals: number;
+  damageDealt: number;
+  targetDodged: number;
+  targetEvaded: number;
+  targetResisted: number;
+  outOfRange: number;
+  // Combat - Defensive
+  damageTaken: number;
+  criticalDamageTaken: number;
+  damageReduced: number;
+  playerDodges: number;
+  playerEvades: number;
+  deflects: number;
+  enemyMisses: number;
+  // Healing
+  selfHealing: number;
+  healCount: number;
+  healedByOthers: number;
+  healingGiven: number;
+  // Loot
+  lootValue: number;
+  lootCount: number;
+  kills: number;
+  deaths: number;
+  // Skills
+  skillGains: number;
+  skillRanks: number;
+  newSkillsUnlocked: number;
+  // Globals
+  globalCount: number;
+  hofs: number;
+  // Equipment
+  tierUps: number;
+  enhancerBreaks: number;
+  // Mining
+  miningClaims: number;
+  miningClaimValue: number;
+  miningNoFinds: number;
+  // Effects
+  buffsReceived: number;
+  debuffsReceived: number;
+  // Death/Revival
+  revives: number;
+  divineInterventions: number;
+  // Calculated rates
+  hitRate: number;
+  critRate: number;
+}
+
+export function getQuickStats(session: Session): QuickStats | null {
+  const stats = session.runningStats;
+  if (!stats) return null; // Legacy session without running stats
+  
+  // Calculate duration
+  const startTime = new Date(session.startedAt).getTime();
+  const endTime = session.endedAt ? new Date(session.endedAt).getTime() : Date.now();
+  const totalPausedMs = session.totalPausedTime || 0;
+  const currentPauseDuration = session.pausedAt 
+    ? Date.now() - new Date(session.pausedAt).getTime() 
+    : 0;
+  const duration = Math.floor((endTime - startTime - totalPausedMs - currentPauseDuration) / 1000);
+  
+  // Calculate rates
+  const hitRate = stats.shots > 0 ? (stats.hits / stats.shots) * 100 : 0;
+  const critRate = stats.hits > 0 ? (stats.criticals / stats.hits) * 100 : 0;
+  
+  return {
+    duration,
+    // Combat - Offensive
+    shots: stats.shots,
+    hits: stats.hits,
+    misses: stats.misses,
+    criticals: stats.criticals,
+    damageDealt: stats.damageDealt,
+    targetDodged: stats.targetDodged,
+    targetEvaded: stats.targetEvaded,
+    targetResisted: stats.targetResisted,
+    outOfRange: stats.outOfRange,
+    // Combat - Defensive
+    damageTaken: stats.damageTaken,
+    criticalDamageTaken: stats.criticalDamageTaken,
+    damageReduced: stats.damageReduced,
+    playerDodges: stats.playerDodges,
+    playerEvades: stats.playerEvades,
+    deflects: stats.deflects,
+    enemyMisses: stats.enemyMisses,
+    // Healing
+    selfHealing: stats.selfHealing,
+    healCount: stats.healCount,
+    healedByOthers: stats.healedByOthers,
+    healingGiven: stats.healingGiven,
+    // Loot
+    lootValue: stats.lootValue,
+    lootCount: stats.lootCount,
+    kills: stats.kills,
+    deaths: stats.deaths,
+    // Skills
+    skillGains: stats.skillGains,
+    skillRanks: stats.skillRanks,
+    newSkillsUnlocked: stats.newSkillsUnlocked,
+    // Globals
+    globalCount: stats.globalCount,
+    hofs: stats.hofs,
+    // Equipment
+    tierUps: stats.tierUps,
+    enhancerBreaks: stats.enhancerBreaks,
+    // Mining
+    miningClaims: stats.miningClaims,
+    miningClaimValue: stats.miningClaimValue,
+    miningNoFinds: stats.miningNoFinds,
+    // Effects
+    buffsReceived: stats.buffsReceived,
+    debuffsReceived: stats.debuffsReceived,
+    // Death/Revival
+    revives: stats.revives,
+    divineInterventions: stats.divineInterventions,
+    // Rates
+    hitRate,
+    critRate,
   };
 }
 

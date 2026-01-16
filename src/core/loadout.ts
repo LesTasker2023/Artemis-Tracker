@@ -40,6 +40,7 @@ export interface Equipment {
   economy: EquipmentEconomy;
   damage?: DamageProperties;
   range?: number;      // Weapon range in meters
+  usesPerMinute?: number; // Attack speed (shots per minute)
   maxTT?: number;      // Max TT value in PED
   minTT?: number;      // Min TT value in PED (repair threshold)
 }

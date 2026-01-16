@@ -39,7 +39,6 @@ interface DetailPanelProps {
   onDelete: (id: string) => void;
   onSetActive: (id: string) => void;
   onDuplicate: (loadout: Loadout) => void;
-  onClose: () => void;
   onClearNew?: () => void;
 }
 
@@ -51,7 +50,6 @@ export function DetailPanel({
   onDelete,
   onSetActive,
   onDuplicate,
-  onClose,
   onClearNew,
 }: DetailPanelProps) {
   const [isEditing, setIsEditing] = React.useState(false);
@@ -179,13 +177,10 @@ export function DetailPanel({
           ) : (
             <h2 style={styles.title}>{loadout.name || "Unnamed Loadout"}</h2>
           )}
-          <button onClick={onClose} style={styles.closeButton}>
-            <X size={18} />
-          </button>
         </div>
 
-        {/* Action Buttons */}
-        <div style={styles.actions}>
+        {/* Action Buttons - 2x2 Grid */}
+        <div style={styles.actionGrid}>
           {isEditing ? (
             <>
               <ActionButton
@@ -212,20 +207,29 @@ export function DetailPanel({
                 label="Duplicate"
                 onClick={() => onDuplicate(loadout)}
               />
-              {!isActive && (
+              {isActive ? (
                 <ActionButton
-                  icon={<Zap size={14} />}
-                  label="Set Active"
-                  onClick={() => onSetActive(loadout.id)}
-                  primary
+                  icon={<Trash2 size={14} />}
+                  label="Delete"
+                  onClick={() => onDelete(loadout.id)}
+                  danger
                 />
+              ) : (
+                <>
+                  <ActionButton
+                    icon={<Zap size={14} />}
+                    label="Set Active"
+                    onClick={() => onSetActive(loadout.id)}
+                    primary
+                  />
+                  <ActionButton
+                    icon={<Trash2 size={14} />}
+                    label="Delete"
+                    onClick={() => onDelete(loadout.id)}
+                    danger
+                  />
+                </>
               )}
-              <ActionButton
-                icon={<Trash2 size={14} />}
-                label="Delete"
-                onClick={() => onDelete(loadout.id)}
-                danger
-              />
             </>
           )}
         </div>
@@ -481,9 +485,10 @@ function ActionButton({
       style={{
         display: "flex",
         alignItems: "center",
+        justifyContent: "center",
         gap: "6px",
-        padding: "6px 10px",
-        fontSize: "11px",
+        padding: "8px 12px",
+        fontSize: "12px",
         fontWeight: 600,
         color: baseColor,
         backgroundColor: isHovered ? `${baseColor}15` : "transparent",
@@ -743,7 +748,6 @@ const styles: Record<string, React.CSSProperties> = {
   headerTop: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
     marginBottom: "12px",
   },
   title: {
@@ -766,16 +770,9 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "6px",
     outline: "none",
   },
-  closeButton: {
-    padding: "4px",
-    backgroundColor: "transparent",
-    border: "none",
-    color: "hsl(220 13% 45%)",
-    cursor: "pointer",
-  },
-  actions: {
-    display: "flex",
-    flexWrap: "wrap",
+  actionGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
     gap: "8px",
   },
   content: {

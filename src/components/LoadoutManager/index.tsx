@@ -168,10 +168,6 @@ export function LoadoutManager() {
     setNewLoadoutId(cloned.id);
   };
 
-  const handleCloseDetail = () => {
-    setSelectedLoadoutId(null);
-  };
-
   const handleFilterChange = (updates: Partial<FilterState>) => {
     setFilters((prev) => ({ ...prev, ...updates }));
   };
@@ -212,7 +208,6 @@ export function LoadoutManager() {
         onDelete={handleDeleteLoadout}
         onSetActive={handleSetActive}
         onDuplicate={handleDuplicate}
-        onClose={handleCloseDetail}
         onClearNew={() => setNewLoadoutId(null)}
       />
     </div>

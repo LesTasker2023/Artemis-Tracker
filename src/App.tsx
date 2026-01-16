@@ -3,7 +3,7 @@
  * Main application window with tabs
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Play,
   Square,
@@ -11,14 +11,18 @@ import {
   History,
   ExternalLink,
   Activity,
-  BookOpen,
   Package,
-  Swords,
   Eye,
   X,
   Settings,
   Target,
   TrendingUp,
+  Zap,
+  DollarSign,
+  BookOpen,
+  Swords,
+  Clock,
+  Bug,
 } from "lucide-react";
 
 // Logo for header
@@ -28,15 +32,24 @@ import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateNotification } from "./components/UpdateNotification";
+import { WelcomePage } from "./components/WelcomePage";
 import { LoadoutManager, LoadoutDropdown } from "./components/LoadoutManager";
 import { useLoadouts } from "./hooks/useLoadouts";
 import { SessionManager } from "./components/SessionManager";
 import { Dashboard } from "./components/Dashboard";
-import { SkillsProgress } from "./components/SkillsProgress";
 import { LootAnalysis } from "./components/LootAnalysis";
-import { CombatAnalytics } from "./components/CombatAnalytics";
 import { StartSessionModal } from "./components/StartSessionModal";
 import { MarkupManager } from "./components/MarkupManager";
+import ActiveSessionDashboard from "./components/ActiveSessionDashboard";
+import {
+  PerformancePage,
+  EconomyPage,
+  EfficiencyPage,
+  SkillsPage,
+  CombatPage,
+  HourlyRatesPage,
+} from "./components/pages";
+import { DevDebugPage, UnifiedDebugPage } from "./components/pages";
 import { useMarkupLibrary } from "./hooks/useMarkupLibrary";
 import type { Session, SessionStats } from "./core/session";
 import { calculateSessionStats } from "./core/session";
@@ -44,13 +57,18 @@ import { getActiveLoadout } from "./core/loadout";
 
 type Tab =
   | "dashboard"
+  | "performance"
+  | "economy"
+  | "efficiency"
   | "skills"
   | "combat"
+  | "hourly-rates"
   | "loot"
   | "market"
   | "loadouts"
   | "sessions"
-  | "settings";
+  | "settings"
+  | "dev-debug";
 
 function App() {
   console.log("[App] Render - function start");
@@ -60,6 +78,28 @@ function App() {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [initMessage, setInitMessage] = useState<string | undefined>(undefined);
   const [initProgress, setInitProgress] = useState(0);
+
+  // Welcome page state
+  const [showWelcome, setShowWelcome] = useState<boolean | null>(null);
+
+  // Check if user has seen welcome page
+  useEffect(() => {
+    // Always show in dev mode for editing
+    const isDev = import.meta.env.DEV;
+    if (isDev) {
+      setShowWelcome(true);
+      return;
+    }
+
+    const hasSeenWelcome = localStorage.getItem("artemis-welcome-seen");
+    setShowWelcome(!hasSeenWelcome);
+  }, []);
+
+  // Handle welcome page dismissal
+  const handleDismissWelcome = () => {
+    localStorage.setItem("artemis-welcome-seen", "true");
+    setShowWelcome(false);
+  };
 
   // Check and update equipment database on startup
   useEffect(() => {
@@ -174,6 +214,202 @@ function App() {
     setActive: setActiveLoadout,
   } = useLoadouts();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+
+  // Collapsed tabs state - collapse all left tabs on startup
+  const [collapsedLeftTabs, setCollapsedLeftTabs] = useState<Set<Tab>>(
+    new Set([
+      "performance",
+      "economy",
+      "efficiency",
+      "skills",
+      "combat",
+      "hourly-rates",
+      "loot",
+    ] as Tab[])
+  );
+
+  // Animation trigger - to force re-render of animations
+  const [animationKey, setAnimationKey] = useState(0);
+
+  // Track if we should show glow (only on expand from session start)
+  const [showGlow, setShowGlow] = useState(false);
+
+  // Expand tabs when session starts, collapse when it stops
+  useEffect(() => {
+    if (sessionActive) {
+      setCollapsedLeftTabs(new Set());
+      setShowGlow(true);
+      setAnimationKey((k) => k + 1); // Force animation restart
+    } else {
+      setCollapsedLeftTabs(
+        new Set([
+          "performance",
+          "economy",
+          "efficiency",
+          "skills",
+          "combat",
+          "hourly-rates",
+          "loot",
+        ] as Tab[])
+      );
+      setShowGlow(false);
+      setAnimationKey((k) => k + 1); // Force animation restart
+    }
+  }, [sessionActive]);
+
+  // DEV: Generate test session from last 24 hours of chat.log
+  const generateTestSession = useCallback(async () => {
+    if (sessionActive) return;
+
+    try {
+      console.log("[DEV] Generating test session from chat.log...");
+
+      // Read raw chat.log
+      const result = await window.electron?.log?.readRaw();
+      if (!result?.success || !result.lines) {
+        console.error("[DEV] Failed to read chat.log:", result?.error);
+        alert("Failed to read chat.log file");
+        return;
+      }
+
+      const lines: string[] = result.lines;
+      const cutoffTime = Date.now() - 24 * 60 * 60 * 1000; // 24 hours ago
+      const events: Array<{
+        timestamp: number;
+        raw: string;
+        category: string;
+        type: string;
+        data: Record<string, unknown>;
+      }> = [];
+
+      // Parse events from chat.log
+      for (const line of lines) {
+        const timestampMatch = line.match(
+          /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/
+        );
+        if (!timestampMatch) continue;
+
+        const lineTime = new Date(timestampMatch[1]).getTime();
+        if (lineTime < cutoffTime) continue;
+
+        // Parse different event types
+        // Hits (damage dealt)
+        const hitMatch = line.match(/You inflicted ([\d.]+) points of dama/);
+        if (hitMatch) {
+          const isCrit = line.includes("Critical hit");
+          events.push({
+            timestamp: lineTime,
+            raw: line,
+            category: "combat",
+            type: isCrit ? "critical" : "hit",
+            data: { damage: parseFloat(hitMatch[1]), critical: isCrit },
+          });
+          continue;
+        }
+
+        // Misses
+        if (
+          line.includes("You missed") ||
+          line.includes("target Dodged") ||
+          line.includes("target Evaded")
+        ) {
+          events.push({
+            timestamp: lineTime,
+            raw: line,
+            category: "combat",
+            type: "miss",
+            data: {},
+          });
+          continue;
+        }
+
+        // Loot with value
+        const lootMatch = line.match(/You received (.+?) Value: ([\d.]+) PED/);
+        if (lootMatch) {
+          events.push({
+            timestamp: lineTime,
+            raw: line,
+            category: "loot",
+            type: "loot",
+            data: {
+              itemName: lootMatch[1].trim(),
+              value: parseFloat(lootMatch[2]),
+            },
+          });
+          continue;
+        }
+
+        // Skill gains
+        const skillMatch = line.match(
+          /You have gained ([\d.]+) experience in your (.+?) skill/
+        );
+        if (skillMatch) {
+          events.push({
+            timestamp: lineTime,
+            raw: line,
+            category: "skill",
+            type: "skill.gain",
+            data: { value: parseFloat(skillMatch[1]), skill: skillMatch[2] },
+          });
+          continue;
+        }
+
+        // Damage taken
+        const dmgTakenMatch = line.match(/You took ([\d.]+) points of dama/);
+        if (dmgTakenMatch) {
+          events.push({
+            timestamp: lineTime,
+            raw: line,
+            category: "combat",
+            type: "damage_taken",
+            data: { damage: parseFloat(dmgTakenMatch[1]) },
+          });
+          continue;
+        }
+
+        // Self healing
+        const healMatch = line.match(/You healed yourself ([\d.]+) points/);
+        if (healMatch) {
+          events.push({
+            timestamp: lineTime,
+            raw: line,
+            category: "healing",
+            type: "heal",
+            data: { amount: parseFloat(healMatch[1]) },
+          });
+          continue;
+        }
+      }
+
+      if (events.length === 0) {
+        console.warn("[DEV] No events found in last 7 days of chat.log");
+        alert("No events found in last 7 days of chat.log");
+        return;
+      }
+
+      // Pick a random loadout if available
+      if (loadouts.length > 0) {
+        const randomLoadout =
+          loadouts[Math.floor(Math.random() * loadouts.length)];
+        console.log(`[DEV] Using random loadout: ${randomLoadout.name}`);
+        setActiveLoadout(randomLoadout.id);
+      }
+
+      // Start session with test tags
+      startSession("Test Session (24h Log)", ["test", "dev", "chat-log"]);
+
+      // Add events after a short delay to ensure session is ready
+      setTimeout(() => {
+        events.forEach((event) => addEvent(event));
+        console.log(
+          `[DEV] Generated test session with ${events.length} events from chat.log`
+        );
+      }, 100);
+    } catch (err) {
+      console.error("[DEV] Error generating test session:", err);
+      alert("Error generating test session: " + String(err));
+    }
+  }, [sessionActive, startSession, addEvent, loadouts, setActiveLoadout]);
 
   // First-time name setup - show modal if no name is set
   const [showNameSetup, setShowNameSetup] = useState(false);
@@ -292,6 +528,7 @@ function App() {
         skillGains: stats.skills.totalSkillGains,
         skillEvents: stats.skills.totalSkillEvents,
         duration: stats.duration,
+        usesPerMinute: activeLoadout?.weapon?.usesPerMinute,
         lastEvent,
         // Markup-adjusted values
         lootValueWithMarkup: stats.lootValueWithMarkup,
@@ -362,6 +599,7 @@ function App() {
           skillGains: stats.skills.totalSkillGains,
           skillEvents: stats.skills.totalSkillEvents,
           duration: stats.duration,
+          usesPerMinute: activeLoadout?.weapon?.usesPerMinute,
           lastEvent,
           // Markup-adjusted values
           lootValueWithMarkup: stats.lootValueWithMarkup,
@@ -612,6 +850,70 @@ function App() {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        @keyframes collapseTab {
+          from {
+            opacity: 1;
+            width: auto;
+            margin-right: 0;
+            padding: 12px 20px;
+          }
+          to {
+            opacity: 0;
+            width: 0;
+            margin-right: -20px;
+            padding: 12px 0;
+          }
+        }
+        
+        @keyframes expandTab {
+          from {
+            opacity: 0;
+            width: 0;
+            margin-right: -20px;
+            padding: 12px 0;
+          }
+          to {
+            opacity: 1;
+            width: auto;
+            margin-right: 0;
+            padding: 12px 20px;
+          }
+        }
+        
+        @keyframes glowWave {
+          0% {
+            color: hsl(220 13% 45%);
+            text-shadow: 0 0 0px rgba(96, 165, 250, 0);
+          }
+          50% {
+            color: hsl(96 165% 250% / 1);
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.8),
+                        0 0 40px rgba(96, 165, 250, 0.5);
+          }
+          100% {
+            color: hsl(220 13% 45%);
+            text-shadow: 0 0 0px rgba(96, 165, 250, 0);
+          }
+        }
+        
+        .tab-collapsed {
+          animation: collapseTab 0.3s ease forwards;
+          overflow: hidden;
+        }
+        
+        .tab-expanded {
+          animation: expandTab 0.3s ease forwards;
+          overflow: hidden;
+        }
+        
+        .tab-glow {
+          animation: glowWave 1.2s ease-in-out forwards !important;
+        }
+      `}</style>
+      {/* Welcome Page - shown once on first load */}
+      {showWelcome && <WelcomePage onDismiss={handleDismissWelcome} />}
+
       {/* Header */}
       <header style={styles.header}>
         <div style={styles.branding}>
@@ -658,6 +960,21 @@ function App() {
           ) : (
             <button onClick={stop} style={styles.buttonDanger}>
               <Square size={14} style={{ marginRight: 6 }} /> Stop
+            </button>
+          )}
+
+          {/* DEV: Generate Test Session Button */}
+          {!sessionActive && (
+            <button
+              onClick={generateTestSession}
+              style={{
+                ...styles.buttonSecondary,
+                backgroundColor: "hsl(280 60% 20%)",
+                borderColor: "hsl(280 60% 40%)",
+              }}
+              title="Generate test session with mock data"
+            >
+              <Zap size={14} style={{ marginRight: 6 }} /> Test
             </button>
           )}
 
@@ -716,24 +1033,104 @@ function App() {
           <Activity size={14} /> Dashboard
         </button>
         <button
+          key={`performance-${animationKey}`}
+          onClick={() => setActiveTab("performance")}
+          style={{
+            ...(activeTab === "performance" ? styles.tabActive : styles.tab),
+            animationDelay: "0s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("performance")
+              ? "tab-collapsed"
+              : "tab-expanded"
+          }`}
+        >
+          <TrendingUp size={14} /> Performance
+        </button>
+        <button
+          key={`economy-${animationKey}`}
+          onClick={() => setActiveTab("economy")}
+          style={{
+            ...(activeTab === "economy" ? styles.tabActive : styles.tab),
+            animationDelay: "0.1s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("economy") ? "tab-collapsed" : "tab-expanded"
+          }`}
+        >
+          <DollarSign size={14} /> Economy
+        </button>
+        <button
+          key={`efficiency-${animationKey}`}
+          onClick={() => setActiveTab("efficiency")}
+          style={{
+            ...(activeTab === "efficiency" ? styles.tabActive : styles.tab),
+            animationDelay: "0.2s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("efficiency")
+              ? "tab-collapsed"
+              : "tab-expanded"
+          }`}
+        >
+          <Zap size={14} /> Efficiency
+        </button>
+        <button
+          key={`skills-${animationKey}`}
           onClick={() => setActiveTab("skills")}
-          style={activeTab === "skills" ? styles.tabActive : styles.tab}
+          style={{
+            ...(activeTab === "skills" ? styles.tabActive : styles.tab),
+            animationDelay: "0.3s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("skills") ? "tab-collapsed" : "tab-expanded"
+          }`}
         >
           <BookOpen size={14} /> Skills
         </button>
         <button
+          key={`combat-${animationKey}`}
           onClick={() => setActiveTab("combat")}
-          style={activeTab === "combat" ? styles.tabActive : styles.tab}
+          style={{
+            ...(activeTab === "combat" ? styles.tabActive : styles.tab),
+            animationDelay: "0.4s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("combat") ? "tab-collapsed" : "tab-expanded"
+          }`}
         >
           <Swords size={14} /> Combat
         </button>
         <button
+          key={`hourly-rates-${animationKey}`}
+          onClick={() => setActiveTab("hourly-rates")}
+          style={{
+            ...(activeTab === "hourly-rates" ? styles.tabActive : styles.tab),
+            animationDelay: "0.5s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("hourly-rates")
+              ? "tab-collapsed"
+              : "tab-expanded"
+          }`}
+        >
+          <Clock size={14} /> Hourly Rates
+        </button>
+        <button
+          key={`loot-${animationKey}`}
           onClick={() => setActiveTab("loot")}
-          style={activeTab === "loot" ? styles.tabActive : styles.tab}
+          style={{
+            ...(activeTab === "loot" ? styles.tabActive : styles.tab),
+            animationDelay: "0.6s",
+          }}
+          className={`${showGlow ? "tab-glow" : ""} ${
+            collapsedLeftTabs.has("loot") ? "tab-collapsed" : "tab-expanded"
+          }`}
         >
           <Package size={14} /> Loot
         </button>
-        <div style={styles.tabDivider} />
+        <div style={{ flex: 1 }} />
+        {/* Right side: Management tabs */}
         <button
           onClick={() => setActiveTab("market")}
           style={activeTab === "market" ? styles.tabActive : styles.tab}
@@ -758,6 +1155,16 @@ function App() {
         >
           <Settings size={14} /> Settings
         </button>
+        {/* Dev Debug Tab - Only visible in dev mode */}
+        {import.meta.env.DEV && (
+          <button
+            onClick={() => setActiveTab("dev-debug")}
+            style={activeTab === "dev-debug" ? styles.tabActive : styles.tab}
+            title="Debug page showing unknown event patterns (dev only)"
+          >
+            <Bug size={14} /> Debug
+          </button>
+        )}
       </div>
 
       {/* Viewing Past Session Banner */}
@@ -783,25 +1190,49 @@ function App() {
 
       {/* Tab Content */}
       {activeTab === "dashboard" && (
-        <div style={styles.tabContent}>
-          <Dashboard
-            stats={displayStats}
-            isActive={sessionActive && !isViewingPastSession}
-            showMarkup={showMarkup}
-            onToggleMarkup={() => setShowMarkup(!showMarkup)}
+        <div style={{ ...styles.tabContent, overflow: "hidden" }}>
+          <ActiveSessionDashboard
+            session={session}
+            stats={stats}
+            activeLoadout={activeLoadout}
+            onNavigateToPage={setActiveTab}
           />
+        </div>
+      )}
+
+      {activeTab === "performance" && (
+        <div style={styles.tabContent}>
+          <PerformancePage session={session} stats={stats} />
+        </div>
+      )}
+
+      {activeTab === "economy" && (
+        <div style={styles.tabContent}>
+          <EconomyPage session={session} stats={stats} />
+        </div>
+      )}
+
+      {activeTab === "efficiency" && (
+        <div style={styles.tabContent}>
+          <EfficiencyPage session={session} stats={stats} />
         </div>
       )}
 
       {activeTab === "skills" && (
         <div style={styles.tabContent}>
-          <SkillsProgress stats={displayStats} />
+          <SkillsPage session={session} stats={stats} />
         </div>
       )}
 
       {activeTab === "combat" && (
         <div style={styles.tabContent}>
-          <CombatAnalytics stats={displayStats} />
+          <CombatPage session={session} stats={stats} />
+        </div>
+      )}
+
+      {activeTab === "hourly-rates" && (
+        <div style={styles.tabContent}>
+          <HourlyRatesPage session={session} stats={stats} />
         </div>
       )}
 
@@ -927,6 +1358,13 @@ function App() {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Dev Debug Tab - Only visible in dev mode */}
+      {import.meta.env.DEV && activeTab === "dev-debug" && (
+        <div style={{ ...styles.tabContent, overflow: "hidden" }}>
+          <UnifiedDebugPage />
         </div>
       )}
 

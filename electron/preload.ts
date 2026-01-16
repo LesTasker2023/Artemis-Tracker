@@ -62,6 +62,7 @@ contextBridge.exposeInMainWorld('electron', {
     stop: () => ipcRenderer.invoke('log:stop'),
     status: () => ipcRenderer.invoke('log:status'),
     probe: () => ipcRenderer.invoke('log:probe'),
+    readRaw: (options?: { maxLines?: number }) => ipcRenderer.invoke('log:read-raw', options),
     onEvent: (callback: (event: LogEvent) => void) => {
       const handler = (_: unknown, data: LogEvent) => callback(data);
       ipcRenderer.on('log-event', handler);

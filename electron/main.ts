@@ -773,6 +773,40 @@ ipcMain.handle('log:probe', () => {
   }
 });
 
+// Read raw chat.log file content for historical analysis
+ipcMain.handle('log:read-raw', async (_event: any, options?: { maxLines?: number }) => {
+  // Get the log path from settings or auto-detect
+  const settings = settingsStore.loadSettings();
+  let chatLogPath = settings.logPath || detectLogPath();
+  
+  if (!chatLogPath || !fs.existsSync(chatLogPath)) {
+    return { success: false, error: 'chat.log not found' };
+  }
+
+  try {
+    const content = fs.readFileSync(chatLogPath, 'utf-8');
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    // Optionally limit lines (from the end - most recent)
+    const maxLines = options?.maxLines;
+    const resultLines = maxLines && lines.length > maxLines 
+      ? lines.slice(-maxLines) 
+      : lines;
+    
+    console.log(`[Main] Read ${resultLines.length} lines from chat.log (total: ${lines.length})`);
+    
+    return { 
+      success: true, 
+      lines: resultLines,
+      totalLines: lines.length,
+      path: chatLogPath,
+    };
+  } catch (err: any) {
+    console.error('[Main] Failed to read chat.log:', err);
+    return { success: false, error: err.message };
+  }
+});
+
 // ==================== Shell ====================
 
 ipcMain.handle('shell:open-external', async (_event: any, url: string) => {

@@ -10,6 +10,14 @@ interface LogAPI {
   selectFile: () => Promise<{ success: boolean; path?: string; error?: string }>;
   stop: () => Promise<{ success: boolean }>;
   status: () => Promise<{ watching: boolean; position: number }>;
+  probe: () => Promise<{ path: string | null; exists: boolean; size?: number; mtime?: Date }>;
+  readRaw: (options?: { maxLines?: number }) => Promise<{ 
+    success: boolean; 
+    lines?: string[]; 
+    totalLines?: number; 
+    path?: string; 
+    error?: string 
+  }>;
   onEvent: (callback: (event: LogEvent) => void) => () => void;
 }
 
@@ -71,6 +79,7 @@ interface LiveStats {
   skillGains: number;
   skillEvents: number;
   duration: number;
+  usesPerMinute?: number; // Attack speed from active loadout
   lastEvent?: string;
   // Markup-adjusted values
   lootValueWithMarkup?: number;
