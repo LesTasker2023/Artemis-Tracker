@@ -30,7 +30,7 @@ import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateNotification } from "./components/UpdateNotification";
 import { LoadoutManager, LoadoutDropdown } from "./components/LoadoutManager";
 import { useLoadouts } from "./hooks/useLoadouts";
-import { SessionsPage } from "./components/SessionsPage";
+import { SessionManager } from "./components/SessionManager";
 import { Dashboard } from "./components/Dashboard";
 import { SkillsProgress } from "./components/SkillsProgress";
 import { LootAnalysis } from "./components/LootAnalysis";
@@ -837,12 +837,11 @@ function App() {
 
       {activeTab === "sessions" && (
         <div style={{ ...styles.tabContent, overflow: "hidden" }}>
-          <SessionsPage
+          <SessionManager
             onViewSession={handleViewSession}
             onResumeSession={handleResumeSession}
             activeSessionId={session?.id}
             activeSession={session}
-            onExpenseUpdate={updateExpenses}
           />
         </div>
       )}

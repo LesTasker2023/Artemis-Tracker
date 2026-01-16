@@ -261,8 +261,8 @@ export function DetailPanel({ item, onUpdate, onDelete }: DetailPanelProps) {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    width: "280px",
-    minWidth: "280px",
+    width: "360px",
+    minWidth: "360px",
     flexShrink: 0,
     backgroundColor: "hsl(220 13% 10%)",
     borderRadius: "8px",
@@ -274,8 +274,8 @@ const styles: Record<string, React.CSSProperties> = {
     overflow: "auto",
   },
   empty: {
-    width: "280px",
-    minWidth: "280px",
+    width: "360px",
+    minWidth: "360px",
     flexShrink: 0,
     backgroundColor: "hsl(220 13% 10%)",
     borderRadius: "8px",
