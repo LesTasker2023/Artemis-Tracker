@@ -3,7 +3,7 @@
  * SECURITY: Context isolation enabled, node integration disabled
  */
 
-const { app, BrowserWindow, ipcMain, dialog, nativeImage, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, nativeImage, Menu, shell } = require('electron');
 const path = require('path');
 import fs from 'fs';
 const os = require('os');
@@ -771,6 +771,17 @@ ipcMain.handle('log:probe', () => {
   } catch (e) {
     return { path: detected, exists: false };
   }
+});
+
+// ==================== Shell ====================
+
+ipcMain.handle('shell:open-external', async (_event: any, url: string) => {
+  // Security: Only allow https URLs to Project Delta
+  if (url.startsWith('https://')) {
+    await shell.openExternal(url);
+    return { success: true };
+  }
+  return { success: false, error: 'Invalid URL' };
 });
 
 // ==================== Equipment Data Loading ====================

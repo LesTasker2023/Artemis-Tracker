@@ -383,7 +383,14 @@ function App() {
     return () => {
       unsubscribe?.();
     };
-  }, [stats, session, session?.pausedAt, sessionActive, sessionPaused, events.length]);
+  }, [
+    stats,
+    session,
+    session?.pausedAt,
+    sessionActive,
+    sessionPaused,
+    events.length,
+  ]);
 
   // Listen for expense updates from popout
   useEffect(() => {
@@ -731,7 +738,7 @@ function App() {
           onClick={() => setActiveTab("market")}
           style={activeTab === "market" ? styles.tabActive : styles.tab}
         >
-          <TrendingUp size={14} /> Market
+          <TrendingUp size={14} /> Library
         </button>
         <button
           onClick={() => setActiveTab("loadouts")}

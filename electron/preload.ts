@@ -164,6 +164,9 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.removeListener(channel, callback);
     },
   },
+  shell: {
+    openExternal: (url: string) => ipcRenderer.invoke('shell:open-external', url),
+  },
   markup: {
     loadLibrary: () => ipcRenderer.invoke('markup:load-library'),
     saveLibrary: (library: unknown) => ipcRenderer.invoke('markup:save-library', library),

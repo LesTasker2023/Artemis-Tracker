@@ -147,7 +147,11 @@ export function LootAnalysis({
   };
 
   const handleDeleteItem = async (itemName: string) => {
-    if (!confirm(`Delete "${itemName}" from the markup library?\n\nThis will remove all markup settings for this item.`)) {
+    if (
+      !confirm(
+        `Delete "${itemName}" from the markup library?\n\nThis will remove all markup settings for this item.`
+      )
+    ) {
       return;
     }
 
@@ -346,7 +350,7 @@ export function LootAnalysis({
               style={styles.searchInput}
             />
           </div>
-          
+
           {/* TEST MODE TOGGLE */}
           <label
             style={{

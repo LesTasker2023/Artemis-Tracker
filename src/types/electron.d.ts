@@ -191,11 +191,18 @@ interface MarkupAPI {
   exportCSV: () => Promise<string>;
   importCSV: (csvContent: string, mode: 'merge' | 'replace') => Promise<MarkupImportResult>;
   bulkUpdate: (updates: Array<{ itemName: string; updates: MarkupItemUpdate }>) => Promise<{ success: boolean; updatedCount: number }>;
+  deleteItem: (itemName: string) => Promise<void>;
+  itemExists: (itemName: string) => Promise<boolean>;
+  addManualItem: (itemName: string, ttValue: number, markup: number, useFixed: boolean) => Promise<void>;
 }
 
 interface IpcRendererAPI {
   on: (channel: string, callback: (...args: unknown[]) => void) => void;
   removeListener: (channel: string, callback: (...args: unknown[]) => void) => void;
+}
+
+interface ShellAPI {
+  openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 declare global {
@@ -209,6 +216,7 @@ declare global {
       update: UpdateAPI;
       ipcRenderer: IpcRendererAPI;
       markup: MarkupAPI;
+      shell: ShellAPI;
     };
   }
 }
