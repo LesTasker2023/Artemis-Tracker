@@ -42,7 +42,9 @@ export function ItemCard({
   const handleViewOnDelta = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!categoryPath) return;
-    const url = `https://www.thedeltaproject.net/${categoryPath}/${encodeURIComponent(item.itemName)}`;
+    const url = `https://www.thedeltaproject.net/${categoryPath}/${encodeURIComponent(
+      item.itemName
+    )}`;
     window.electron?.shell?.openExternal(url);
   };
 

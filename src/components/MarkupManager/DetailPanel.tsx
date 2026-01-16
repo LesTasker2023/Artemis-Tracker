@@ -117,9 +117,7 @@ export function DetailPanel({ item, onUpdate, onDelete }: DetailPanelProps) {
           />
           <span style={styles.unit}>PED</span>
         </div>
-        <div style={styles.helpText}>
-          Trade Terminal value of the item
-        </div>
+        <div style={styles.helpText}>Trade Terminal value of the item</div>
       </div>
 
       {/* Markup Settings */}
