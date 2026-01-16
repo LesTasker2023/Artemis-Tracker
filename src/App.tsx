@@ -923,6 +923,10 @@ function App() {
               alt="Project Delta"
               style={{ height: 48, objectFit: "contain" }}
             />
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <h1 style={styles.title}>ARTEMIS</h1>
+              <span style={styles.subtitle}>v{__APP_VERSION__}</span>
+            </div>
           </div>
         </div>
         <div style={styles.controls}>
