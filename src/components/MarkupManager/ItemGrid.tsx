@@ -45,7 +45,7 @@ export function ItemGrid({
         <div style={styles.headerCategory}>Category</div>
         <div style={styles.headerTT}>TT Value</div>
         <div style={styles.headerMarkup}>Markup</div>
-        <div style={styles.headerView}></div>
+        <div style={styles.headerView}>View</div>
       </div>
       <div style={styles.grid}>
         {items.map((item) => (
@@ -168,7 +168,13 @@ const styles: Record<string, React.CSSProperties> = {
     flexShrink: 0,
   },
   headerView: {
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "hsl(220 13% 55%)",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
     width: "22px",
     flexShrink: 0,
+    textAlign: "center",
   },
 };
