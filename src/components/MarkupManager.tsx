@@ -17,6 +17,10 @@ import {
   AlertTriangle,
   ChevronDown,
   Clock,
+  Edit2,
+  Plus,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 import { useMarkupLibrary } from "../hooks/useMarkupLibrary";
 import type { ItemMarkupEntry } from "../core/markup";
@@ -39,7 +43,7 @@ interface MarkupManagerProps {
   sessionLoot?: Record<string, SessionLootItem>;
 }
 
-type ViewMode = "browse" | "favorites" | "custom" | "recent";
+type ViewMode = "browse" | "favorites" | "custom" | "recent" | "ignored";
 type SortOption = "name" | "markup-high" | "markup-low" | "category" | "recent";
 
 // ==================== Styles ====================
@@ -421,10 +425,17 @@ const styles = {
 
 interface ItemRowProps {
   item: ItemMarkupEntry;
-  onUpdate: (updates: { markupPercent?: number; favorite?: boolean }) => void;
+  onUpdate: (updates: {
+    markupPercent?: number;
+    markupValue?: number;
+    useFixed?: boolean;
+    favorite?: boolean;
+    ignored?: boolean;
+  }) => void;
   isEditing: boolean;
   onStartEdit: () => void;
   onEndEdit: () => void;
+  viewMode?: ViewMode;
 }
 
 function ItemRow({
@@ -433,30 +444,49 @@ function ItemRow({
   isEditing,
   onStartEdit,
   onEndEdit,
+  viewMode,
 }: ItemRowProps) {
   const markupPercent = item.markupPercent ?? 100;
-  const [localMarkup, setLocalMarkup] = useState(markupPercent.toString());
+  const markupValue = item.markupValue ?? 0;
+  const useFixed = item.useFixed ?? false;
+
+  const [localMarkupPercent, setLocalMarkupPercent] = useState(
+    markupPercent.toString()
+  );
+  const [localMarkupValue, setLocalMarkupValue] = useState(
+    markupValue.toString()
+  );
+  const [localUseFixed, setLocalUseFixed] = useState(useFixed);
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
-    setLocalMarkup(markupPercent.toString());
-  }, [markupPercent]);
+    if (isEditing) {
+      setLocalMarkupPercent(markupPercent.toString());
+      setLocalMarkupValue(markupValue.toString());
+      setLocalUseFixed(useFixed);
+    }
+  }, [isEditing, markupPercent, markupValue, useFixed]);
 
-  const handleMarkupSubmit = () => {
-    const value = parseFloat(localMarkup);
-    if (!isNaN(value) && value >= 0 && value !== markupPercent) {
-      onUpdate({ markupPercent: value });
+  const handleSave = () => {
+    if (localUseFixed) {
+      const fixed = parseFloat(localMarkupValue);
+      if (!isNaN(fixed) && fixed >= 0) {
+        onUpdate({ markupValue: fixed, useFixed: true });
+      }
+    } else {
+      const percent = parseFloat(localMarkupPercent);
+      if (!isNaN(percent) && percent >= 0) {
+        onUpdate({ markupPercent: percent, useFixed: false });
+      }
     }
     onEndEdit();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleMarkupSubmit();
-    } else if (e.key === "Escape") {
-      setLocalMarkup(markupPercent.toString());
-      onEndEdit();
-    }
+  const handleCancel = () => {
+    setLocalMarkupPercent(markupPercent.toString());
+    setLocalMarkupValue(markupValue.toString());
+    setLocalUseFixed(useFixed);
+    onEndEdit();
   };
 
   const toggleFavorite = (e: React.MouseEvent) => {
@@ -476,7 +506,6 @@ function ItemRow({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onClick={onStartEdit}
     >
       <button
         style={{
@@ -514,23 +543,205 @@ function ItemRow({
       )}
 
       {isEditing ? (
-        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-          <input
-            type="number"
-            value={localMarkup}
-            onChange={(e) => setLocalMarkup(e.target.value)}
-            onBlur={handleMarkupSubmit}
-            onKeyDown={handleKeyDown}
-            style={styles.markupInput}
-            autoFocus
-            step="0.1"
-            min="0"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <span style={{ color: "hsl(220 13% 50%)", fontSize: "13px" }}>%</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+              padding: "10px",
+              backgroundColor: "hsl(220 13% 10%)",
+              borderRadius: "6px",
+              border: "1px solid hsl(220 13% 22%)",
+            }}
+          >
+            {/* Radio buttons for mode selection */}
+            <div style={{ display: "flex", gap: "16px", fontSize: "12px" }}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="radio"
+                  checked={!localUseFixed}
+                  onChange={() => setLocalUseFixed(false)}
+                  style={{ cursor: "pointer" }}
+                />
+                <span style={{ color: "hsl(220 13% 70%)" }}>Percentage</span>
+              </label>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="radio"
+                  checked={localUseFixed}
+                  onChange={() => setLocalUseFixed(true)}
+                  style={{ cursor: "pointer" }}
+                />
+                <span style={{ color: "hsl(220 13% 70%)" }}>Fixed PED</span>
+              </label>
+            </div>
+            {/* Only show relevant input based on selection */}
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: "hsl(220 13% 50%)",
+                  minWidth: "35px",
+                }}
+              >
+                {localUseFixed ? "PED:" : "%:"}
+              </span>
+              <input
+                type="number"
+                value={localUseFixed ? localMarkupValue : localMarkupPercent}
+                onChange={(e) =>
+                  localUseFixed
+                    ? setLocalMarkupValue(e.target.value)
+                    : setLocalMarkupPercent(e.target.value)
+                }
+                style={{
+                  width: "80px",
+                  padding: "6px 10px",
+                  backgroundColor: "hsl(220 13% 15%)",
+                  border: "1px solid hsl(220 13% 25%)",
+                  borderRadius: "6px",
+                  color: "hsl(0 0% 95%)",
+                  fontSize: "13px",
+                  textAlign: "right",
+                  outline: "none",
+                }}
+                step={localUseFixed ? "1" : "0.1"}
+                min="0"
+                placeholder={localUseFixed ? "0" : "100"}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "4px" }}>
+            <button
+              onClick={handleSave}
+              style={{
+                padding: "6px 10px",
+                backgroundColor: "hsl(142 76% 36%)",
+                border: "1px solid hsl(142 76% 46%)",
+                borderRadius: "4px",
+                color: "white",
+                fontSize: "11px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+              title="Save"
+            >
+              <Check size={12} />
+            </button>
+            <button
+              onClick={handleCancel}
+              style={{
+                padding: "6px 10px",
+                backgroundColor: "hsl(220 13% 14%)",
+                border: "1px solid hsl(220 13% 22%)",
+                borderRadius: "4px",
+                color: "hsl(220 13% 70%)",
+                fontSize: "11px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+              title="Cancel"
+            >
+              <X size={12} />
+            </button>
+          </div>
         </div>
       ) : (
-        <div style={styles.itemMarkup}>{markupPercent.toFixed(1)}%</div>
+        <>
+          <div style={styles.itemMarkup}>
+            {useFixed
+              ? `+${markupValue.toFixed(2)} PED`
+              : `${markupPercent.toFixed(1)}%`}
+          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onStartEdit();
+            }}
+            style={{
+              padding: "4px 8px",
+              backgroundColor: "hsl(220 13% 14%)",
+              border: "1px solid hsl(220 13% 22%)",
+              borderRadius: "4px",
+              color: "hsl(220 70% 70%)",
+              fontSize: "11px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              transition: "all 0.15s",
+            }}
+            title="Edit markup"
+          >
+            <Edit2 size={12} />
+          </button>
+          {viewMode === "ignored" ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdate({ ignored: false });
+              }}
+              style={{
+                padding: "4px 8px",
+                backgroundColor: "hsl(142 71% 35%)",
+                border: "1px solid hsl(142 71% 45%)",
+                borderRadius: "4px",
+                color: "white",
+                fontSize: "11px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                transition: "all 0.15s",
+              }}
+              title="Unignore item"
+            >
+              <Eye size={12} />
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdate({ ignored: true });
+              }}
+              style={{
+                padding: "4px 8px",
+                backgroundColor: "hsl(220 13% 14%)",
+                border: "1px solid hsl(220 13% 22%)",
+                borderRadius: "4px",
+                color: "hsl(0 60% 60%)",
+                fontSize: "11px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                transition: "all 0.15s",
+              }}
+              title="Ignore item"
+            >
+              <EyeOff size={12} />
+            </button>
+          )}
+        </>
       )}
 
       {isCustom && (
@@ -672,6 +883,9 @@ export function MarkupManager({
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [showAddItems, setShowAddItems] = useState(false);
+  const [addItemsText, setAddItemsText] = useState("");
+  const [addingItems, setAddingItems] = useState(false);
 
   // Calculate recent loot items that need markup attention
   const recentLootItems = useMemo(() => {
@@ -690,8 +904,13 @@ export function MarkupManager({
     let unmarkedCount = 0;
 
     for (const [itemName, loot] of Object.entries(sessionLoot)) {
-      // Skip shrapnel and universal ammo - they're always 100%
-      if (itemName === "Shrapnel" || itemName === "Universal Ammo") continue;
+      // Skip shrapnel, universal ammo, and nanocubes - they're always 100%
+      if (
+        itemName === "Shrapnel" ||
+        itemName === "Universal Ammo" ||
+        itemName.toLowerCase().includes("nanocube")
+      )
+        continue;
 
       const libraryItem = library.items[itemName];
       const hasCustomMarkup = libraryItem?.isCustom === true;
@@ -732,7 +951,9 @@ export function MarkupManager({
     }
 
     const debounce = setTimeout(async () => {
-      const results = await searchItems(searchQuery, {
+      // Strip square brackets from search query
+      const cleanQuery = searchQuery.replace(/^\[|\]$/g, "").trim();
+      const results = await searchItems(cleanQuery, {
         limit: 50,
         category: categoryFilter ?? undefined,
       });
@@ -769,11 +990,15 @@ export function MarkupManager({
           return {
             itemName: loot.itemName,
             name: loot.itemName,
-            markupPercent: loot.markupPercent,
+            markupPercent: libraryItem?.markupPercent ?? loot.markupPercent,
+            markupValue: libraryItem?.markupValue,
+            useFixed: libraryItem?.useFixed,
             isCustom: loot.isCustom,
             ttValue: loot.totalValue,
             category: libraryItem?.category,
             favorite: libraryItem?.favorite,
+            source: libraryItem?.source ?? "manual",
+            lastUpdated: libraryItem?.lastUpdated ?? Date.now(),
           } as ItemMarkupEntry;
         });
       case "favorites":
@@ -781,6 +1006,9 @@ export function MarkupManager({
         break;
       case "custom":
         items = items.filter((item) => item.isCustom === true);
+        break;
+      case "ignored":
+        items = items.filter((item) => item.ignored === true);
         break;
       case "browse":
         // In browse mode, only show items when searching OR when a category is selected
@@ -791,6 +1019,11 @@ export function MarkupManager({
         break;
       default:
         break;
+    }
+
+    // Filter out ignored items from non-ignored views
+    if (viewMode !== "ignored") {
+      items = items.filter((item) => !item.ignored);
     }
 
     // Filter by category
@@ -850,7 +1083,12 @@ export function MarkupManager({
   const handleItemUpdate = useCallback(
     async (
       itemName: string,
-      updates: { markupPercent?: number; favorite?: boolean }
+      updates: {
+        markupPercent?: number;
+        markupValue?: number;
+        useFixed?: boolean;
+        favorite?: boolean;
+      }
     ) => {
       await updateItem(itemName, updates);
       // Notify parent that markup changed so session stats can recalculate
@@ -858,6 +1096,53 @@ export function MarkupManager({
     },
     [updateItem, onMarkupChange]
   );
+
+  const handleAddItems = useCallback(async () => {
+    if (!addItemsText.trim()) return;
+
+    setAddingItems(true);
+    try {
+      const lines = addItemsText.split("\n");
+      const itemsToAdd: string[] = [];
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+
+        // Strip square brackets
+        const itemName = trimmed.replace(/^\[|\]$/g, "").trim();
+        if (!itemName) continue;
+
+        // Check for duplicates in library
+        if (library?.items[itemName]) {
+          console.log(
+            `[MarkupManager] Item "${itemName}" already exists, skipping`
+          );
+          continue;
+        }
+
+        itemsToAdd.push(itemName);
+      }
+
+      // Add all new items
+      for (const itemName of itemsToAdd) {
+        await updateItem(itemName, {
+          markupPercent: config?.defaultMarkupPercent ?? 100,
+        });
+      }
+
+      // Success - clear form and close
+      setAddItemsText("");
+      setShowAddItems(false);
+      onMarkupChange?.();
+
+      console.log(`[MarkupManager] Added ${itemsToAdd.length} new items`);
+    } catch (e) {
+      console.error("[MarkupManager] Failed to add items:", e);
+    } finally {
+      setAddingItems(false);
+    }
+  }, [addItemsText, library, config, updateItem, onMarkupChange]);
 
   if (loading) {
     return (
@@ -966,6 +1251,15 @@ export function MarkupManager({
             onClick={() => setViewMode("custom")}
           >
             <Percent size={12} /> Custom
+          </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(viewMode === "ignored" ? styles.tabActive : {}),
+            }}
+            onClick={() => setViewMode("ignored")}
+          >
+            <EyeOff size={12} /> Ignored
           </button>
         </div>
 
@@ -1078,6 +1372,21 @@ export function MarkupManager({
           </div>
         )}
 
+        {/* Add Items button */}
+        <button
+          style={{
+            ...styles.button,
+            backgroundColor: "hsl(142 71% 35%)",
+            border: "1px solid hsl(142 71% 45%)",
+            color: "white",
+          }}
+          onClick={() => setShowAddItems(true)}
+          title="Add new items to library"
+        >
+          <Plus size={12} />
+          Add Items
+        </button>
+
         {/* Close button */}
         {onClose && (
           <button style={styles.buttonIcon} onClick={onClose}>
@@ -1123,6 +1432,15 @@ export function MarkupManager({
                 <div style={styles.emptyDescription}>
                   Search for items and edit their markup percentages to track
                   market values
+                </div>
+              </>
+            ) : viewMode === "ignored" ? (
+              <>
+                <EyeOff size={48} style={styles.emptyIcon} />
+                <div style={styles.emptyTitle}>No ignored items</div>
+                <div style={styles.emptyDescription}>
+                  Items you ignore will appear here. You can unignore them at
+                  any time.
                 </div>
               </>
             ) : (
@@ -1197,6 +1515,7 @@ export function MarkupManager({
                   isEditing={editingItem === itemKey}
                   onStartEdit={() => setEditingItem(itemKey)}
                   onEndEdit={() => setEditingItem(null)}
+                  viewMode={viewMode}
                 />
               );
             })}
@@ -1215,6 +1534,146 @@ export function MarkupManager({
           </div>
         )}
       </div>
+
+      {/* Add Items Modal */}
+      {showAddItems && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+          }}
+          onClick={() => setShowAddItems(false)}
+        >
+          <div
+            style={{
+              backgroundColor: "hsl(220 13% 12%)",
+              borderRadius: "8px",
+              padding: "20px",
+              width: "500px",
+              maxWidth: "90%",
+              maxHeight: "80vh",
+              overflow: "auto",
+              boxShadow: "0 10px 40px rgba(0, 0, 0, 0.5)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "16px",
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "hsl(0 0% 95%)",
+                  margin: 0,
+                }}
+              >
+                Add New Items
+              </h3>
+              <button
+                style={{
+                  ...styles.buttonIcon,
+                  backgroundColor: "transparent",
+                  border: "none",
+                }}
+                onClick={() => setShowAddItems(false)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div
+              style={{
+                fontSize: "12px",
+                color: "hsl(220 13% 55%)",
+                marginBottom: "12px",
+                lineHeight: "1.5",
+              }}
+            >
+              Paste item names below, one per line. Square brackets will be
+              automatically stripped.
+              <br />
+              Example:{" "}
+              <code style={{ color: "hsl(142 71% 55%)" }}>
+                [Animal Adrenal Oil]
+              </code>
+            </div>
+
+            <textarea
+              value={addItemsText}
+              onChange={(e) => setAddItemsText(e.target.value)}
+              placeholder="[Animal Adrenal Oil]&#10;[Lysterium Ingot]&#10;[Sweetstuff]"
+              style={{
+                width: "100%",
+                minHeight: "200px",
+                padding: "12px",
+                backgroundColor: "hsl(220 13% 8%)",
+                border: "1px solid hsl(220 13% 22%)",
+                borderRadius: "6px",
+                color: "hsl(0 0% 95%)",
+                fontSize: "13px",
+                fontFamily: "monospace",
+                resize: "vertical",
+                outline: "none",
+                marginBottom: "16px",
+              }}
+            />
+
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                style={{
+                  ...styles.button,
+                  backgroundColor: "hsl(220 13% 14%)",
+                  border: "1px solid hsl(220 13% 22%)",
+                }}
+                onClick={() => {
+                  setAddItemsText("");
+                  setShowAddItems(false);
+                }}
+                disabled={addingItems}
+              >
+                Cancel
+              </button>
+              <button
+                style={{
+                  ...styles.button,
+                  backgroundColor: "hsl(142 71% 35%)",
+                  border: "1px solid hsl(142 71% 45%)",
+                  color: "white",
+                  opacity: addingItems || !addItemsText.trim() ? 0.5 : 1,
+                  cursor:
+                    addingItems || !addItemsText.trim()
+                      ? "not-allowed"
+                      : "pointer",
+                }}
+                onClick={handleAddItems}
+                disabled={addingItems || !addItemsText.trim()}
+              >
+                {addingItems ? "Adding..." : "Add Items"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -48,6 +48,7 @@ export interface Equipment {
  * Armor set with decay calculation
  */
 export interface ArmorSet {
+  id: number;           // Unique identifier
   name: string;
   maxTT: number;        // Max TT value in PED
   durability: number;   // Durability (hits until broken)
@@ -99,6 +100,10 @@ export interface Loadout {
   // Manual override bypasses calculation
   manualCostPerShot?: number;
   useManualCost: boolean;
+  
+  // Manual defensive decay inputs (PEC per event)
+  decayPerHit?: number;    // Armor/plate decay per hit taken
+  decayPerHeal?: number;   // FAP decay per heal
   
   // Player skills (0-100) - affects damage range, hit rate, and crit rate
   // Default to 100 (maxed skills) for backwards compatibility

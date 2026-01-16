@@ -20,7 +20,6 @@ import {
   Percent,
   Timer,
   Swords,
-  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import { colors } from "../ui";
@@ -52,12 +51,18 @@ export interface StatData {
   criticals: number;
   lootValue: number;
   totalSpend: number;
+  weaponCost?: number;
+  armorCost?: number;
+  fapCost?: number;
+  totalCost?: number;
   returnRate: number;
   damageDealt: number;
   damageTaken: number;
   damageReduced: number;
   deflects: number;
   decay: number;
+  armorDecay?: number;
+  fapDecay?: number;
   repairBill: number;
   skillGains: number;
   skillEvents: number;
@@ -283,19 +288,6 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     },
   },
   {
-    key: "totalSpend",
-    label: "SPENT",
-    icon: ArrowDownRight,
-    category: "economy",
-    description: "Total PED spent (ammo + weapon decay)",
-    getValue: (d) => ({
-      value: formatPed(d.totalSpend),
-      unit: "PED",
-      color: colors.danger,
-      numericValue: d.totalSpend,
-    }),
-  },
-  {
     key: "returnRate",
     label: "RETURN RATE",
     icon: TrendingUp,
@@ -313,16 +305,57 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     },
   },
   {
-    key: "decay",
-    label: "ARMOR DECAY",
-    icon: Wrench,
+    key: "weaponCost",
+    label: "WEAPON COST",
+    icon: Crosshair,
     category: "economy",
-    description: "Armor decay only (weapon decay is in Spent)",
+    description: "Ammo + weapon decay + enhancers",
     getValue: (d) => ({
-      value: formatPed(d.decay),
+      value: (d.weaponCost ?? 0).toFixed(5),
       unit: "PED",
-      color: colors.warning,
-      numericValue: d.decay,
+      color: colors.danger,
+      numericValue: d.weaponCost ?? 0,
+    }),
+  },
+  // DISABLED: Armor decay calculation needs work
+  // {
+  //   key: "armorCost",
+  //   label: "ARMOR COST",
+  //   icon: Shield,
+  //   category: "economy",
+  //   description: "Armor decay cost",
+  //   getValue: (d) => ({
+  //     value: (d.armorCost ?? 0).toFixed(5),
+  //     unit: "PED",
+  //     color: colors.danger,
+  //     numericValue: d.armorCost ?? 0,
+  //   }),
+  // },
+  // DISABLED: FAP decay calculation needs work
+  // {
+  //   key: "fapCost",
+  //   label: "FAP COST",
+  //   icon: Heart,
+  //   category: "economy",
+  //   description: "FAP decay cost",
+  //   getValue: (d) => ({
+  //     value: (d.fapCost ?? 0).toFixed(5),
+  //     unit: "PED",
+  //     color: colors.danger,
+  //     numericValue: d.fapCost ?? 0,
+  //   }),
+  // },
+  {
+    key: "totalCost",
+    label: "TOTAL COST",
+    icon: DollarSign,
+    category: "economy",
+    description: "Total weapon ammo costs",
+    getValue: (d) => ({
+      value: (d.totalCost ?? 0).toFixed(5),
+      unit: "PED",
+      color: colors.danger,
+      numericValue: d.totalCost ?? 0,
     }),
   },
   // DISABLED: Repair bill calculation needs work

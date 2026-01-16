@@ -316,7 +316,7 @@ function EquipmentCard({
                 textAlign: "right",
               }}
             >
-              {(equipment.economy.decay * 100).toFixed(2)}
+              {(equipment.economy.decay * 100).toFixed(4)}
             </div>
           </div>
           <div>
@@ -353,6 +353,498 @@ function EquipmentCard({
     </div>
   );
 }
+
+// ==================== Compact Enhancer Control ====================
+
+interface CompactEnhancerProps {
+  label: string;
+  shortLabel: string;
+  value: number;
+  color: string;
+  totalUsed: number;
+  onChange: (val: number) => void;
+}
+
+function CompactEnhancer({
+  label,
+  shortLabel,
+  value,
+  color,
+  totalUsed,
+  onChange,
+}: CompactEnhancerProps) {
+  const canAdd = totalUsed < 10;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "6px",
+        padding: "4px 8px",
+        backgroundColor: value > 0 ? `${color}15` : "hsl(220 13% 8%)",
+        border: `1px solid ${value > 0 ? color : "hsl(220 13% 20%)"}`,
+        borderRadius: "6px",
+        transition: "all 0.15s ease",
+      }}
+      title={label}
+    >
+      <span
+        style={{
+          fontSize: "10px",
+          fontWeight: 600,
+          color: value > 0 ? color : "hsl(220 13% 45%)",
+          textTransform: "uppercase",
+          minWidth: "24px",
+        }}
+      >
+        {shortLabel}
+      </span>
+      <button
+        onClick={() => onChange(Math.max(0, value - 1))}
+        disabled={value <= 0}
+        style={{
+          width: "20px",
+          height: "20px",
+          backgroundColor: value > 0 ? "hsl(220 13% 15%)" : "transparent",
+          border: "none",
+          borderRadius: "4px",
+          color: value > 0 ? "hsl(0 0% 90%)" : "hsl(220 13% 30%)",
+          cursor: value > 0 ? "pointer" : "not-allowed",
+          fontSize: "14px",
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+        }}
+      >
+        −
+      </button>
+      <span
+        style={{
+          fontSize: "14px",
+          fontWeight: 700,
+          fontFamily: "monospace",
+          color: value > 0 ? color : "hsl(220 13% 40%)",
+          minWidth: "16px",
+          textAlign: "center",
+        }}
+      >
+        {value}
+      </span>
+      <button
+        onClick={() => onChange(value + 1)}
+        disabled={!canAdd}
+        style={{
+          width: "20px",
+          height: "20px",
+          backgroundColor: canAdd ? "hsl(220 13% 15%)" : "transparent",
+          border: "none",
+          borderRadius: "4px",
+          color: canAdd ? "hsl(0 0% 90%)" : "hsl(220 13% 30%)",
+          cursor: canAdd ? "pointer" : "not-allowed",
+          fontSize: "14px",
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+        }}
+      >
+        +
+      </button>
+    </div>
+  );
+}
+
+// ==================== Weapon Card with Enhancers ====================
+
+interface WeaponCardWithEnhancersProps {
+  equipment?: Equipment;
+  onChange: (eq: Equipment | undefined) => void;
+  enhancers: {
+    damage: number;
+    accuracy: number;
+    range: number;
+    economy: number;
+  };
+  onEnhancerChange: (
+    type: "damage" | "accuracy" | "range" | "economy",
+    val: number
+  ) => void;
+}
+
+function WeaponCardWithEnhancers({
+  equipment,
+  onChange,
+  enhancers,
+  onEnhancerChange,
+}: WeaponCardWithEnhancersProps) {
+  const handleAutocomplete = (name: string, record?: EquipmentRecord) => {
+    if (!name.trim()) {
+      onChange(undefined);
+      return;
+    }
+
+    if (record) {
+      onChange(createEquipmentFromRecord(record));
+    }
+  };
+
+  const totalEnhancers =
+    enhancers.damage + enhancers.accuracy + enhancers.range + enhancers.economy;
+
+  return (
+    <div
+      style={{
+        padding: "16px",
+        backgroundColor: "hsl(220 13% 12%)",
+        borderRadius: "8px",
+        border: "1px solid hsl(220 13% 18%)",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "12px",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "12px",
+            fontWeight: 600,
+            color: "hsl(220 13% 65%)",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+          }}
+        >
+          Weapon
+        </span>
+        <span
+          style={{
+            fontSize: "10px",
+            color: totalEnhancers >= 10 ? "hsl(0 72% 60%)" : "hsl(220 13% 45%)",
+            fontFamily: "monospace",
+            fontWeight: 600,
+          }}
+        >
+          {totalEnhancers}/10 slots
+        </span>
+      </div>
+
+      {/* Equipment Autocomplete */}
+      <EquipmentAutocomplete
+        label=""
+        type="weapon"
+        value={equipment?.name ?? ""}
+        onChange={handleAutocomplete}
+      />
+
+      {/* Decay and Ammo display (read-only) */}
+      {equipment && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "10px",
+            marginTop: "10px",
+          }}
+        >
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "10px",
+                color: "hsl(220 13% 45%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                marginBottom: "6px",
+              }}
+            >
+              Decay (PEC)
+            </label>
+            <div
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                backgroundColor: "hsl(220 13% 8%)",
+                border: "1px solid hsl(220 13% 25%)",
+                borderRadius: "6px",
+                fontSize: "13px",
+                color: "hsl(220 13% 65%)",
+                fontFamily: "monospace",
+                textAlign: "right",
+              }}
+            >
+              {(equipment.economy.decay * 100).toFixed(4)}
+            </div>
+          </div>
+          <div>
+            <label
+              style={{
+                display: "block",
+                fontSize: "10px",
+                color: "hsl(220 13% 45%)",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                marginBottom: "6px",
+              }}
+            >
+              Ammo Burn
+            </label>
+            <div
+              style={{
+                width: "100%",
+                padding: "8px 10px",
+                backgroundColor: "hsl(220 13% 8%)",
+                border: "1px solid hsl(220 13% 25%)",
+                borderRadius: "6px",
+                fontSize: "13px",
+                color: "hsl(220 13% 65%)",
+                fontFamily: "monospace",
+                textAlign: "right",
+              }}
+            >
+              {equipment.economy.ammoBurn.toFixed(0)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhancers Row */}
+      <div
+        style={{
+          marginTop: "12px",
+          paddingTop: "12px",
+          borderTop: "1px solid hsl(220 13% 18%)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            marginBottom: "8px",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "10px",
+              color: "hsl(220 13% 45%)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+            }}
+          >
+            Enhancers
+          </span>
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "6px",
+          }}
+        >
+          <CompactEnhancer
+            label="Damage"
+            shortLabel="DMG"
+            value={enhancers.damage}
+            color="hsl(0 72% 55%)"
+            totalUsed={totalEnhancers}
+            onChange={(val) => onEnhancerChange("damage", val)}
+          />
+          <CompactEnhancer
+            label="Accuracy"
+            shortLabel="ACC"
+            value={enhancers.accuracy}
+            color="hsl(45 100% 55%)"
+            totalUsed={totalEnhancers}
+            onChange={(val) => onEnhancerChange("accuracy", val)}
+          />
+          <CompactEnhancer
+            label="Range"
+            shortLabel="RNG"
+            value={enhancers.range}
+            color="hsl(200 80% 55%)"
+            totalUsed={totalEnhancers}
+            onChange={(val) => onEnhancerChange("range", val)}
+          />
+          <CompactEnhancer
+            label="Economy"
+            shortLabel="ECO"
+            value={enhancers.economy}
+            color="hsl(142 71% 50%)"
+            totalUsed={totalEnhancers}
+            onChange={(val) => onEnhancerChange("economy", val)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== Armor Set Autocomplete ====================
+
+// interface ArmorSetAutocompleteProps {
+//   value: string;
+//   onChange: (name: string, armor?: ArmorSet) => void;
+// }
+
+// function ArmorSetAutocomplete({ value, onChange }: ArmorSetAutocompleteProps) {
+//   const [armorSets, setArmorSets] = useState<ArmorSet[]>([]);
+//   const [query, setQuery] = useState(value);
+//   const [results, setResults] = useState<ArmorSet[]>([]);
+//   const [isOpen, setIsOpen] = useState(false);
+//   const [highlighted, setHighlighted] = useState(-1);
+//   const inputRef = useRef<HTMLInputElement>(null);
+//   const dropdownRef = useRef<HTMLDivElement>(null);
+
+//   // Load armor sets
+//   useEffect(() => {
+//     const load = async () => {
+//       try {
+//         const data = await window.electron?.equipment?.load("armor-sets");
+//         if (Array.isArray(data)) {
+//           setArmorSets(data as ArmorSet[]);
+//         }
+//       } catch (err) {
+//         console.error("Failed to load armor sets:", err);
+//       }
+//     };
+//     load();
+//   }, []);
+
+//   // Sync external value changes
+//   useEffect(() => {
+//     setQuery(value);
+//   }, [value]);
+
+//   // Search on query change
+//   useEffect(() => {
+//     if (query.length < 2) {
+//       setResults([]);
+//       return;
+//     }
+//     const matches = armorSets.filter((a) =>
+//       a.name.toLowerCase().includes(query.toLowerCase())
+//     );
+//     setResults(matches);
+//     setHighlighted(-1);
+//   }, [query, armorSets]);
+
+//   // Click outside to close
+//   useEffect(() => {
+//     const handleClickOutside = (e: MouseEvent) => {
+//       if (
+//         dropdownRef.current &&
+//         !dropdownRef.current.contains(e.target as Node) &&
+//         inputRef.current &&
+//         !inputRef.current.contains(e.target as Node)
+//       ) {
+//         setIsOpen(false);
+//       }
+//     };
+//     document.addEventListener("mousedown", handleClickOutside);
+//     return () => document.removeEventListener("mousedown", handleClickOutside);
+//   }, []);
+
+//   const handleSelect = (armor: ArmorSet) => {
+//     setQuery(armor.name);
+//     onChange(armor.name, armor);
+//     setIsOpen(false);
+//     setResults([]);
+//   };
+
+//   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const val = e.target.value;
+//     setQuery(val);
+//     setIsOpen(val.length >= 2);
+
+//     if (!val.trim()) {
+//       onChange("", undefined);
+//     }
+//   };
+
+//   return (
+//     <div style={{ position: "relative" }}>
+//       <input
+//         ref={inputRef}
+//         type="text"
+//         value={query}
+//         onChange={handleInputChange}
+//         onFocus={() => query.length >= 2 && setIsOpen(true)}
+//         placeholder="Search armor sets..."
+//         style={{
+//           width: "100%",
+//           padding: "10px 12px",
+//           backgroundColor: "hsl(220 13% 8%)",
+//           border: "1px solid hsl(220 13% 25%)",
+//           borderRadius: "6px",
+//           color: "hsl(0 0% 95%)",
+//           fontSize: "13px",
+//           outline: "none",
+//         }}
+//       />
+
+//       {isOpen && results.length > 0 && (
+//         <div
+//           ref={dropdownRef}
+//           style={{
+//             position: "absolute",
+//             top: "100%",
+//             left: 0,
+//             right: 0,
+//             marginTop: "4px",
+//             backgroundColor: "hsl(220 13% 10%)",
+//             border: "1px solid hsl(220 13% 25%)",
+//             borderRadius: "6px",
+//             maxHeight: "200px",
+//             overflowY: "auto",
+//             zIndex: 100,
+//             boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+//           }}
+//         >
+//           {results.slice(0, 10).map((armor, idx) => (
+//             <div
+//               key={armor.id}
+//               onClick={() => handleSelect(armor)}
+//               style={{
+//                 padding: "10px 12px",
+//                 cursor: "pointer",
+//                 backgroundColor:
+//                   highlighted === idx ? "hsl(220 13% 15%)" : "transparent",
+//                 borderBottom:
+//                   idx < results.length - 1
+//                     ? "1px solid hsl(220 13% 15%)"
+//                     : "none",
+//               }}
+//               onMouseEnter={() => setHighlighted(idx)}
+//               onMouseLeave={() => setHighlighted(-1)}
+//             >
+//               <div
+//                 style={{
+//                   color: "hsl(0 0% 95%)",
+//                   fontSize: "13px",
+//                   marginBottom: "4px",
+//                 }}
+//               >
+//                 {armor.name}
+//               </div>
+//               <div style={{ fontSize: "11px", color: "hsl(220 13% 50%)" }}>
+//                 {armor.maxTT.toFixed(2)} PED • {armor.durability} dur
+//                 {armor.isLimited && " • (L)"}
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
 
 // ==================== Loadout Card (List View) ====================
 
@@ -612,12 +1104,6 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
     return Math.floor(weaponUses);
   };
 
-  const totalEnhancers =
-    (draft.damageEnhancers || 0) +
-    (draft.accuracyEnhancers || 0) +
-    (draft.rangeEnhancers || 0) +
-    (draft.economyEnhancers || 0);
-
   return (
     <div
       style={{
@@ -732,7 +1218,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               borderRight: "1px solid hsl(220 13% 12%)",
             }}
           >
-            {/* Equipment Section */}
+            {/* Offence Section */}
             <section style={{ marginBottom: "28px" }}>
               <h3
                 style={{
@@ -744,7 +1230,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   marginBottom: "16px",
                 }}
               >
-                Equipment
+                ⚔️ Offence
               </h3>
               <div
                 style={{
@@ -753,11 +1239,19 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                   gap: "12px",
                 }}
               >
-                <EquipmentCard
-                  label="Weapon"
-                  type="weapon"
+                <WeaponCardWithEnhancers
                   equipment={draft.weapon}
                   onChange={(eq) => updateEquipment("weapon", eq)}
+                  enhancers={{
+                    damage: draft.damageEnhancers || 0,
+                    accuracy: draft.accuracyEnhancers || 0,
+                    range: draft.rangeEnhancers || 0,
+                    economy: draft.economyEnhancers || 0,
+                  }}
+                  onEnhancerChange={(type, val) => {
+                    const key = `${type}Enhancers` as keyof Loadout;
+                    setDraft((prev) => ({ ...prev, [key]: val }));
+                  }}
                 />
                 <EquipmentCard
                   label="Amplifier"
@@ -780,93 +1274,136 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               </div>
             </section>
 
-            {/* Enhancers Section */}
+            {/* Defence Section */}
             <section style={{ marginBottom: "28px" }}>
-              <div
+              <h3
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  color: "hsl(220 13% 50%)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.1em",
                   marginBottom: "16px",
                 }}
               >
-                <h3
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    color: "hsl(220 13% 50%)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  Weapon Enhancers
-                </h3>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color:
-                      totalEnhancers >= 10
-                        ? "hsl(0 72% 60%)"
-                        : "hsl(220 13% 50%)",
-                    fontWeight: 600,
-                    fontFamily: "monospace",
-                  }}
-                >
-                  {totalEnhancers} / 10
-                </span>
-              </div>
+                🛡️ Defence
+              </h3>
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gridTemplateColumns: "1fr 1fr",
                   gap: "12px",
                 }}
               >
-                <EnhancerCard
-                  label="Damage"
-                  value={draft.damageEnhancers || 0}
-                  color="hsl(0 72% 55%)"
-                  effect={`+${(draft.damageEnhancers || 0) * 10}%`}
-                  max={10 - totalEnhancers + (draft.damageEnhancers || 0)}
-                  onChange={(val) =>
-                    setDraft((prev) => ({ ...prev, damageEnhancers: val }))
-                  }
-                />
-                <EnhancerCard
-                  label="Accuracy"
-                  value={draft.accuracyEnhancers || 0}
-                  color="hsl(45 100% 55%)"
-                  effect={`+${((draft.accuracyEnhancers || 0) * 0.2).toFixed(
-                    1
-                  )}%`}
-                  max={10 - totalEnhancers + (draft.accuracyEnhancers || 0)}
-                  onChange={(val) =>
-                    setDraft((prev) => ({ ...prev, accuracyEnhancers: val }))
-                  }
-                />
-                <EnhancerCard
-                  label="Range"
-                  value={draft.rangeEnhancers || 0}
-                  color="hsl(200 80% 55%)"
-                  effect={`+${(draft.rangeEnhancers || 0) * 5}%`}
-                  max={10 - totalEnhancers + (draft.rangeEnhancers || 0)}
-                  onChange={(val) =>
-                    setDraft((prev) => ({ ...prev, rangeEnhancers: val }))
-                  }
-                />
-                <EnhancerCard
-                  label="Economy"
-                  value={draft.economyEnhancers || 0}
-                  color="hsl(142 71% 50%)"
-                  effect={`-${(
-                    (1 - Math.pow(0.989, draft.economyEnhancers || 0)) *
-                    100
-                  ).toFixed(1)}%`}
-                  max={10 - totalEnhancers + (draft.economyEnhancers || 0)}
-                  onChange={(val) =>
-                    setDraft((prev) => ({ ...prev, economyEnhancers: val }))
-                  }
-                />
+                {/* DISABLED: Decay inputs - calculation needs work
+                {/* Decay on Hit *}
+                <div
+                  style={{
+                    padding: "16px",
+                    backgroundColor: "hsl(220 13% 12%)",
+                    borderRadius: "8px",
+                    border: "1px solid hsl(220 13% 18%)",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "11px",
+                      color: "hsl(220 13% 50%)",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Decay on Hit (PEC)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={draft.decayPerHit ?? 0}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        decayPerHit: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      backgroundColor: "hsl(220 13% 8%)",
+                      border: "1px solid hsl(220 13% 25%)",
+                      borderRadius: "6px",
+                      fontSize: "16px",
+                      color: "hsl(0 0% 95%)",
+                      fontFamily: "monospace",
+                      fontWeight: 600,
+                    }}
+                    placeholder="0.00"
+                  />
+                  <p
+                    style={{
+                      fontSize: "10px",
+                      color: "hsl(220 13% 40%)",
+                      marginTop: "6px",
+                    }}
+                  >
+                    Armor + plate decay per hit taken
+                  </p>
+                </div>
+
+                {/* Decay on Heal *}
+                <div
+                  style={{
+                    padding: "16px",
+                    backgroundColor: "hsl(220 13% 12%)",
+                    borderRadius: "8px",
+                    border: "1px solid hsl(220 13% 18%)",
+                  }}
+                >
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: "11px",
+                      color: "hsl(220 13% 50%)",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    Decay on Heal (PEC)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={draft.decayPerHeal ?? 0}
+                    onChange={(e) =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        decayPerHeal: parseFloat(e.target.value) || 0,
+                      }))
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "10px 12px",
+                      backgroundColor: "hsl(220 13% 8%)",
+                      border: "1px solid hsl(220 13% 25%)",
+                      borderRadius: "6px",
+                      fontSize: "16px",
+                      color: "hsl(0 0% 95%)",
+                      fontFamily: "monospace",
+                      fontWeight: 600,
+                    }}
+                    placeholder="0.00"
+                  />
+                  <p
+                    style={{
+                      fontSize: "10px",
+                      color: "hsl(220 13% 40%)",
+                      marginTop: "6px",
+                    }}
+                  >
+                    FAP decay per heal action
+                  </p>
+                </div>
+*/}
               </div>
             </section>
 
@@ -1024,13 +1561,13 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             >
               <HeroStat
                 label="Cost/Shot"
-                value={`${(costs.totalPerShot * 100).toFixed(2)}`}
+                value={`${(costs.totalPerShot * 100).toFixed(4)}`}
                 unit="PEC"
                 color="hsl(217 91% 65%)"
               />
               <HeroStat
                 label="DPP"
-                value={(dpp / 100).toFixed(2)}
+                value={(dpp / 100).toFixed(4)}
                 unit=""
                 color="hsl(142 71% 55%)"
               />
@@ -1040,7 +1577,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             <StatsCard title="Offense">
               <StatRow
                 label="Total Damage"
-                value={damage.max.toFixed(2)}
+                value={damage.max.toFixed(4)}
                 highlight={
                   draft.weapon &&
                   damage.max !==
@@ -1063,7 +1600,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               />
               <StatRow
                 label="Effective Damage"
-                value={calculateEffectiveDamage(draft).toFixed(2)}
+                value={calculateEffectiveDamage(draft).toFixed(4)}
                 highlight={
                   draft.weapon &&
                   damage.max !==
@@ -1074,7 +1611,7 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
               <StatRow label="Uses/min" value="60" />
               <StatRow
                 label="DPS"
-                value={calculateEffectiveDamage(draft).toFixed(2)}
+                value={calculateEffectiveDamage(draft).toFixed(4)}
                 accent
               />
             </StatsCard>
@@ -1123,27 +1660,27 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
             <StatsCard title="Cost Breakdown">
               <StatRow
                 label="Weapon"
-                value={`${(costs.weaponCost * 100).toFixed(2)} PEC`}
+                value={`${(costs.weaponCost * 100).toFixed(4)} PEC`}
                 subtle
               />
               <StatRow
                 label="Amplifier"
-                value={`${(costs.ampCost * 100).toFixed(2)} PEC`}
+                value={`${(costs.ampCost * 100).toFixed(4)} PEC`}
                 subtle
               />
               <StatRow
                 label="Scope"
-                value={`${(costs.scopeCost * 100).toFixed(2)} PEC`}
+                value={`${(costs.scopeCost * 100).toFixed(4)} PEC`}
                 subtle
               />
               <StatRow
                 label="Sight"
-                value={`${(costs.sightCost * 100).toFixed(2)} PEC`}
+                value={`${(costs.sightCost * 100).toFixed(4)} PEC`}
                 subtle
               />
               <StatRow
                 label="Enhancers"
-                value={`${(costs.weaponEnhancerCost * 100).toFixed(2)} PEC`}
+                value={`${(costs.weaponEnhancerCost * 100).toFixed(4)} PEC`}
                 subtle
               />
               <div
@@ -1162,6 +1699,20 @@ function LoadoutEditor({ loadout, onSave, onCancel }: LoadoutEditorProps) {
                 label="Crit Rate"
                 value={`${(getCritRate(draft) * 100).toFixed(1)}%`}
                 color="hsl(45 100% 60%)"
+              />
+            </StatsCard>
+
+            {/* Defense Stats */}
+            <StatsCard title="Defense">
+              <StatRow
+                label="Decay/Hit"
+                value={`${(draft.decayPerHit ?? 0).toFixed(4)} PEC`}
+                color="hsl(217 91% 65%)"
+              />
+              <StatRow
+                label="Decay/Heal"
+                value={`${(draft.decayPerHeal ?? 0).toFixed(4)} PEC`}
+                color="hsl(142 71% 60%)"
               />
             </StatsCard>
           </div>
@@ -1314,113 +1865,6 @@ function StatRow({
       >
         {value}
       </span>
-    </div>
-  );
-}
-
-function EnhancerCard({
-  label,
-  value,
-  color,
-  effect,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  color: string;
-  effect: string;
-  max: number;
-  onChange: (val: number) => void;
-}) {
-  return (
-    <div
-      style={{
-        padding: "14px",
-        backgroundColor: "hsl(220 13% 9%)",
-        borderRadius: "10px",
-        border: `1px solid ${value > 0 ? color : "hsl(220 13% 15%)"}`,
-        opacity: value > 0 ? 1 : 0.7,
-        transition: "all 0.15s ease",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "10px",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "11px",
-            fontWeight: 600,
-            color: value > 0 ? color : "hsl(220 13% 50%)",
-            textTransform: "uppercase",
-          }}
-        >
-          {label}
-        </span>
-        <span
-          style={{
-            fontSize: "10px",
-            color: value > 0 ? color : "hsl(220 13% 40%)",
-            fontFamily: "monospace",
-          }}
-        >
-          {effect}
-        </span>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <button
-          onClick={() => onChange(Math.max(0, value - 1))}
-          disabled={value <= 0}
-          style={{
-            width: "28px",
-            height: "28px",
-            backgroundColor:
-              value > 0 ? "hsl(220 13% 15%)" : "hsl(220 13% 10%)",
-            border: "none",
-            borderRadius: "6px",
-            color: value > 0 ? "hsl(0 0% 90%)" : "hsl(220 13% 30%)",
-            cursor: value > 0 ? "pointer" : "not-allowed",
-            fontSize: "16px",
-            fontWeight: 600,
-          }}
-        >
-          −
-        </button>
-        <span
-          style={{
-            flex: 1,
-            textAlign: "center",
-            fontSize: "18px",
-            fontWeight: 700,
-            fontFamily: "monospace",
-            color: value > 0 ? color : "hsl(220 13% 40%)",
-          }}
-        >
-          {value}
-        </span>
-        <button
-          onClick={() => onChange(Math.min(10, value + 1))}
-          disabled={max <= 0}
-          style={{
-            width: "28px",
-            height: "28px",
-            backgroundColor: max > 0 ? "hsl(220 13% 15%)" : "hsl(220 13% 10%)",
-            border: "none",
-            borderRadius: "6px",
-            color: max > 0 ? "hsl(0 0% 90%)" : "hsl(220 13% 30%)",
-            cursor: max > 0 ? "pointer" : "not-allowed",
-            fontSize: "16px",
-            fontWeight: 600,
-          }}
-        >
-          +
-        </button>
-      </div>
     </div>
   );
 }

@@ -109,7 +109,7 @@ function isGlobalsMessage(line: string): boolean {
 // Combat parser
 function parseCombatEvent(line: string): Partial<ParsedEvent> | null {
   // Critical hit damage dealt
-  const critHitMatch = line.match(/Critical hit.*You inflicted ([\d.]+) points of damage/);
+  const critHitMatch = line.match(/Critical hit.*You inflicted ([\d.]+) points of dama/);
   if (critHitMatch) {
     return {
       category: 'combat',
@@ -119,7 +119,7 @@ function parseCombatEvent(line: string): Partial<ParsedEvent> | null {
   }
 
   // Normal damage dealt
-  const hitMatch = line.match(/You inflicted ([\d.]+) points of damage/);
+  const hitMatch = line.match(/You inflicted ([\d.]+) points of dama/);
   if (hitMatch) {
     return {
       category: 'combat',
@@ -129,13 +129,13 @@ function parseCombatEvent(line: string): Partial<ParsedEvent> | null {
   }
 
   // Critical damage taken
-  const critDmgTakenMatch = line.match(/Critical hit.*You took ([\d.]+) points of damage/);
+  const critDmgTakenMatch = line.match(/Critical hit.*You took ([\d.]+) points of dama/);
   if (critDmgTakenMatch) {
     return { category: 'combat', type: 'CRITICAL_DAMAGE_TAKEN', data: { damage: parseFloat(critDmgTakenMatch[1]), critical: true } };
   }
 
   // Normal damage taken
-  const dmgTakenMatch = line.match(/You took ([\d.]+) points of damage/);
+  const dmgTakenMatch = line.match(/You took ([\d.]+) points of dama/);
   if (dmgTakenMatch) {
     return { category: 'combat', type: 'DAMAGE_TAKEN', data: { damage: parseFloat(dmgTakenMatch[1]), critical: false } };
   }
@@ -153,6 +153,7 @@ function parseCombatEvent(line: string): Partial<ParsedEvent> | null {
   if (line.includes('You Evaded the attack')) return { category: 'combat', type: 'PLAYER_EVADED', data: {} };
   if (line.includes('You Dodged the attack')) return { category: 'combat', type: 'PLAYER_DODGED', data: {} };
   if (line.includes('attack missed you')) return { category: 'combat', type: 'ENEMY_MISSED', data: {} };
+  // Note: "Damage deflected" is the exact message - don't match partial "deflect" which catches skill gains
   if (line.includes('Damage deflected')) return { category: 'combat', type: 'DEFLECT', data: {} };
   if (line.includes('Target out of range')) return { category: 'combat', type: 'OUT_OF_RANGE', data: {} };
 
@@ -551,6 +552,8 @@ function createWindow() {
   // Load app
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
+    // Open DevTools in development
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
@@ -583,11 +586,11 @@ function createPopoutWindow() {
   const windowIcon = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : undefined;
 
   popoutWindow = new BrowserWindow({
-    width: 220,
+    width: 280,
     height: 200,
-    minWidth: 120,
-    minHeight: 24,
-    useContentSize: true,
+    minWidth: 280,
+    minHeight: 100,
+    useContentSize: false,
     backgroundColor: '#090d13',
     frame: false,
     transparent: true,
@@ -606,6 +609,8 @@ function createPopoutWindow() {
   // Load popout page
   if (process.env.VITE_DEV_SERVER_URL) {
     popoutWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/popout.html');
+    // Open DevTools for popout in dev mode
+    popoutWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     popoutWindow.loadFile(path.join(__dirname, '../dist/popout.html'));
   }
@@ -1018,6 +1023,20 @@ ipcMain.on('popout:request-stats', () => {
   }
 });
 
+// Popout updates expenses - forward to main window
+ipcMain.on('popout:update-expenses', (_event: unknown, expenses: { armorCost: number; fapCost: number; miscCost: number }) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:expense-update', expenses);
+  }
+});
+
+// Popout session control - forward to main window
+ipcMain.on('popout:session-control', (_event: unknown, action: string) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('popout:session-control-action', action);
+  }
+});
+
 // ==================== Asteroid IPC ====================
 
 ipcMain.handle('asteroid:save', (_event: unknown, asteroids: unknown[]) => {
@@ -1151,6 +1170,33 @@ ipcMain.handle('markup:bulk-update', async (_event: any, updates: Array<{ itemNa
   } catch (e) {
     console.error('[Main] Failed to bulk update markup:', e);
     throw e;
+  }
+});
+
+ipcMain.handle('markup:item-exists', async (_event: any, itemName: string) => {
+  try {
+    return markupStore.itemExists(itemName);
+  } catch (e) {
+    console.error('[Main] Failed to check if item exists:', e);
+    return false;
+  }
+});
+
+ipcMain.handle('markup:add-manual-item', async (_event: any, itemName: string, ttValue: number, markupPercent?: number, markupValue?: number) => {
+  try {
+    return markupStore.addManualItem(itemName, ttValue, markupPercent, markupValue);
+  } catch (e) {
+    console.error('[Main] Failed to add manual item:', e);
+    return { success: false, error: String(e) };
+  }
+});
+
+ipcMain.handle('markup:delete-item', async (_event: any, itemName: string) => {
+  try {
+    return markupStore.deleteItem(itemName);
+  } catch (e) {
+    console.error('[Main] Failed to delete item:', e);
+    return { success: false, error: String(e) };
   }
 });
 

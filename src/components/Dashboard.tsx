@@ -226,7 +226,12 @@ export function Dashboard({
           />
           <EconomyStat
             label="Armor Decay"
-            value={stats.decay.toFixed(2)}
+            value={stats.armorDecay.toFixed(5)}
+            color={colors.warning}
+          />
+          <EconomyStat
+            label="FAP Decay"
+            value={stats.fapDecay.toFixed(5)}
             color={colors.warning}
           />
         </div>

@@ -103,6 +103,20 @@ contextBridge.exposeInMainWorld('electron', {
       ipcRenderer.on('popout:closed', handler);
       return () => ipcRenderer.removeListener('popout:closed', handler);
     },
+    updateExpenses: (expenses: { armorCost: number; fapCost: number; miscCost: number }) => 
+      ipcRenderer.send('popout:update-expenses', expenses),
+    onExpenseUpdate: (callback: (expenses: { armorCost: number; fapCost: number; miscCost: number }) => void) => {
+      const handler = (_: unknown, data: { armorCost: number; fapCost: number; miscCost: number }) => callback(data);
+      ipcRenderer.on('popout:expense-update', handler);
+      return () => ipcRenderer.removeListener('popout:expense-update', handler);
+    },
+    controlSession: (action: 'start' | 'stop' | 'pause' | 'resume') =>
+      ipcRenderer.send('popout:session-control', action),
+    onSessionControl: (callback: (action: 'start' | 'stop' | 'pause' | 'resume') => void) => {
+      const handler = (_: unknown, action: 'start' | 'stop' | 'pause' | 'resume') => callback(action);
+      ipcRenderer.on('popout:session-control-action', handler);
+      return () => ipcRenderer.removeListener('popout:session-control-action', handler);
+    },
   },
   asteroid: {
     save: (asteroids: Asteroid[]) => ipcRenderer.invoke('asteroid:save', asteroids),
@@ -162,6 +176,10 @@ contextBridge.exposeInMainWorld('electron', {
     exportCSV: () => ipcRenderer.invoke('markup:export-csv'),
     importCSV: (csvContent: string, mode: 'merge' | 'replace') => ipcRenderer.invoke('markup:import-csv', csvContent, mode),
     bulkUpdate: (updates: Array<{ itemName: string; updates: unknown }>) => ipcRenderer.invoke('markup:bulk-update', updates),
+    itemExists: (itemName: string) => ipcRenderer.invoke('markup:item-exists', itemName),
+    addManualItem: (itemName: string, ttValue: number, markupPercent?: number, markupValue?: number) => 
+      ipcRenderer.invoke('markup:add-manual-item', itemName, ttValue, markupPercent, markupValue),
+    deleteItem: (itemName: string) => ipcRenderer.invoke('markup:delete-item', itemName),
   },
 });
 

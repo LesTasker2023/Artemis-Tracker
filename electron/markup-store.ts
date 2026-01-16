@@ -691,3 +691,107 @@ export function getMarkupStats(): {
     lastSynced: library.lastSynced ? new Date(library.lastSynced).toISOString() : null,
   };
 }
+
+/**
+ * Check if an item exists in the library
+ */
+export function itemExists(itemName: string): boolean {
+  const library = loadMarkupLibrary();
+  return !!library.items[itemName];
+}
+
+/**
+ * Manually add a new item to the markup library
+ * Used for items discovered in-game that don't exist in the database
+ */
+export function addManualItem(
+  itemName: string,
+  ttValue: number,
+  markupPercent?: number,
+  markupValue?: number
+): {
+  success: boolean;
+  item?: ItemMarkupEntry;
+  error?: string;
+} {
+  try {
+    const library = loadMarkupLibrary();
+    
+    // Check if item already exists
+    if (library.items[itemName]) {
+      return { 
+        success: false, 
+        error: 'Item already exists in library' 
+      };
+    }
+    
+    // Create new entry
+    const newEntry: ItemMarkupEntry = {
+      itemName,
+      name: itemName,
+      ttValue,
+      markupPercent: markupPercent ?? 100,
+      markupValue: markupValue,
+      useFixed: markupValue !== undefined,
+      itemType: 'Unknown',
+      category: 'Unknown',
+      source: 'manual',
+      lastUpdated: new Date().toISOString(),
+      favorite: false,
+      isCustom: true,
+      ignored: false,
+    };
+    
+    // Add to library
+    library.items[itemName] = newEntry;
+    saveMarkupLibrary(library);
+    
+    console.log(`[MarkupStore] Manually added item: ${itemName}`);
+    
+    return { success: true, item: newEntry };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[MarkupStore] Failed to add manual item:', message);
+    return { success: false, error: message };
+  }
+}
+
+/**
+ * Delete an item from the markup library
+ * Used for testing or removing unwanted items
+ */
+export function deleteItem(itemName: string): {
+  success: boolean;
+  error?: string;
+} {
+  try {
+    const library = loadMarkupLibrary();
+    
+    // Check if item exists
+    if (!library.items[itemName]) {
+      return { 
+        success: false, 
+        error: 'Item does not exist in library' 
+      };
+    }
+    
+    // Delete from library
+    delete library.items[itemName];
+    saveMarkupLibrary(library);
+    
+    // Also remove from config if present
+    const config = loadMarkupConfig();
+    if (config.customItems[itemName]) {
+      delete config.customItems[itemName];
+      saveMarkupConfig(config);
+    }
+    
+    console.log(`[MarkupStore] Deleted item: ${itemName}`);
+    
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[MarkupStore] Failed to delete item:', message);
+    return { success: false, error: message };
+  }
+}

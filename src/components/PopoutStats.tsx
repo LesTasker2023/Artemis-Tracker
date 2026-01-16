@@ -110,10 +110,17 @@ export function PopoutStats() {
     damageReduced: 0,
     deflects: 0,
     decay: 0,
+    armorDecay: 0,
+    fapDecay: 0,
     repairBill: 0,
     skillGains: 0,
     skillEvents: 0,
     duration: 0,
+    weaponCost: 0,
+    armorCost: 0,
+    fapCost: 0,
+    miscCost: 0,
+    totalCost: 0,
   });
 
   const [config, setConfig] = useState<PopoutConfig>(loadConfig);

@@ -33,11 +33,14 @@ interface UseSessionReturn {
   session: Session | null;
   stats: SessionStats | null;
   isActive: boolean;
+  isPaused: boolean;
 
   // Session control (one-way: start -> add events -> stop)
   start: (name?: string, tags?: string[]) => void;
   stop: () => void;
   reset: () => void;
+  pause: () => void;
+  unpause: () => void;
 
   // Resume a previous session
   resume: (sessionToResume: Session) => void;
@@ -47,6 +50,9 @@ interface UseSessionReturn {
 
   // Recalculate stats (useful when player name changes or markup changes)
   recalculateStats: () => void;
+  
+  // Update manual expenses
+  updateExpenses: (expenses: { armorCost: number; fapCost: number; miscCost: number }) => void;
 }
 
 const STORAGE_KEY = "artemis-active-session-id";
@@ -89,11 +95,25 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
   const { markupLibrary, defaultMarkupPercent = 100 } = options;
   const [session, setSession] = useState<Session | null>(null);
   const [stats, setStats] = useState<SessionStats | null>(null);
+  const [loadoutVersion, setLoadoutVersion] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   
   // Auto-save session to file (debounced)
   useDebouncedSave(session, 500);
   
-  // Recalculate stats when session changes OR events are added OR markup changes
+  // Listen for loadout changes to recalculate armor decay
+  useEffect(() => {
+    const handleLoadoutChanged = () => {
+      setLoadoutVersion(v => v + 1);
+    };
+    
+    window.addEventListener('loadouts-changed', handleLoadoutChanged);
+    return () => {
+      window.removeEventListener('loadouts-changed', handleLoadoutChanged);
+    };
+  }, []);
+  
+  // Recalculate stats when session changes OR events are added OR markup changes OR loadout changes OR pause state changes
   useEffect(() => {
     if (session) {
       const playerName = getStoredPlayerName();
@@ -102,7 +122,7 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     } else {
       setStats(null);
     }
-  }, [session, session?.events.length, markupLibrary, defaultMarkupPercent]);
+  }, [session, session?.events.length, session?.pausedAt, session?.totalPausedTime, markupLibrary, defaultMarkupPercent, loadoutVersion]);
   
   // Manual recalculate (when player name changes or markup changes)
   const recalculateStats = useCallback(() => {
@@ -130,6 +150,10 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
       window.electron?.session?.load(activeId).then(loaded => {
         if (loaded && !loaded.endedAt) {
           setSession(loaded);
+          // Restore pause state if session was paused
+          if (loaded.pausedAt) {
+            setIsPaused(true);
+          }
         } else {
           localStorage.removeItem(STORAGE_KEY);
         }
@@ -174,13 +198,45 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
       }
       
       setSession(ended);
+      setIsPaused(false);
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [session]);
   
+  const pause = useCallback(() => {
+    console.log('[useSession] pause invoked');
+    if (session && !session.endedAt && !isPaused) {
+      setSession(prev => {
+        if (!prev || prev.endedAt) return prev;
+        return {
+          ...prev,
+          pausedAt: new Date().toISOString(),
+        };
+      });
+      setIsPaused(true);
+    }
+  }, [session, isPaused]);
+  
+  const unpause = useCallback(() => {
+    console.log('[useSession] unpause invoked');
+    if (session && !session.endedAt && isPaused && session.pausedAt) {
+      setSession(prev => {
+        if (!prev || prev.endedAt || !prev.pausedAt) return prev;
+        const pauseDuration = Date.now() - new Date(prev.pausedAt).getTime();
+        return {
+          ...prev,
+          pausedAt: undefined,
+          totalPausedTime: (prev.totalPausedTime || 0) + pauseDuration,
+        };
+      });
+      setIsPaused(false);
+    }
+  }, [session, isPaused]);
+  
   const reset = useCallback(() => {
     setSession(null);
     setStats(null);
+    setIsPaused(false);
     localStorage.removeItem(STORAGE_KEY);
   }, []);
   
@@ -214,6 +270,11 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
   
   const addEvent = useCallback((event: LogEvent) => {
     console.log('[useSession] addEvent:', event.type, event.timestamp);
+    // Reject events when paused
+    if (isPaused) {
+      console.log('[useSession] Event rejected - session is paused');
+      return;
+    }
     setSession(prev => {
       if (!prev || prev.endedAt) return prev;
       // Convert LogEvent to ParsedEvent format
@@ -228,17 +289,34 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
       return addEventToSession(prev, parsed, currentLoadout);
     });
     // Note: useDebouncedSave will auto-save after state updates
+  }, [isPaused]);
+  
+  // Update manual expenses on the session
+  const updateExpenses = useCallback((expenses: { armorCost: number; fapCost: number; miscCost: number }) => {
+    setSession(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        manualArmorCost: expenses.armorCost,
+        manualFapCost: expenses.fapCost,
+        manualMiscCost: expenses.miscCost,
+      };
+    });
   }, []);
   
   return {
     session,
     stats,
     isActive: session !== null && !session.endedAt,
+    isPaused,
     start,
     stop,
     reset,
+    pause,
+    unpause,
     resume,
     addEvent,
     recalculateStats,
+    updateExpenses,
   };
 }

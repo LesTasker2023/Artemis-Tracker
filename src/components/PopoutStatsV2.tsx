@@ -4,7 +4,7 @@
  * Features: Drag & drop, stat selection, markup toggle, loadout selector
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import ReactDOM from "react-dom";
 import {
   GripHorizontal,
@@ -21,6 +21,11 @@ import {
   ChevronDown,
   Crosshair,
   Check,
+  Shield,
+  Heart,
+  Wrench,
+  Play,
+  Pause,
 } from "lucide-react";
 import {
   DndContext,
@@ -62,6 +67,8 @@ interface PopoutConfig {
   stats: string[];
   layout: LayoutMode;
   showMarkup: boolean;
+  applyExpenses: boolean;
+  fontSize: number; // Base font size multiplier (1 = default)
 }
 
 const DEFAULT_CONFIG: PopoutConfig = {
@@ -75,6 +82,8 @@ const DEFAULT_CONFIG: PopoutConfig = {
   ],
   layout: "grid",
   showMarkup: true,
+  applyExpenses: true,
+  fontSize: 1.3,
 };
 
 const PRESETS = {
@@ -159,12 +168,19 @@ export function PopoutStatsV2() {
     criticals: 0,
     lootValue: 0,
     totalSpend: 0,
+    weaponCost: 0,
+    armorCost: 0,
+    fapCost: 0,
+    miscCost: 0,
+    totalCost: 0,
     returnRate: 0,
     damageDealt: 0,
     damageTaken: 0,
     damageReduced: 0,
     deflects: 0,
     decay: 0,
+    armorDecay: 0,
+    fapDecay: 0,
     repairBill: 0,
     skillGains: 0,
     skillEvents: 0,
@@ -173,8 +189,25 @@ export function PopoutStatsV2() {
 
   const [config, setConfig] = useState<PopoutConfig>(loadConfig);
   const [showSettings, setShowSettings] = useState(false);
+  const [showAddStatModal, setShowAddStatModal] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [previousSize, setPreviousSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  // Local expense state (updated from stats and user input)
+  const [localExpenses, setLocalExpenses] = useState({
+    armorCost: 0,
+    fapCost: 0,
+    miscCost: 0,
+  });
+
+  // Session state (synced from main window)
+  const [sessionActive, setSessionActive] = useState(false);
+  const [sessionPaused, setSessionPaused] = useState(false);
+  const [sessionName, setSessionName] = useState("");
 
   const {
     loadouts,
@@ -195,21 +228,116 @@ export function PopoutStatsV2() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Toggle settings with window resize
+  const toggleSettings = () => {
+    if (!showSettings) {
+      // Opening settings - save current size and expand
+      setPreviousSize({ width: window.innerWidth, height: window.innerHeight });
+      window.electron?.popout?.resize(550, 550);
+    } else {
+      // Closing settings - restore previous size
+      if (previousSize) {
+        window.electron?.popout?.resize(
+          previousSize.width,
+          previousSize.height
+        );
+        setPreviousSize(null);
+      }
+    }
+    setShowSettings(!showSettings);
+  };
+
   // Listen for stats
   useEffect(() => {
     const unsubscribe = window.electron?.popout?.onStatsUpdate(
-      (data: LiveStats) => setStats(data)
+      (data: LiveStats) => {
+        setStats(data);
+        // Sync expense values from main window
+        setLocalExpenses({
+          armorCost: data.manualArmorCost ?? 0,
+          fapCost: data.manualFapCost ?? 0,
+          miscCost: data.manualMiscCost ?? 0,
+        });
+        // Sync session state from main window
+        setSessionActive(data.sessionActive ?? false);
+        setSessionPaused(data.sessionPaused ?? false);
+        setSessionName(data.sessionName ?? "");
+      }
     );
     window.electron?.popout?.requestStats();
     return () => unsubscribe?.();
   }, []);
+
+  // Session control handlers (pause/resume only - no start/stop from popout)
+  const handlePauseSession = useCallback(() => {
+    window.electron?.popout?.controlSession("pause");
+  }, []);
+
+  const handleResumeSession = useCallback(() => {
+    window.electron?.popout?.controlSession("resume");
+  }, []);
+
+  // Handle expense change - update local state and notify main window
+  const handleExpenseChange = useCallback(
+    (type: "armor" | "fap" | "misc", value: number) => {
+      const newExpenses = {
+        ...localExpenses,
+        [`${type}Cost`]: value,
+      };
+      setLocalExpenses(newExpenses);
+
+      // Send update to main window
+      window.electron?.popout?.updateExpenses({
+        armorCost: newExpenses.armorCost,
+        fapCost: newExpenses.fapCost,
+        miscCost: newExpenses.miscCost,
+      });
+    },
+    [localExpenses]
+  );
 
   // Persist config
   useEffect(() => {
     saveConfig(config);
   }, [config]);
 
-  const statData: StatData = { ...stats, showMarkup: config.showMarkup };
+  // Apply or remove manual expenses based on applyExpenses toggle
+  const adjustedStats = { ...stats };
+  if (
+    !config.applyExpenses &&
+    (localExpenses.armorCost || localExpenses.fapCost || localExpenses.miscCost)
+  ) {
+    const totalManualExpenses =
+      localExpenses.armorCost + localExpenses.fapCost + localExpenses.miscCost;
+    // Add back the expenses to profit/netProfit since they were subtracted in session.ts
+    adjustedStats.profit = stats.profit + totalManualExpenses;
+    adjustedStats.netProfit = stats.netProfit + totalManualExpenses;
+    adjustedStats.totalCost = (stats.totalCost || 0) - totalManualExpenses;
+    // Recalculate return rate without manual expenses
+    adjustedStats.returnRate =
+      adjustedStats.totalCost > 0
+        ? (stats.lootValue / adjustedStats.totalCost) * 100
+        : 0;
+    // Also adjust markup versions if they exist
+    if (stats.netProfitWithMarkup !== undefined) {
+      adjustedStats.netProfitWithMarkup =
+        stats.netProfitWithMarkup + totalManualExpenses;
+    }
+    if (
+      stats.returnRateWithMarkup !== undefined &&
+      adjustedStats.totalCost > 0
+    ) {
+      adjustedStats.returnRateWithMarkup =
+        ((stats.lootValueWithMarkup || stats.lootValue) /
+          adjustedStats.totalCost) *
+        100;
+    }
+  }
+
+  const statData: StatData = {
+    ...adjustedStats,
+    showMarkup: config.showMarkup,
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // Handlers
@@ -238,8 +366,11 @@ export function PopoutStatsV2() {
     });
   };
 
-  const handleAddStat = () =>
-    setConfig((prev) => ({ ...prev, stats: [...prev.stats, "kills"] }));
+  const handleAddStat = () => setShowAddStatModal(true);
+  const handleAddStatSelect = (key: string) => {
+    setConfig((prev) => ({ ...prev, stats: [...prev.stats, key] }));
+    setShowAddStatModal(false);
+  };
   const handleRemoveStat = (index: number) =>
     setConfig((prev) => ({
       ...prev,
@@ -258,6 +389,8 @@ export function PopoutStatsV2() {
     setConfig((prev) => ({ ...prev, layout }));
   const toggleMarkup = () =>
     setConfig((prev) => ({ ...prev, showMarkup: !prev.showMarkup }));
+  const toggleExpenses = () =>
+    setConfig((prev) => ({ ...prev, applyExpenses: !prev.applyExpenses }));
 
   // Responsive columns for grid
   const columns = windowWidth < 220 ? 1 : windowWidth < 380 ? 2 : 3;
@@ -285,10 +418,6 @@ export function PopoutStatsV2() {
                 </span>
               );
             })}
-            <span style={s.miniStat}>
-              <Clock size={9} style={{ opacity: 0.5 }} />
-              <span style={s.miniValue}>{formatDuration(stats.duration)}</span>
-            </span>
           </div>
 
           {/* Actions */}
@@ -304,6 +433,16 @@ export function PopoutStatsV2() {
               MU
             </button>
             <button
+              onClick={toggleExpenses}
+              style={{
+                ...s.miniBtn,
+                color: config.applyExpenses ? colors.warning : colors.textMuted,
+              }}
+              title="Apply Additional Expenses"
+            >
+              AE
+            </button>
+            <button
               onClick={() => setLayout("horizontal")}
               style={s.miniBtn}
               title="Horizontal"
@@ -315,6 +454,19 @@ export function PopoutStatsV2() {
             </button>
           </div>
         </div>
+
+        {/* Unified Footer */}
+        <PopoutFooter
+          duration={stats.duration}
+          sessionActive={sessionActive}
+          sessionPaused={sessionPaused}
+          sessionName={sessionName}
+          showSettings={showSettings}
+          localExpenses={localExpenses}
+          onPause={handlePauseSession}
+          onResume={handleResumeSession}
+          onExpenseChange={handleExpenseChange}
+        />
       </div>
     );
   }
@@ -323,17 +475,15 @@ export function PopoutStatsV2() {
   // Horizontal Bar Layout
   // ─────────────────────────────────────────────────────────────────────────
 
+  const fontScale = config.fontSize ?? 1;
+
   if (config.layout === "horizontal") {
     const sortingStrategy = horizontalListSortingStrategy;
     return (
-      <div style={s.horzContainer}>
+      <div style={{ ...s.horzContainer, fontSize: `${11 * fontScale}px` }}>
         {/* Header */}
         <div style={s.horzHeader}>
           <div style={s.headerLeft}>
-            <div style={s.duration}>
-              <Clock size={10} style={{ opacity: 0.5 }} />
-              <span>{formatDuration(stats.duration)}</span>
-            </div>
             <MiniLoadoutSelector
               loadouts={loadouts}
               activeLoadout={activeLoadout}
@@ -358,7 +508,20 @@ export function PopoutStatsV2() {
               MU
             </button>
             <button
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={toggleExpenses}
+              style={{
+                ...s.headerBtn,
+                color: config.applyExpenses ? colors.warning : colors.textMuted,
+                background: config.applyExpenses
+                  ? `${colors.warning}20`
+                  : "transparent",
+              }}
+              title="Apply Additional Expenses"
+            >
+              AE
+            </button>
+            <button
+              onClick={toggleSettings}
               style={{
                 ...s.headerBtn,
                 background: showSettings ? colors.bgCard : "transparent",
@@ -381,6 +544,10 @@ export function PopoutStatsV2() {
             onSaveCustom={handleSaveCustom}
             onLoadCustom={handleLoadCustom}
             onReset={handleReset}
+            fontSize={config.fontSize}
+            onFontSizeChange={(size) =>
+              setConfig((prev) => ({ ...prev, fontSize: size }))
+            }
           />
         )}
 
@@ -416,6 +583,28 @@ export function PopoutStatsV2() {
             {activeId && <StatChipOverlay statKey={activeId} data={statData} />}
           </DragOverlay>
         </DndContext>
+
+        {/* Add Stat Modal */}
+        {showAddStatModal && (
+          <StatSelectorModal
+            currentKey=""
+            onSelect={handleAddStatSelect}
+            onClose={() => setShowAddStatModal(false)}
+          />
+        )}
+
+        {/* Unified Footer */}
+        <PopoutFooter
+          duration={stats.duration}
+          sessionActive={sessionActive}
+          sessionPaused={sessionPaused}
+          sessionName={sessionName}
+          showSettings={showSettings}
+          localExpenses={localExpenses}
+          onPause={handlePauseSession}
+          onResume={handleResumeSession}
+          onExpenseChange={handleExpenseChange}
+        />
       </div>
     );
   }
@@ -427,14 +616,10 @@ export function PopoutStatsV2() {
   if (config.layout === "vertical") {
     const sortingStrategy = verticalListSortingStrategy;
     return (
-      <div style={s.vertContainer}>
+      <div style={{ ...s.vertContainer, fontSize: `${11 * fontScale}px` }}>
         {/* Header */}
         <div style={s.vertHeader}>
           <div style={s.headerLeft}>
-            <div style={s.duration}>
-              <Clock size={10} style={{ opacity: 0.5 }} />
-              <span>{formatDuration(stats.duration)}</span>
-            </div>
             <MiniLoadoutSelector
               loadouts={loadouts}
               activeLoadout={activeLoadout}
@@ -456,7 +641,20 @@ export function PopoutStatsV2() {
               MU
             </button>
             <button
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={toggleExpenses}
+              style={{
+                ...s.headerBtn,
+                color: config.applyExpenses ? colors.warning : colors.textMuted,
+                background: config.applyExpenses
+                  ? `${colors.warning}20`
+                  : "transparent",
+              }}
+              title="Apply Additional Expenses"
+            >
+              AE
+            </button>
+            <button
+              onClick={toggleSettings}
               style={{
                 ...s.headerBtn,
                 color: showSettings ? colors.success : colors.textMuted,
@@ -486,6 +684,10 @@ export function PopoutStatsV2() {
             onSaveCustom={handleSaveCustom}
             onLoadCustom={handleLoadCustom}
             onReset={handleReset}
+            fontSize={config.fontSize}
+            onFontSizeChange={(size) =>
+              setConfig((prev) => ({ ...prev, fontSize: size }))
+            }
           />
         )}
 
@@ -521,6 +723,28 @@ export function PopoutStatsV2() {
             {activeId && <StatRowOverlay statKey={activeId} data={statData} />}
           </DragOverlay>
         </DndContext>
+
+        {/* Add Stat Modal */}
+        {showAddStatModal && (
+          <StatSelectorModal
+            currentKey=""
+            onSelect={handleAddStatSelect}
+            onClose={() => setShowAddStatModal(false)}
+          />
+        )}
+
+        {/* Unified Footer */}
+        <PopoutFooter
+          duration={stats.duration}
+          sessionActive={sessionActive}
+          sessionPaused={sessionPaused}
+          sessionName={sessionName}
+          showSettings={showSettings}
+          localExpenses={localExpenses}
+          onPause={handlePauseSession}
+          onResume={handleResumeSession}
+          onExpenseChange={handleExpenseChange}
+        />
       </div>
     );
   }
@@ -530,14 +754,10 @@ export function PopoutStatsV2() {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div style={s.gridContainer}>
+    <div style={{ ...s.gridContainer, fontSize: `${11 * fontScale}px` }}>
       {/* Header */}
       <div style={s.gridHeader}>
         <div style={s.headerLeft}>
-          <div style={s.duration}>
-            <Clock size={10} style={{ opacity: 0.5 }} />
-            <span>{formatDuration(stats.duration)}</span>
-          </div>
           <MiniLoadoutSelector
             loadouts={loadouts}
             activeLoadout={activeLoadout}
@@ -562,7 +782,20 @@ export function PopoutStatsV2() {
             MU
           </button>
           <button
-            onClick={() => setShowSettings(!showSettings)}
+            onClick={toggleExpenses}
+            style={{
+              ...s.headerBtn,
+              color: config.applyExpenses ? colors.warning : colors.textMuted,
+              background: config.applyExpenses
+                ? `${colors.warning}20`
+                : "transparent",
+            }}
+            title="Apply Additional Expenses"
+          >
+            AE
+          </button>
+          <button
+            onClick={toggleSettings}
             style={{
               ...s.headerBtn,
               color: showSettings ? colors.success : colors.textMuted,
@@ -590,6 +823,10 @@ export function PopoutStatsV2() {
           onSaveCustom={handleSaveCustom}
           onLoadCustom={handleLoadCustom}
           onReset={handleReset}
+          fontSize={config.fontSize}
+          onFontSizeChange={(size) =>
+            setConfig((prev) => ({ ...prev, fontSize: size }))
+          }
         />
       )}
 
@@ -633,6 +870,166 @@ export function PopoutStatsV2() {
           <button onClick={handleAddStat} style={s.addCardBtn}>
             + Add Stat Card
           </button>
+        )}
+
+        {/* Add Stat Modal */}
+        {showAddStatModal && (
+          <StatSelectorModal
+            currentKey=""
+            onSelect={handleAddStatSelect}
+            onClose={() => setShowAddStatModal(false)}
+          />
+        )}
+      </div>
+
+      {/* Unified Footer */}
+      <PopoutFooter
+        duration={stats.duration}
+        sessionActive={sessionActive}
+        sessionPaused={sessionPaused}
+        sessionName={sessionName}
+        showSettings={showSettings}
+        localExpenses={localExpenses}
+        onPause={handlePauseSession}
+        onResume={handleResumeSession}
+        onExpenseChange={handleExpenseChange}
+      />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Unified Footer Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PopoutFooter({
+  duration,
+  sessionActive,
+  sessionPaused,
+  sessionName,
+  showSettings,
+  localExpenses,
+  onPause,
+  onResume,
+  onExpenseChange,
+}: {
+  duration: number;
+  sessionActive: boolean;
+  sessionPaused: boolean;
+  sessionName: string;
+  showSettings: boolean;
+  localExpenses: { armorCost: number; fapCost: number; miscCost: number };
+  onPause: () => void;
+  onResume: () => void;
+  onExpenseChange: (type: "armor" | "fap" | "misc", value: number) => void;
+}) {
+  const totalExpenses =
+    localExpenses.armorCost + localExpenses.fapCost + localExpenses.miscCost;
+
+  return (
+    <div style={s.unifiedFooter}>
+      {/* Additional Expenses - Show in settings mode */}
+      {showSettings && (
+        <div style={s.footerExpenses}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={s.footerExpensesTitle}>Additional Expenses</span>
+            <span style={s.footerExpensesTotal}>
+              Total:{" "}
+              <span style={{ color: colors.warning }}>
+                {totalExpenses.toFixed(2)} PED
+              </span>
+            </span>
+          </div>
+          <div style={s.footerExpensesRow}>
+            <div style={s.footerExpenseItem}>
+              <Shield size={11} style={{ color: "#06b6d4", opacity: 0.8 }} />
+              <span style={s.footerExpenseLabel}>Armor</span>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={localExpenses.armorCost || ""}
+                onChange={(e) =>
+                  onExpenseChange("armor", parseFloat(e.target.value) || 0)
+                }
+                placeholder="0.00"
+                style={s.footerExpenseInput}
+                title="Additional Armor Cost"
+              />
+            </div>
+            <div style={s.footerExpenseItem}>
+              <Heart size={11} style={{ color: "#ef4444", opacity: 0.8 }} />
+              <span style={s.footerExpenseLabel}>FAP</span>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={localExpenses.fapCost || ""}
+                onChange={(e) =>
+                  onExpenseChange("fap", parseFloat(e.target.value) || 0)
+                }
+                placeholder="0.00"
+                style={s.footerExpenseInput}
+                title="Additional FAP Cost"
+              />
+            </div>
+            <div style={s.footerExpenseItem}>
+              <Wrench size={11} style={{ color: "#f59e0b", opacity: 0.8 }} />
+              <span style={s.footerExpenseLabel}>Misc</span>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={localExpenses.miscCost || ""}
+                onChange={(e) =>
+                  onExpenseChange("misc", parseFloat(e.target.value) || 0)
+                }
+                placeholder="0.00"
+                style={s.footerExpenseInput}
+                title="Misc Cost"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Time & Session Controls */}
+      <div style={s.footerSession}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <Clock size={9} style={{ opacity: 0.5, flexShrink: 0 }} />
+          <span style={s.footerTimeValue}>{formatDuration(duration)}</span>
+        </div>
+
+        {sessionActive && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={s.footerSessionName}>
+              {sessionPaused ? "⏸ " : ""}
+              {sessionName || "Session"}
+            </span>
+            {sessionPaused ? (
+              <button
+                onClick={onResume}
+                style={{ ...s.footerSessionBtn, ...s.sessionBtnResume }}
+                title="Resume Session"
+              >
+                <Play size={9} />
+              </button>
+            ) : (
+              <button
+                onClick={onPause}
+                style={{ ...s.footerSessionBtn, ...s.sessionBtnPause }}
+                title="Pause Session"
+              >
+                <Pause size={9} />
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -785,15 +1182,38 @@ function SettingsPanel({
   onSaveCustom,
   onLoadCustom,
   onReset,
+  fontSize,
+  onFontSizeChange,
 }: {
   onPreset: (p: string[]) => void;
   onSaveCustom: () => void;
   onLoadCustom: () => void;
   onReset: () => void;
+  fontSize: number;
+  onFontSizeChange: (size: number) => void;
 }) {
   const hasCustom = !!loadCustomLayout();
   return (
     <div style={s.settingsPanel}>
+      {/* Font Size Controls */}
+      <div style={s.fontSizeRow}>
+        <span style={s.fontSizeLabel}>Font Size</span>
+        <div style={s.fontSizeBtns}>
+          <button
+            onClick={() => onFontSizeChange(Math.max(0.6, fontSize - 0.1))}
+            style={s.fontSizeBtn}
+          >
+            −
+          </button>
+          <span style={s.fontSizeValue}>{Math.round(fontSize * 100)}%</span>
+          <button
+            onClick={() => onFontSizeChange(Math.min(2, fontSize + 0.1))}
+            style={s.fontSizeBtn}
+          >
+            +
+          </button>
+        </div>
+      </div>
       <div style={s.presetBtns}>
         {Object.entries(PRESETS).map(([name, preset]) => (
           <button
@@ -1212,71 +1632,78 @@ function StatSelectorModal({
   onSelect: (k: string) => void;
   onClose: () => void;
 }) {
-  const statsList = Array.from(STAT_MAP.values());
-  const groups = statsList.reduce((acc, stat) => {
-    const last = acc[acc.length - 1];
-    if (!last || last.category !== stat.category)
-      acc.push({ category: stat.category, items: [stat] });
-    else last.items.push(stat);
-    return acc;
-  }, [] as Array<{ category: string; items: typeof statsList }>);
+  const [activeTab, setActiveTab] = useState<string>("combat");
 
-  // Category colors
-  const categoryColors: Record<string, string> = {
-    combat: colors.danger,
-    economy: colors.success,
-    skills: colors.info,
-    efficiency: colors.warning,
-    time: colors.textMuted,
-  };
+  const statsList = Array.from(STAT_MAP.values());
+
+  // Filter out time category and group by category
+  const groups = statsList
+    .filter((stat) => stat.category !== "time")
+    .reduce((acc, stat) => {
+      if (!acc[stat.category]) acc[stat.category] = [];
+      acc[stat.category].push(stat);
+      return acc;
+    }, {} as Record<string, typeof statsList>);
+
+  // Category colors and labels
+  const categories = [
+    { key: "combat", label: "Combat", color: colors.danger },
+    { key: "economy", label: "Economy", color: colors.success },
+    { key: "skills", label: "Skills", color: colors.info },
+    { key: "efficiency", label: "Efficiency", color: colors.warning },
+  ];
+
+  const activeStats = groups[activeTab] || [];
 
   return ReactDOM.createPortal(
     <>
       <div style={s.modalBackdrop} onClick={onClose} />
       <div style={s.selectorModal}>
         <div style={s.selectorHeader}>Select Stat</div>
-        <div style={s.selectorDropdown}>
-          {groups.map((group, idx) => (
-            <div
-              key={group.category}
-              style={idx > 0 ? { marginTop: 8 } : undefined}
+
+        {/* Category Tabs */}
+        <div style={s.selectorTabs}>
+          {categories.map((cat) => (
+            <button
+              key={cat.key}
+              onClick={() => setActiveTab(cat.key)}
+              style={{
+                ...s.selectorTab,
+                color: activeTab === cat.key ? cat.color : colors.textMuted,
+                borderBottom:
+                  activeTab === cat.key
+                    ? `2px solid ${cat.color}`
+                    : "2px solid transparent",
+                background:
+                  activeTab === cat.key ? `${cat.color}10` : "transparent",
+              }}
             >
-              <div
-                style={{
-                  ...s.selectorGroupHeader,
-                  background: `${
-                    categoryColors[group.category] || colors.textMuted
-                  }15`,
-                  borderLeft: `3px solid ${
-                    categoryColors[group.category] || colors.textMuted
-                  }`,
-                }}
-              >
-                {group.category.toUpperCase()}
-              </div>
-              {group.items.map((stat) => (
-                <button
-                  key={stat.key}
-                  onClick={() => onSelect(stat.key)}
-                  style={{
-                    ...s.selectorOption,
-                    background:
-                      stat.key === currentKey
-                        ? `${colors.success}15`
-                        : "transparent",
-                    color:
-                      stat.key === currentKey
-                        ? colors.success
-                        : colors.textPrimary,
-                  }}
-                >
-                  <span style={{ flex: 1 }}>{stat.label}</span>
-                  {stat.key === currentKey && (
-                    <Check size={12} style={{ color: colors.success }} />
-                  )}
-                </button>
-              ))}
-            </div>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Stats List for Active Tab */}
+        <div style={s.selectorDropdown}>
+          {activeStats.map((stat) => (
+            <button
+              key={stat.key}
+              onClick={() => onSelect(stat.key)}
+              style={{
+                ...s.selectorOption,
+                background:
+                  stat.key === currentKey
+                    ? `${colors.success}15`
+                    : "transparent",
+                color:
+                  stat.key === currentKey ? colors.success : colors.textPrimary,
+              }}
+            >
+              <span style={{ flex: 1 }}>{stat.label}</span>
+              {stat.key === currentKey && (
+                <Check size={12} style={{ color: colors.success }} />
+              )}
+            </button>
           ))}
         </div>
       </div>
@@ -1344,6 +1771,15 @@ const s: Record<string, ElectronCSSProperties> = {
     gap: 2,
     WebkitAppRegion: "no-drag",
   },
+  miniSessionControls: {
+    display: "flex",
+    alignItems: "center",
+    gap: 2,
+    marginLeft: 4,
+    paddingLeft: 4,
+    borderLeft: `1px solid ${colors.border}`,
+    WebkitAppRegion: "no-drag",
+  },
   miniBtn: {
     display: "flex",
     alignItems: "center",
@@ -1389,6 +1825,9 @@ const s: Record<string, ElectronCSSProperties> = {
     gap: 6,
     padding: "8px",
     flexWrap: "wrap",
+    flex: 1,
+    overflowY: "auto",
+    alignContent: "flex-start",
   },
 
   // ─── Vertical Bar ───
@@ -1420,6 +1859,8 @@ const s: Record<string, ElectronCSSProperties> = {
     flexDirection: "column",
     gap: 2,
     padding: "6px 8px",
+    flex: 1,
+    overflowY: "auto",
   },
 
   // ─── Grid ───
@@ -1448,6 +1889,8 @@ const s: Record<string, ElectronCSSProperties> = {
     flexDirection: "column",
     padding: 8,
     gap: 8,
+    overflow: "auto",
+    minHeight: 0,
   },
   loadoutRow: { display: "flex", alignItems: "center", gap: 8 },
   statsGrid: {
@@ -1560,10 +2003,51 @@ const s: Record<string, ElectronCSSProperties> = {
     gap: 6,
     flexWrap: "wrap",
   },
+  fontSizeRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    marginRight: 8,
+    paddingRight: 8,
+    borderRight: `1px solid ${colors.border}`,
+  },
+  fontSizeLabel: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.textSecondary,
+  },
+  fontSizeBtns: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+  },
+  fontSizeBtn: {
+    width: 22,
+    height: 22,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    background: colors.bgCard,
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  fontSizeValue: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: colors.textPrimary,
+    minWidth: 32,
+    textAlign: "center" as const,
+  },
   settingsSpacer: {
     flex: 1,
     minWidth: 8,
   },
+
+  // ─── Settings Panel Actions ───
   settingsActions: {
     display: "flex",
     alignItems: "center",
@@ -1662,7 +2146,7 @@ const s: Record<string, ElectronCSSProperties> = {
     WebkitAppRegion: "no-drag",
   },
   cardLabel: {
-    fontSize: 9,
+    fontSize: "0.82em",
     fontWeight: 600,
     color: colors.textMuted,
     textTransform: "uppercase",
@@ -1670,7 +2154,7 @@ const s: Record<string, ElectronCSSProperties> = {
     zIndex: 1,
   },
   cardValue: {
-    fontSize: "clamp(14px, 3.5vw, 18px)",
+    fontSize: "1.45em",
     fontWeight: 700,
     fontFamily: typography.mono,
     zIndex: 1,
@@ -1688,10 +2172,212 @@ const s: Record<string, ElectronCSSProperties> = {
     borderRadius: radius.sm,
     background: "transparent",
     color: colors.textMuted,
-    fontSize: 11,
+    fontSize: "1em",
     fontWeight: 600,
     cursor: "pointer",
     width: "100%",
+  },
+
+  // ─── Session Controls ───
+  sessionControls: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    padding: "8px",
+    borderTop: `1px solid ${colors.border}`,
+    background: colors.bgPanel,
+    flexShrink: 0,
+  },
+  sessionName: {
+    fontSize: "0.85em",
+    fontWeight: 600,
+    color: colors.textSecondary,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+    maxWidth: 120,
+  },
+  sessionBtn: {
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "6px 12px",
+    border: "none",
+    borderRadius: radius.sm,
+    fontSize: "0.85em",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.15s",
+  },
+  sessionBtnStart: {
+    background: `${colors.success}20`,
+    color: colors.success,
+  },
+  sessionBtnStop: {
+    background: `${colors.danger}20`,
+    color: colors.danger,
+  },
+  sessionBtnPause: {
+    background: `${colors.warning}20`,
+    color: colors.warning,
+  },
+  sessionBtnResume: {
+    background: `${colors.success}20`,
+    color: colors.success,
+  },
+
+  // ─── Unified Footer ───
+  unifiedFooter: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 0,
+    borderTop: `1px solid ${colors.border}`,
+    background: colors.bgPanel,
+    flexShrink: 0,
+  },
+  footerTimeValue: {
+    fontFamily: typography.mono,
+    color: colors.textPrimary,
+    fontSize: "0.85em",
+    fontWeight: 600,
+  },
+  footerExpenses: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: 8,
+    padding: "10px 12px",
+    borderBottom: `1px solid ${colors.borderSubtle}`,
+    background: `${colors.bgCard}50`,
+  },
+  footerExpensesTitle: {
+    fontSize: "0.7em",
+    fontWeight: 700,
+    color: colors.textSecondary,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  footerExpensesRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    gap: 0,
+  },
+  footerExpenseItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 5,
+  },
+  footerExpenseLabel: {
+    fontSize: "0.8em",
+    fontWeight: 600,
+    color: colors.textMuted,
+    minWidth: 32,
+  },
+  footerExpenseInput: {
+    width: 80,
+    padding: "5px 8px",
+    border: `1px solid ${colors.border}`,
+    borderRadius: radius.sm,
+    background: colors.bgBase,
+    color: colors.textPrimary,
+    fontSize: "0.85em",
+    fontFamily: typography.mono,
+    fontWeight: 600,
+    textAlign: "right" as const,
+    outline: "none",
+    marginRight: 10,
+  },
+  footerExpensesTotal: {
+    fontSize: "0.75em",
+    fontWeight: 600,
+    color: colors.textSecondary,
+    fontFamily: typography.mono,
+  },
+  footerSession: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 6,
+    padding: "6px 8px",
+  },
+  footerDivider: {
+    width: 1,
+    height: 14,
+    background: colors.border,
+    opacity: 0.5,
+  },
+  footerSessionName: {
+    fontSize: "0.82em",
+    fontWeight: 600,
+    color: colors.textSecondary,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+    maxWidth: 100,
+  },
+  footerSessionBtn: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "4px",
+    border: "none",
+    borderRadius: radius.sm,
+    cursor: "pointer",
+    transition: "all 0.15s",
+    flexShrink: 0,
+  },
+
+  // ─── Inline Expenses ───
+  expensesDivider: {
+    width: 1,
+    height: 20,
+    background: colors.border,
+    marginLeft: 4,
+  },
+  expensesBar: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 6,
+    padding: "8px",
+    borderTop: `1px solid ${colors.border}`,
+    background: colors.bgPanel,
+    flexShrink: 0,
+  },
+  expensesBarTitle: {
+    fontSize: "0.75em",
+    fontWeight: 600,
+    color: colors.textSecondary,
+    textTransform: "uppercase",
+  },
+  expensesBarInputs: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  expensesInline: {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+  },
+  expenseInlineItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: 3,
+  },
+  expenseInlineInput: {
+    width: 50,
+    padding: "3px 5px",
+    border: `1px solid ${colors.border}`,
+    borderRadius: 3,
+    background: colors.bgBase,
+    color: colors.textPrimary,
+    fontSize: "0.8em",
+    fontFamily: typography.mono,
+    fontWeight: 600,
+    textAlign: "right",
+    outline: "none",
   },
 
   // ─── Stat Chip (Horizontal) ───
@@ -1706,18 +2392,23 @@ const s: Record<string, ElectronCSSProperties> = {
   },
   chipDragHandle: { color: colors.textMuted, cursor: "grab", opacity: 0.5 },
   chipLabel: {
-    fontSize: 8,
+    fontSize: "0.73em",
     fontWeight: 600,
     color: colors.textMuted,
     textTransform: "uppercase",
   },
   chipValue: {
-    fontSize: 11,
+    fontSize: "1em",
     fontWeight: 700,
     fontFamily: typography.mono,
     color: colors.textPrimary,
   },
-  chipUnit: { fontSize: 8, fontWeight: 500, opacity: 0.6, marginLeft: 1 },
+  chipUnit: {
+    fontSize: "0.73em",
+    fontWeight: 500,
+    opacity: 0.6,
+    marginLeft: 1,
+  },
   chipActions: { display: "flex", alignItems: "center", gap: 2, marginLeft: 2 },
   chipEditBtn: {
     display: "flex",
@@ -1770,19 +2461,19 @@ const s: Record<string, ElectronCSSProperties> = {
   rowDragHandle: { color: colors.textMuted, cursor: "grab", opacity: 0.5 },
   rowIcon: { color: colors.textMuted, opacity: 0.4, flexShrink: 0 },
   rowLabel: {
-    fontSize: 9,
+    fontSize: "0.82em",
     fontWeight: 600,
     color: colors.textMuted,
     textTransform: "uppercase",
     flex: 1,
   },
   rowValue: {
-    fontSize: 12,
+    fontSize: "1.1em",
     fontWeight: 700,
     fontFamily: typography.mono,
     color: colors.textPrimary,
   },
-  rowUnit: { fontSize: 9, fontWeight: 500, opacity: 0.6 },
+  rowUnit: { fontSize: "0.82em", fontWeight: 500, opacity: 0.6 },
   rowActions: { display: "flex", alignItems: "center", gap: 2 },
   rowEditBtn: {
     display: "flex",
@@ -1855,13 +2546,15 @@ const s: Record<string, ElectronCSSProperties> = {
     left: "50%",
     transform: "translate(-50%, -50%)",
     zIndex: 100000,
-    width: "90%",
-    maxWidth: 300,
+    width: "80%",
+    height: "80%",
     background: colors.bgCard,
     border: `1px solid ${colors.border}`,
     borderRadius: radius.md,
     boxShadow: `0 8px 32px ${colors.bgBase}`,
     overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
   },
   selectorHeader: {
     fontSize: 11,
@@ -1871,8 +2564,23 @@ const s: Record<string, ElectronCSSProperties> = {
     borderBottom: `1px solid ${colors.border}`,
     background: colors.bgPanel,
   },
+  selectorTabs: {
+    display: "flex",
+    borderBottom: `1px solid ${colors.border}`,
+    background: colors.bgPanel,
+  },
+  selectorTab: {
+    flex: 1,
+    padding: "8px 4px",
+    border: "none",
+    background: "transparent",
+    fontSize: 10,
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+  },
   selectorDropdown: {
-    maxHeight: 280,
+    flex: 1,
     overflowY: "auto",
     padding: "8px 0",
   },

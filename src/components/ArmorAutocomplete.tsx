@@ -83,6 +83,7 @@ export function ArmorAutocomplete({ value, onChange }: ArmorAutocompleteProps) {
   const handleSelect = (record: ArmorRecord) => {
     setQuery(record.name);
     onChange({
+      id: record.id,
       name: record.name,
       maxTT: record.maxTT,
       durability: record.durability,
@@ -111,6 +112,7 @@ export function ArmorAutocomplete({ value, onChange }: ArmorAutocompleteProps) {
         // If query doesn't match current armor, it's a manual entry
         if (query && query !== value?.name) {
           onChange({
+            id: value?.id ?? 0,
             name: query,
             maxTT: value?.maxTT ?? 0,
             durability: value?.durability ?? 0,

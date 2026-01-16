@@ -26,6 +26,8 @@ import {
   Filter,
   ArrowUpDown,
   X,
+  Shield,
+  Wrench,
 } from "lucide-react";
 import type { Session, LoadoutBreakdown } from "../core/session";
 import { calculateSessionStats } from "../core/session";
@@ -38,6 +40,13 @@ import { getStoredPlayerName } from "../hooks/usePlayerName";
 interface SessionsPageProps {
   onViewSession?: (session: Session) => void;
   onResumeSession?: (session: Session) => void;
+  activeSessionId?: string;
+  activeSession?: Session | null;
+  onExpenseUpdate?: (expenses: {
+    armorCost: number;
+    fapCost: number;
+    miscCost: number;
+  }) => void;
 }
 
 // ==================== Session List ====================
@@ -49,16 +58,23 @@ interface SessionListProps {
   loading: boolean;
 }
 
-function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListProps) {
+function SessionList({
+  sessions,
+  onSelect,
+  onDeleteAll,
+  loading,
+}: SessionListProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name-asc' | 'name-desc'>('newest');
+  const [sortBy, setSortBy] = useState<
+    "newest" | "oldest" | "name-asc" | "name-desc"
+  >("newest");
 
   // Extract all unique tags from all sessions
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
-    sessions.forEach(session => {
-      session.tags?.forEach(tag => tagSet.add(tag));
+    sessions.forEach((session) => {
+      session.tags?.forEach((tag) => tagSet.add(tag));
     });
     return Array.from(tagSet).sort();
   }, [sessions]);
@@ -69,24 +85,30 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
 
     // Filter by tags (if any tags selected, session must have at least one of them)
     if (selectedTags.length > 0) {
-      filtered = sessions.filter(session =>
-        selectedTags.some(tag => session.tags?.includes(tag))
+      filtered = sessions.filter((session) =>
+        selectedTags.some((tag) => session.tags?.includes(tag))
       );
     }
 
     // Sort
     const sorted = [...filtered];
     switch (sortBy) {
-      case 'newest':
-        sorted.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+      case "newest":
+        sorted.sort(
+          (a, b) =>
+            new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime()
+        );
         break;
-      case 'oldest':
-        sorted.sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime());
+      case "oldest":
+        sorted.sort(
+          (a, b) =>
+            new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
+        );
         break;
-      case 'name-asc':
+      case "name-asc":
         sorted.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'name-desc':
+      case "name-desc":
         sorted.sort((a, b) => b.name.localeCompare(a.name));
         break;
     }
@@ -128,10 +150,8 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
   };
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
@@ -174,7 +194,7 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
           <>
             {/* Sort */}
             <div style={listStyles.filterGroup}>
-              <ArrowUpDown size={14} style={{ color: '#64748b' }} />
+              <ArrowUpDown size={14} style={{ color: "#64748b" }} />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
@@ -190,15 +210,17 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
             {/* Tag Filters */}
             {allTags.length > 0 && (
               <div style={listStyles.filterGroup}>
-                <Filter size={14} style={{ color: '#64748b' }} />
+                <Filter size={14} style={{ color: "#64748b" }} />
                 <div style={listStyles.tagFilters}>
-                  {allTags.map(tag => (
+                  {allTags.map((tag) => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag)}
                       style={{
                         ...listStyles.filterTag,
-                        ...(selectedTags.includes(tag) ? listStyles.filterTagActive : {})
+                        ...(selectedTags.includes(tag)
+                          ? listStyles.filterTagActive
+                          : {}),
                       }}
                     >
                       <Tag size={10} />
@@ -211,7 +233,10 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
 
             {/* Clear Filters */}
             {selectedTags.length > 0 && (
-              <button onClick={clearFilters} style={listStyles.clearFiltersButton}>
+              <button
+                onClick={clearFilters}
+                style={listStyles.clearFiltersButton}
+              >
                 <X size={12} />
                 Clear ({selectedTags.length})
               </button>
@@ -228,7 +253,10 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
                 <>
                   <button
                     onClick={handleDeleteAllClick}
-                    style={{ ...listStyles.deleteButton, ...listStyles.deleteButtonConfirm }}
+                    style={{
+                      ...listStyles.deleteButton,
+                      ...listStyles.deleteButtonConfirm,
+                    }}
                   >
                     <AlertTriangle size={14} />
                     Confirm Delete All
@@ -273,43 +301,45 @@ function SessionList({ sessions, onSelect, onDeleteAll, loading }: SessionListPr
               style={listStyles.card}
               onClick={() => onSelect(meta.id)}
             >
-            <div style={listStyles.cardHeader}>
-              <div>
-                <h3 style={listStyles.cardTitle}>{meta.name}</h3>
-                <div style={listStyles.cardMeta}>
-                  <Clock size={12} />
-                  <span>{formatDate(meta.startedAt)}</span>
-                  <span style={listStyles.dot}>•</span>
-                  <span>{formatDuration(meta.startedAt, meta.endedAt)}</span>
-                </div>
-                {meta.tags && meta.tags.length > 0 && (
-                  <div style={listStyles.tagContainer}>
-                    {meta.tags.map((tag) => (
-                      <span key={tag} style={listStyles.tag}>
-                        <Tag size={10} />
-                        {tag}
-                      </span>
-                    ))}
+              <div style={listStyles.cardHeader}>
+                <div>
+                  <h3 style={listStyles.cardTitle}>{meta.name}</h3>
+                  <div style={listStyles.cardMeta}>
+                    <Clock size={12} />
+                    <span>{formatDate(meta.startedAt)}</span>
+                    <span style={listStyles.dot}>•</span>
+                    <span>{formatDuration(meta.startedAt, meta.endedAt)}</span>
                   </div>
+                  {meta.tags && meta.tags.length > 0 && (
+                    <div style={listStyles.tagContainer}>
+                      {meta.tags.map((tag) => (
+                        <span key={tag} style={listStyles.tag}>
+                          <Tag size={10} />
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <ChevronRight size={20} style={{ color: "#64748b" }} />
+              </div>
+              <div style={listStyles.cardStats}>
+                <div style={listStyles.statItem}>
+                  <Zap size={14} style={{ color: "#f59e0b" }} />
+                  <span>{meta.eventCount} events</span>
+                </div>
+                {meta.endedAt ? (
+                  <span style={listStyles.badge}>Completed</span>
+                ) : (
+                  <span
+                    style={{ ...listStyles.badge, ...listStyles.badgeActive }}
+                  >
+                    Active
+                  </span>
                 )}
               </div>
-              <ChevronRight size={20} style={{ color: "#64748b" }} />
             </div>
-            <div style={listStyles.cardStats}>
-              <div style={listStyles.statItem}>
-                <Zap size={14} style={{ color: "#f59e0b" }} />
-                <span>{meta.eventCount} events</span>
-              </div>
-              {meta.endedAt ? (
-                <span style={listStyles.badge}>Completed</span>
-              ) : (
-                <span style={{ ...listStyles.badge, ...listStyles.badgeActive }}>
-                  Active
-                </span>
-              )}
-            </div>
-          </div>
-        ))
+          ))
         )}
       </div>
     </div>
@@ -553,23 +583,55 @@ interface SessionDetailProps {
   session: Session;
   onBack: () => void;
   onDelete: () => void;
+  onUpdate: (session: Session) => void;
   onViewInTabs?: (session: Session) => void;
   onResume?: (session: Session) => void;
+  isActiveSession?: boolean;
+  onExpenseUpdate?: (expenses: {
+    armorCost: number;
+    fapCost: number;
+    miscCost: number;
+  }) => void;
 }
 
 function SessionDetail({
   session,
   onBack,
   onDelete,
+  onUpdate,
   onViewInTabs,
   onResume,
+  isActiveSession,
+  onExpenseUpdate,
 }: SessionDetailProps) {
   const [showResumeWarning, setShowResumeWarning] = useState(false);
+  const [showMarkup, setShowMarkup] = useState(false);
+  const [armorCost, setArmorCost] = useState(session.manualArmorCost ?? 0);
+  const [fapCost, setFapCost] = useState(session.manualFapCost ?? 0);
+  const [miscCost, setMiscCost] = useState(session.manualMiscCost ?? 0);
+
+  // Sync local state when session props change (e.g., from popout updates)
+  useEffect(() => {
+    setArmorCost(session.manualArmorCost ?? 0);
+    setFapCost(session.manualFapCost ?? 0);
+    setMiscCost(session.manualMiscCost ?? 0);
+  }, [session.manualArmorCost, session.manualFapCost, session.manualMiscCost]);
+
+  // Create session with current manual costs for stats calculation
+  const sessionWithCosts = useMemo(
+    () => ({
+      ...session,
+      manualArmorCost: armorCost,
+      manualFapCost: fapCost,
+      manualMiscCost: miscCost,
+    }),
+    [session, armorCost, fapCost, miscCost]
+  );
 
   const stats = useMemo(() => {
     const playerName = getStoredPlayerName();
-    return calculateSessionStats(session, playerName || undefined);
-  }, [session]);
+    return calculateSessionStats(sessionWithCosts, playerName || undefined);
+  }, [sessionWithCosts]);
 
   const formatDate = (iso: string) => {
     return new Date(iso).toLocaleString();
@@ -578,8 +640,10 @@ function SessionDetail({
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
     if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${secs}s`;
+    return `${secs}s`;
   };
 
   const handleDelete = () => {
@@ -596,6 +660,47 @@ function SessionDetail({
     setShowResumeWarning(false);
     onResume?.(session);
   };
+
+  // Save manual costs when they change
+  const handleCostChange = (field: "armor" | "fap" | "misc", value: number) => {
+    const setter =
+      field === "armor"
+        ? setArmorCost
+        : field === "fap"
+        ? setFapCost
+        : setMiscCost;
+    setter(value);
+
+    // Debounced save - update session after user stops typing
+    const updatedSession = {
+      ...session,
+      manualArmorCost: field === "armor" ? value : armorCost,
+      manualFapCost: field === "fap" ? value : fapCost,
+      manualMiscCost: field === "misc" ? value : miscCost,
+    };
+    onUpdate(updatedSession);
+
+    // If this is the active session, sync expenses to popout
+    if (isActiveSession && onExpenseUpdate) {
+      onExpenseUpdate({
+        armorCost: field === "armor" ? value : armorCost,
+        fapCost: field === "fap" ? value : fapCost,
+        miscCost: field === "misc" ? value : miscCost,
+      });
+    }
+  };
+
+  // Calculated derived stats
+  const accuracy = stats.shots > 0 ? (stats.hits / stats.shots) * 100 : 0;
+  const critRate = stats.hits > 0 ? (stats.criticals / stats.hits) * 100 : 0;
+  const killsPerHour =
+    stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
+  const damagePerShot = stats.shots > 0 ? stats.damageDealt / stats.shots : 0;
+  const damagePerHit = stats.hits > 0 ? stats.damageDealt / stats.hits : 0;
+  const profitPerHour =
+    stats.duration > 0 ? (stats.profit / stats.duration) * 3600 : 0;
+  const costPerKill = stats.kills > 0 ? stats.totalSpend / stats.kills : 0;
+  const lootPerKill = stats.kills > 0 ? stats.lootValue / stats.kills : 0;
 
   return (
     <div style={detailStyles.container}>
@@ -638,162 +743,400 @@ function SessionDetail({
         </div>
       )}
 
-      {/* Header */}
-      <div style={detailStyles.header}>
-        <button onClick={onBack} style={detailStyles.backButton}>
-          <ArrowLeft size={18} />
-          Back
-        </button>
-        <div style={{ display: "flex", gap: "8px" }}>
+      {/* Compact Header with Title */}
+      <div style={detailStyles.headerCompact}>
+        <div style={detailStyles.headerLeft}>
+          <button onClick={onBack} style={detailStyles.backButtonCompact}>
+            <ArrowLeft size={16} />
+          </button>
+          <div>
+            <h1 style={detailStyles.titleCompact}>{session.name}</h1>
+            <div style={detailStyles.metaRow}>
+              <Clock size={12} style={{ color: "hsl(220 13% 45%)" }} />
+              <span style={detailStyles.metaText}>
+                {formatDate(session.startedAt)}
+              </span>
+              <span style={detailStyles.metaDot}>•</span>
+              <span style={detailStyles.metaText}>
+                {formatDuration(stats.duration)}
+              </span>
+              {session.tags && session.tags.length > 0 && (
+                <>
+                  <span style={detailStyles.metaDot}>•</span>
+                  {session.tags.map((tag) => (
+                    <span key={tag} style={detailStyles.tagInline}>
+                      <Tag size={10} />
+                      {tag}
+                    </span>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        <div style={detailStyles.headerActions}>
           {onResume && session.endedAt && (
             <button
               onClick={handleResumeClick}
-              style={detailStyles.resumeButton}
+              style={detailStyles.actionButton}
+              title="Resume Session"
             >
-              <RotateCcw size={16} />
-              Resume
+              <RotateCcw size={14} />
             </button>
           )}
           {onViewInTabs && (
             <button
               onClick={() => onViewInTabs(session)}
-              style={detailStyles.viewButton}
+              style={detailStyles.actionButton}
+              title="View in Data Tabs"
             >
-              <Eye size={16} />
-              View in Data Tabs
+              <Eye size={14} />
             </button>
           )}
-          <button onClick={handleDelete} style={detailStyles.deleteButton}>
-            <Trash2 size={16} />
-            Delete
+          <button
+            onClick={handleDelete}
+            style={detailStyles.actionButtonDanger}
+            title="Delete"
+          >
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      {/* Title */}
-      <div style={detailStyles.titleSection}>
-        <h1 style={detailStyles.title}>{session.name}</h1>
-        <p style={detailStyles.subtitle}>{formatDate(session.startedAt)}</p>
+      {/* Additional Expenses - Inline under header */}
+      <div style={detailStyles.expensesInline}>
+        <span style={detailStyles.expensesTitleInline}>
+          Additional Expenses
+        </span>
+        <button
+          onClick={() => setShowMarkup(!showMarkup)}
+          style={{
+            ...detailStyles.muToggle,
+            color: showMarkup ? "#06b6d4" : "hsl(220 13% 50%)",
+            backgroundColor: showMarkup
+              ? "rgba(6, 182, 212, 0.1)"
+              : "transparent",
+          }}
+          title="Toggle Markup View"
+        >
+          MU
+        </button>
+        <div style={detailStyles.expenseInputInline}>
+          <Shield size={12} style={{ color: "#06b6d4" }} />
+          <span style={detailStyles.expenseLabelInline}>Armor</span>
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            value={armorCost || ""}
+            onChange={(e) =>
+              handleCostChange("armor", parseFloat(e.target.value) || 0)
+            }
+            placeholder="0.00"
+            style={detailStyles.inputInline}
+          />
+        </div>
+        <div style={detailStyles.expenseInputInline}>
+          <Heart size={12} style={{ color: "#ef4444" }} />
+          <span style={detailStyles.expenseLabelInline}>FAP</span>
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            value={fapCost || ""}
+            onChange={(e) =>
+              handleCostChange("fap", parseFloat(e.target.value) || 0)
+            }
+            placeholder="0.00"
+            style={detailStyles.inputInline}
+          />
+        </div>
+        <div style={detailStyles.expenseInputInline}>
+          <Wrench size={12} style={{ color: "#f59e0b" }} />
+          <span style={detailStyles.expenseLabelInline}>Misc</span>
+          <input
+            type="number"
+            min={0}
+            step={0.01}
+            value={miscCost || ""}
+            onChange={(e) =>
+              handleCostChange("misc", parseFloat(e.target.value) || 0)
+            }
+            placeholder="0.00"
+            style={detailStyles.inputInline}
+          />
+        </div>
+        {(armorCost > 0 || fapCost > 0 || miscCost > 0) && (
+          <div style={detailStyles.expenseTotalInline}>
+            <span style={{ color: "#ef4444", fontWeight: 600 }}>
+              -{(armorCost + fapCost + miscCost).toFixed(2)}
+            </span>
+            <span style={{ color: "hsl(220 13% 50%)", fontSize: "10px" }}>
+              PED
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Hero Stats Grid */}
-      <div style={detailStyles.heroGrid}>
-        <StatCard
-          icon={<DollarSign size={20} />}
-          label="Profit"
-          value={`${stats.profit >= 0 ? "+" : ""}${stats.profit.toFixed(
-            2
-          )} PED`}
-          positive={stats.profit >= 0}
-          large
-        />
-        <StatCard
-          icon={<TrendingUp size={20} />}
-          label="Return Rate"
-          value={`${stats.returnRate.toFixed(1)}%`}
-          positive={stats.returnRate >= 90}
-          large
-        />
-        <StatCard
-          icon={<Clock size={20} />}
-          label="Duration"
-          value={formatDuration(stats.duration)}
-          large
-        />
-        <StatCard
-          icon={<Target size={20} />}
-          label="Accuracy"
-          value={`${
-            stats.shots > 0 ? ((stats.hits / stats.shots) * 100).toFixed(1) : 0
-          }%`}
-          large
-        />
-      </div>
+      {/* Hero Stats - Key Metrics */}
+      <div style={detailStyles.heroSection}>
+        <div style={detailStyles.heroPrimary}>
+          <div style={detailStyles.heroCard}>
+            <div style={detailStyles.heroLabel}>Profit</div>
+            <div
+              style={{
+                ...detailStyles.heroValue,
+                color: stats.profit >= 0 ? "#22c55e" : "#ef4444",
+              }}
+            >
+              {stats.profit >= 0 ? "+" : ""}
+              {stats.profit.toFixed(2)}
+              <span style={detailStyles.heroUnit}>PED</span>
+            </div>
+            <div style={detailStyles.heroSubtext}>
+              {profitPerHour >= 0 ? "+" : ""}
+              {profitPerHour.toFixed(2)} PED/hr
+            </div>
+          </div>
+          <div style={detailStyles.heroCard}>
+            <div style={detailStyles.heroLabel}>Return Rate</div>
+            <div
+              style={{
+                ...detailStyles.heroValue,
+                color:
+                  stats.returnRate >= 90
+                    ? "#22c55e"
+                    : stats.returnRate >= 80
+                    ? "#f59e0b"
+                    : "#ef4444",
+              }}
+            >
+              {stats.returnRate.toFixed(1)}
+              <span style={detailStyles.heroUnit}>%</span>
+            </div>
+            <div style={detailStyles.heroSubtext}>
+              {stats.lootValue.toFixed(2)} / {stats.totalSpend.toFixed(2)} PED
+            </div>
+          </div>
+        </div>
 
-      {/* Combat Statistics Card */}
-      <div style={detailStyles.card}>
-        <div style={detailStyles.cardHeader}>
-          <Crosshair size={18} style={{ color: "#f59e0b" }} />
-          <h2 style={detailStyles.cardTitle}>Combat Statistics</h2>
-        </div>
-        <div style={detailStyles.statsGrid}>
-          <StatItem label="Total Shots" value={stats.shots} />
-          <StatItem label="Hits" value={stats.hits} color="#22c55e" />
-          <StatItem label="Misses" value={stats.misses} color="#ef4444" />
-          <StatItem label="Criticals" value={stats.criticals} color="#f59e0b" />
-          <StatItem label="Kills" value={stats.kills} />
-          <StatItem label="Damage Dealt" value={stats.damageDealt.toFixed(0)} />
-        </div>
-      </div>
-
-      {/* Defense Statistics Card */}
-      <div style={detailStyles.card}>
-        <div style={detailStyles.cardHeader}>
-          <Heart size={18} style={{ color: "#ef4444" }} />
-          <h2 style={detailStyles.cardTitle}>Defense Statistics</h2>
-        </div>
-        <div style={detailStyles.statsGrid}>
-          <StatItem
-            label="Damage Taken"
-            value={stats.damageTaken.toFixed(0)}
-            color="#ef4444"
-          />
-          <StatItem
-            label="Healed"
-            value={stats.healed.toFixed(0)}
-            color="#22c55e"
-          />
-          <StatItem label="Dodges" value={stats.dodges} />
-          <StatItem label="Evades" value={stats.evades} />
-          <StatItem label="Deflects" value={stats.deflects} />
+        <div style={detailStyles.heroSecondary}>
+          <div style={detailStyles.miniStat}>
+            <Target size={14} style={{ color: "#f59e0b" }} />
+            <span style={detailStyles.miniLabel}>Accuracy</span>
+            <span style={detailStyles.miniValue}>{accuracy.toFixed(1)}%</span>
+          </div>
+          <div style={detailStyles.miniStat}>
+            <Zap size={14} style={{ color: "#8b5cf6" }} />
+            <span style={detailStyles.miniLabel}>Crit Rate</span>
+            <span style={detailStyles.miniValue}>{critRate.toFixed(1)}%</span>
+          </div>
+          <div style={detailStyles.miniStat}>
+            <Crosshair size={14} style={{ color: "#22c55e" }} />
+            <span style={detailStyles.miniLabel}>Kills</span>
+            <span style={detailStyles.miniValue}>{stats.kills}</span>
+          </div>
+          <div style={detailStyles.miniStat}>
+            <Clock size={14} style={{ color: "#06b6d4" }} />
+            <span style={detailStyles.miniLabel}>Kills/hr</span>
+            <span style={detailStyles.miniValue}>
+              {killsPerHour.toFixed(1)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Economy Card */}
-      <div style={detailStyles.card}>
-        <div style={detailStyles.cardHeader}>
-          <DollarSign size={18} style={{ color: "#22c55e" }} />
-          <h2 style={detailStyles.cardTitle}>Economy</h2>
+      {/* Three Column Layout for Stats */}
+      <div style={detailStyles.statsColumns}>
+        {/* Combat Column */}
+        <div style={detailStyles.statsColumn}>
+          <div style={detailStyles.columnHeader}>
+            <Crosshair size={16} style={{ color: "#f59e0b" }} />
+            <h3 style={detailStyles.columnTitle}>Combat</h3>
+          </div>
+          <div style={detailStyles.statsList}>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Total Shots</span>
+              <span style={detailStyles.statValue}>
+                {stats.shots.toLocaleString()}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Hits</span>
+              <span style={{ ...detailStyles.statValue, color: "#22c55e" }}>
+                {stats.hits.toLocaleString()}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Misses</span>
+              <span style={{ ...detailStyles.statValue, color: "#ef4444" }}>
+                {stats.misses.toLocaleString()}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Criticals</span>
+              <span style={{ ...detailStyles.statValue, color: "#f59e0b" }}>
+                {stats.criticals.toLocaleString()}
+              </span>
+            </div>
+            <div style={detailStyles.statDivider} />
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Kills</span>
+              <span style={detailStyles.statValue}>
+                {stats.kills.toLocaleString()}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Deaths</span>
+              <span style={{ ...detailStyles.statValue, color: "#ef4444" }}>
+                {stats.deaths}
+              </span>
+            </div>
+            <div style={detailStyles.statDivider} />
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Damage Dealt</span>
+              <span style={detailStyles.statValue}>
+                {stats.damageDealt.toFixed(1)}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>DMG/Shot</span>
+              <span style={detailStyles.statValueSmall}>
+                {damagePerShot.toFixed(2)}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>DMG/Hit</span>
+              <span style={detailStyles.statValueSmall}>
+                {damagePerHit.toFixed(2)}
+              </span>
+            </div>
+          </div>
         </div>
-        <div style={detailStyles.statsGrid}>
-          <StatItem label="Loot Count" value={stats.lootCount} />
-          <StatItem
-            label="Loot Value"
-            value={`${stats.lootValue.toFixed(2)} PED`}
-            color="#22c55e"
-          />
-          <StatItem
-            label="Total Spend"
-            value={`${stats.totalSpend.toFixed(2)} PED`}
-            color="#ef4444"
-          />
-          <StatItem
-            label="Profit"
-            value={`${stats.profit.toFixed(2)} PED`}
-            color={stats.profit >= 0 ? "#22c55e" : "#ef4444"}
-          />
-          <StatItem
-            label="Return Rate"
-            value={`${stats.returnRate.toFixed(1)}%`}
-            color={stats.returnRate >= 90 ? "#22c55e" : "#ef4444"}
-          />
+
+        {/* Defense Column */}
+        <div style={detailStyles.statsColumn}>
+          <div style={detailStyles.columnHeader}>
+            <Heart size={16} style={{ color: "#ef4444" }} />
+            <h3 style={detailStyles.columnTitle}>Defense</h3>
+          </div>
+          <div style={detailStyles.statsList}>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Damage Taken</span>
+              <span style={{ ...detailStyles.statValue, color: "#ef4444" }}>
+                {stats.damageTaken.toFixed(1)}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Healed</span>
+              <span style={{ ...detailStyles.statValue, color: "#22c55e" }}>
+                {stats.healed.toFixed(1)}
+              </span>
+            </div>
+            <div style={detailStyles.statDivider} />
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Dodges</span>
+              <span style={detailStyles.statValue}>{stats.dodges}</span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Evades</span>
+              <span style={detailStyles.statValue}>{stats.evades}</span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Deflects</span>
+              <span style={detailStyles.statValue}>{stats.deflects}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Economy Column */}
+        <div style={detailStyles.statsColumn}>
+          <div style={detailStyles.columnHeader}>
+            <DollarSign size={16} style={{ color: "#22c55e" }} />
+            <h3 style={detailStyles.columnTitle}>Economy</h3>
+          </div>
+          <div style={detailStyles.statsList}>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Total Spend</span>
+              <span style={{ ...detailStyles.statValue, color: "#ef4444" }}>
+                {stats.totalSpend.toFixed(2)}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Loot Value (TT)</span>
+              <span style={{ ...detailStyles.statValue, color: "#22c55e" }}>
+                {stats.lootValue.toFixed(2)}
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Loot Items</span>
+              <span style={detailStyles.statValue}>{stats.lootCount}</span>
+            </div>
+            <div style={detailStyles.statDivider} />
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Cost/Kill</span>
+              <span style={detailStyles.statValueSmall}>
+                {costPerKill.toFixed(4)} PED
+              </span>
+            </div>
+            <div style={detailStyles.statRow}>
+              <span style={detailStyles.statLabel}>Loot/Kill</span>
+              <span style={detailStyles.statValueSmall}>
+                {lootPerKill.toFixed(4)} PED
+              </span>
+            </div>
+            {stats.markupEnabled && (
+              <>
+                <div style={detailStyles.statDivider} />
+                <div style={detailStyles.statRow}>
+                  <span style={detailStyles.statLabel}>Markup Value</span>
+                  <span style={{ ...detailStyles.statValue, color: "#8b5cf6" }}>
+                    +{stats.markupValue.toFixed(2)}
+                  </span>
+                </div>
+                <div style={detailStyles.statRow}>
+                  <span style={detailStyles.statLabel}>With Markup</span>
+                  <span
+                    style={{
+                      ...detailStyles.statValue,
+                      color:
+                        stats.profitWithMarkup >= 0 ? "#22c55e" : "#ef4444",
+                    }}
+                  >
+                    {stats.profitWithMarkup >= 0 ? "+" : ""}
+                    {stats.profitWithMarkup.toFixed(2)}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Gains Card */}
-      <div style={detailStyles.card}>
-        <div style={detailStyles.cardHeader}>
+      {/* Gains & Skills Section */}
+      <div style={detailStyles.gainsSection}>
+        <div style={detailStyles.gainCard}>
           <Award size={18} style={{ color: "#8b5cf6" }} />
-          <h2 style={detailStyles.cardTitle}>Gains</h2>
+          <div style={detailStyles.gainInfo}>
+            <span style={detailStyles.gainLabel}>Skill Gains</span>
+            <span style={detailStyles.gainValue}>
+              {stats.skillGains.toFixed(4)}
+            </span>
+          </div>
         </div>
-        <div style={detailStyles.statsGrid}>
-          <StatItem
-            label="Skill Gains"
-            value={stats.skillGains}
-            color="#06b6d4"
-          />
-          <StatItem label="Globals" value={stats.globalCount} color="#ec4899" />
-          <StatItem label="HOFs" value={stats.hofs} color="#f59e0b" />
+        <div style={detailStyles.gainCard}>
+          <Zap size={18} style={{ color: "#ec4899" }} />
+          <div style={detailStyles.gainInfo}>
+            <span style={detailStyles.gainLabel}>Globals</span>
+            <span style={detailStyles.gainValue}>{stats.globalCount}</span>
+          </div>
+        </div>
+        <div style={detailStyles.gainCard}>
+          <TrendingUp size={18} style={{ color: "#f59e0b" }} />
+          <div style={detailStyles.gainInfo}>
+            <span style={detailStyles.gainLabel}>HOFs</span>
+            <span style={detailStyles.gainValue}>{stats.hofs}</span>
+          </div>
         </div>
       </div>
 
@@ -825,59 +1168,6 @@ function SessionDetail({
 }
 
 // ==================== Shared Components ====================
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  positive?: boolean;
-  large?: boolean;
-}
-
-function StatCard({ icon, label, value, positive, large }: StatCardProps) {
-  return (
-    <div style={detailStyles.statCard}>
-      <div style={detailStyles.statCardIcon}>{icon}</div>
-      <div style={detailStyles.statCardLabel}>{label}</div>
-      <div
-        style={{
-          ...detailStyles.statCardValue,
-          fontSize: large ? "24px" : "18px",
-          color:
-            positive === undefined
-              ? "#f8fafc"
-              : positive
-              ? "#22c55e"
-              : "#ef4444",
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-interface StatItemProps {
-  label: string;
-  value: string | number;
-  color?: string;
-}
-
-function StatItem({ label, value, color }: StatItemProps) {
-  return (
-    <div style={detailStyles.statItem}>
-      <div style={detailStyles.statItemLabel}>{label}</div>
-      <div
-        style={{
-          ...detailStyles.statItemValue,
-          color: color ?? "#f8fafc",
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
 
 interface LoadoutRowProps {
   breakdown: LoadoutBreakdown;
@@ -923,63 +1213,315 @@ const detailStyles: Record<string, React.CSSProperties> = {
     overflow: "auto",
     flex: 1,
   },
-  header: {
+  // Compact Header
+  headerCompact: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
+    padding: "12px 16px",
+    backgroundColor: "hsl(220 13% 10%)",
+    borderRadius: "12px",
+    border: "1px solid hsl(220 13% 18%)",
   },
-  backButton: {
+  headerLeft: {
     display: "flex",
     alignItems: "center",
-    gap: "6px",
-    padding: "8px 16px",
-    fontSize: "14px",
-    fontWeight: "500",
+    gap: "12px",
+  },
+  backButtonCompact: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "36px",
     backgroundColor: "hsl(220 13% 14%)",
+    color: "hsl(0 0% 85%)",
+    border: "1px solid hsl(220 13% 22%)",
+    borderRadius: "8px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+  },
+  titleCompact: {
+    fontSize: "18px",
+    fontWeight: "600",
     color: "hsl(0 0% 95%)",
-    border: "1px solid hsl(220 13% 25%)",
-    borderRadius: "8px",
-    cursor: "pointer",
+    margin: 0,
   },
-  deleteButton: {
+  metaRow: {
     display: "flex",
     alignItems: "center",
     gap: "6px",
-    padding: "8px 16px",
-    fontSize: "14px",
+    marginTop: "4px",
+  },
+  metaText: {
+    fontSize: "12px",
+    color: "hsl(220 13% 50%)",
+  },
+  metaDot: {
+    color: "hsl(220 13% 30%)",
+  },
+  tagInline: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "2px 8px",
+    backgroundColor: "rgba(99, 102, 241, 0.15)",
+    borderRadius: "6px",
+    color: "#a5b4fc",
+    fontSize: "11px",
     fontWeight: "500",
-    backgroundColor: "rgba(239, 68, 68, 0.2)",
+  },
+  headerActions: {
+    display: "flex",
+    gap: "6px",
+  },
+  actionButton: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "32px",
+    height: "32px",
+    backgroundColor: "hsl(220 13% 15%)",
+    color: "hsl(0 0% 75%)",
+    border: "1px solid hsl(220 13% 22%)",
+    borderRadius: "6px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+  },
+  actionButtonDanger: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "32px",
+    height: "32px",
+    backgroundColor: "rgba(239, 68, 68, 0.15)",
     color: "#ef4444",
-    border: "none",
-    borderRadius: "8px",
+    border: "1px solid rgba(239, 68, 68, 0.25)",
+    borderRadius: "6px",
     cursor: "pointer",
+    transition: "all 0.15s",
   },
-  viewButton: {
+  // Hero Section
+  heroSection: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  heroPrimary: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "12px",
+  },
+  heroCard: {
+    backgroundColor: "hsl(220 13% 10%)",
+    borderRadius: "12px",
+    padding: "20px",
+    border: "1px solid hsl(220 13% 18%)",
+    textAlign: "center",
+  },
+  heroLabel: {
+    fontSize: "12px",
+    fontWeight: "500",
+    color: "hsl(220 13% 50%)",
+    textTransform: "uppercase",
+    letterSpacing: "0.05em",
+    marginBottom: "8px",
+  },
+  heroValue: {
+    fontSize: "32px",
+    fontWeight: "700",
+    fontFamily: "'JetBrains Mono', monospace",
+    lineHeight: 1,
+  },
+  heroUnit: {
+    fontSize: "14px",
+    fontWeight: "500",
+    marginLeft: "4px",
+    opacity: 0.7,
+  },
+  heroSubtext: {
+    fontSize: "12px",
+    color: "hsl(220 13% 45%)",
+    marginTop: "8px",
+  },
+  heroSecondary: {
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: "8px",
+  },
+  miniStat: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "10px 12px",
+    backgroundColor: "hsl(220 13% 10%)",
+    borderRadius: "8px",
+    border: "1px solid hsl(220 13% 16%)",
+  },
+  miniLabel: {
+    fontSize: "11px",
+    color: "hsl(220 13% 50%)",
+    flex: 1,
+  },
+  miniValue: {
+    fontSize: "14px",
+    fontWeight: "600",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: "hsl(0 0% 90%)",
+  },
+  // Stats Columns
+  statsColumns: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "12px",
+  },
+  statsColumn: {
+    backgroundColor: "hsl(220 13% 10%)",
+    borderRadius: "12px",
+    border: "1px solid hsl(220 13% 18%)",
+    overflow: "hidden",
+  },
+  columnHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "12px 14px",
+    backgroundColor: "hsl(220 13% 8%)",
+    borderBottom: "1px solid hsl(220 13% 16%)",
+  },
+  columnTitle: {
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "hsl(0 0% 90%)",
+    margin: 0,
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
+  },
+  statsList: {
+    padding: "8px 0",
+  },
+  statRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "6px 14px",
+  },
+  statLabel: {
+    fontSize: "12px",
+    color: "hsl(220 13% 55%)",
+  },
+  statValue: {
+    fontSize: "14px",
+    fontWeight: "600",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: "hsl(0 0% 90%)",
+  },
+  statValueSmall: {
+    fontSize: "12px",
+    fontWeight: "500",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: "hsl(220 13% 70%)",
+  },
+  statDivider: {
+    height: "1px",
+    backgroundColor: "hsl(220 13% 16%)",
+    margin: "6px 14px",
+  },
+  // Gains Section
+  gainsSection: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "12px",
+  },
+  gainCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "14px 16px",
+    backgroundColor: "hsl(220 13% 10%)",
+    borderRadius: "10px",
+    border: "1px solid hsl(220 13% 18%)",
+  },
+  gainInfo: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  },
+  gainLabel: {
+    fontSize: "11px",
+    color: "hsl(220 13% 50%)",
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
+  },
+  gainValue: {
+    fontSize: "18px",
+    fontWeight: "600",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: "hsl(0 0% 90%)",
+  },
+  // Inline expenses (under header)
+  expensesInline: {
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+    padding: "10px 16px",
+    backgroundColor: "hsl(220 13% 8%)",
+    borderRadius: "10px",
+    border: "1px solid hsl(220 13% 16%)",
+  },
+  expensesTitleInline: {
+    fontSize: "11px",
+    fontWeight: "600",
+    color: "hsl(220 13% 50%)",
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
+    paddingRight: "8px",
+    borderRight: "1px solid hsl(220 13% 20%)",
+  },
+  muToggle: {
+    padding: "4px 10px",
+    fontSize: "11px",
+    fontWeight: "600",
+    border: "1px solid hsl(220 13% 22%)",
+    borderRadius: "6px",
+    cursor: "pointer",
+    transition: "all 0.15s",
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
+  },
+  expenseInputInline: {
     display: "flex",
     alignItems: "center",
     gap: "6px",
-    padding: "8px 16px",
-    fontSize: "14px",
-    fontWeight: "500",
-    backgroundColor: "hsl(217 91% 68% / 0.2)",
-    color: "hsl(217 91% 75%)",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
   },
-  resumeButton: {
+  expenseLabelInline: {
+    fontSize: "11px",
+    fontWeight: "500",
+    color: "hsl(220 13% 55%)",
+    textTransform: "uppercase",
+  },
+  inputInline: {
+    width: "80px",
+    padding: "6px 8px",
+    backgroundColor: "hsl(220 13% 12%)",
+    border: "1px solid hsl(220 13% 22%)",
+    borderRadius: "6px",
+    fontSize: "13px",
+    fontWeight: "600",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: "hsl(0 0% 90%)",
+    outline: "none",
+    textAlign: "right",
+  },
+  expenseTotalInline: {
     display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "8px 16px",
+    alignItems: "baseline",
+    gap: "4px",
+    marginLeft: "auto",
+    fontFamily: "'JetBrains Mono', monospace",
     fontSize: "14px",
-    fontWeight: "500",
-    backgroundColor: "hsl(142 76% 36% / 0.2)",
-    color: "hsl(142 76% 60%)",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
   },
+  // Resume Warning (keep existing)
   resumeWarning: {
     display: "flex",
     justifyContent: "space-between",
@@ -1021,47 +1563,9 @@ const detailStyles: Record<string, React.CSSProperties> = {
     borderRadius: "6px",
     cursor: "pointer",
   },
-  titleSection: {
-    marginBottom: "8px",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: "700",
-    color: "hsl(0 0% 95%)",
-    margin: 0,
-  },
-  subtitle: {
-    fontSize: "14px",
-    color: "hsl(220 13% 45%)",
-    marginTop: "4px",
-  },
-  heroGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-    gap: "12px",
-  },
-  statCard: {
-    backgroundColor: "hsl(220 13% 12%)",
-    borderRadius: "12px",
-    padding: "16px",
-    border: "1px solid hsl(220 13% 18%)",
-    textAlign: "center",
-  },
-  statCardIcon: {
-    color: "hsl(33 100% 50%)",
-    marginBottom: "8px",
-  },
-  statCardLabel: {
-    fontSize: "12px",
-    color: "hsl(220 13% 45%)",
-    marginBottom: "4px",
-  },
-  statCardValue: {
-    fontWeight: "700",
-    fontFamily: "monospace",
-  },
+  // Loadout & Charts (keep existing style names for compatibility)
   card: {
-    backgroundColor: "hsl(220 13% 12%)",
+    backgroundColor: "hsl(220 13% 10%)",
     borderRadius: "12px",
     padding: "16px",
     border: "1px solid hsl(220 13% 18%)",
@@ -1072,32 +1576,15 @@ const detailStyles: Record<string, React.CSSProperties> = {
     gap: "8px",
     marginBottom: "16px",
     paddingBottom: "12px",
-    borderBottom: "1px solid hsl(220 13% 18%)",
+    borderBottom: "1px solid hsl(220 13% 16%)",
   },
   cardTitle: {
-    fontSize: "16px",
+    fontSize: "14px",
     fontWeight: "600",
-    color: "hsl(0 0% 95%)",
+    color: "hsl(0 0% 90%)",
     margin: 0,
-  },
-  statsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-    gap: "16px",
-  },
-  statItem: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-  },
-  statItemLabel: {
-    fontSize: "12px",
-    color: "hsl(220 13% 45%)",
-  },
-  statItemValue: {
-    fontSize: "20px",
-    fontWeight: "700",
-    fontFamily: "'JetBrains Mono', monospace",
+    textTransform: "uppercase",
+    letterSpacing: "0.03em",
   },
   loadoutList: {
     display: "flex",
@@ -1155,6 +1642,9 @@ const ACTIVE_SESSION_KEY = "artemis-active-session-id";
 export function SessionsPage({
   onViewSession,
   onResumeSession,
+  activeSessionId,
+  activeSession,
+  onExpenseUpdate,
 }: SessionsPageProps) {
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1264,14 +1754,31 @@ export function SessionsPage({
     }
   };
 
+  const handleUpdateSession = async (updatedSession: Session) => {
+    try {
+      await window.electron?.session.save(updatedSession);
+      setSelectedSession(updatedSession);
+    } catch (err) {
+      console.error("[SessionsPage] Failed to update session:", err);
+    }
+  };
+
   if (selectedSession) {
+    // Use activeSession from props when viewing the active session (for live updates)
+    const isActive = selectedSession.id === activeSessionId;
+    const sessionToShow =
+      isActive && activeSession ? activeSession : selectedSession;
+
     return (
       <SessionDetail
-        session={selectedSession}
+        session={sessionToShow}
         onBack={handleBack}
         onDelete={handleDelete}
+        onUpdate={handleUpdateSession}
         onViewInTabs={onViewSession}
         onResume={onResumeSession}
+        isActiveSession={isActive}
+        onExpenseUpdate={onExpenseUpdate}
       />
     );
   }

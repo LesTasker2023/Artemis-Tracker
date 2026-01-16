@@ -155,6 +155,7 @@ export interface CombatBreakdown {
   healingReceived: number;
   healingGiven: number;
   healthRegen: number;     // Natural/passive regeneration
+  healCount: number;       // Number of heal actions (for FAP decay)
   
   // Results
   kills: number;

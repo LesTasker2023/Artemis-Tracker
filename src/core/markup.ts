@@ -34,6 +34,7 @@ export interface ItemMarkupEntry {
   // UI State
   favorite?: boolean;           // User marked as favorite
   isCustom?: boolean;           // Has user-customized markup
+  ignored?: boolean;            // User marked to ignore from tracking
 }
 
 /**
@@ -166,7 +167,20 @@ export function calculateMarkupValue(
   
   // If item has specific markup configured
   if (entry) {
-    // Check for percentage markup first
+    // Check if using fixed PED markup
+    if (entry.useFixed && entry.markupValue !== undefined && entry.markupValue >= 0) {
+      // Fixed markup value - calculate effective percentage for display
+      const effectivePercent = ttValue > 0 ? ((ttValue + entry.markupValue) / ttValue) * 100 : 100;
+      return {
+        ttValue,
+        markupValue: entry.markupValue,
+        totalValue: ttValue + entry.markupValue,
+        markupPercent: effectivePercent,
+        source: 'configured',
+      };
+    }
+    
+    // Otherwise use percentage markup
     // markupPercent is the TOTAL percentage (e.g., 120 = 120% of TT = 20% markup above TT)
     if (entry.markupPercent !== undefined && entry.markupPercent > 0) {
       // Total value is TT * (percent/100), markup is the difference from TT
@@ -177,19 +191,6 @@ export function calculateMarkupValue(
         markupValue,
         totalValue,
         markupPercent: entry.markupPercent,
-        source: 'configured',
-      };
-    }
-    
-    // Check for fixed markup value
-    if (entry.markupValue !== undefined && entry.markupValue > 0) {
-      // Calculate effective percentage for display
-      const effectivePercent = ttValue > 0 ? (entry.markupValue / ttValue) * 100 : 0;
-      return {
-        ttValue,
-        markupValue: entry.markupValue,
-        totalValue: ttValue + entry.markupValue,
-        markupPercent: effectivePercent,
         source: 'configured',
       };
     }

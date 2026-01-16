@@ -11,7 +11,7 @@
  */
 
 import { ParsedEvent, isAmmoConsumingEvent } from "./parser";
-import { Loadout, getEffectiveCostPerShot, calculateArmorDecayPerHit, calculateSinglePlateDecayPerHit } from "./loadout";
+import { Loadout, getEffectiveCostPerShot } from "./loadout";
 import { 
   SkillBreakdown, 
   SkillStats, 
@@ -54,6 +54,13 @@ export interface Session {
   events: SessionEvent[];
   loadoutSnapshots: Record<string, LoadoutSnapshot>;
   manualCostPerShot: number;
+  // Manual expense tracking
+  manualArmorCost?: number;
+  manualFapCost?: number;
+  manualMiscCost?: number;
+  // Pause tracking
+  pausedAt?: string;
+  totalPausedTime?: number; // milliseconds spent paused
 }
 
 /**
@@ -95,10 +102,17 @@ export interface SessionStats {
   lootCount: number;
   lootValue: number;        // Total loot in TT value
   totalSpend: number;       // Ammo burn + weapon/amp/scope/sight decay + enhancer costs
-  profit: number;           // lootValue - totalSpend (gross profit before armor decay)
+  weaponCost: number;       // Same as totalSpend (ammo + weapon decay + enhancers)
+  armorCost: number;        // Armor decay cost (manual)
+  fapCost: number;          // FAP decay cost (manual)
+  miscCost: number;         // Miscellaneous costs (manual)
+  totalCost: number;        // weaponCost + armorCost + fapCost + miscCost
+  profit: number;           // lootValue - totalCost (profit after all costs)
   netProfit: number;        // lootValue - totalSpend - armor decay (net profit after all costs)
-  returnRate: number;       // lootValue / totalSpend as percentage
-  decay: number;            // Armor decay only (weapon decay is in totalSpend)
+  returnRate: number;       // lootValue / totalCost as percentage
+  decay: number;            // Total defensive decay (armor + FAP)
+  armorDecay: number;       // Armor decay only (from hits)
+  fapDecay: number;         // FAP decay only (from heals)
   repairBill: number;       // Repair cost for UL items only (L items = TT loss, not repair)
   
   // Markup-adjusted economy (NEW)
@@ -212,10 +226,15 @@ export function calculateSessionStats(
 ): SessionStats {
   const events = session.events;
   
-  // Time
+  // Time - subtract any paused time from duration
   const startTime = new Date(session.startedAt).getTime();
   const endTime = session.endedAt ? new Date(session.endedAt).getTime() : Date.now();
-  const duration = Math.floor((endTime - startTime) / 1000);
+  const totalPausedMs = session.totalPausedTime || 0;
+  // If currently paused, add the current pause duration
+  const currentPauseDuration = session.pausedAt 
+    ? Date.now() - new Date(session.pausedAt).getTime() 
+    : 0;
+  const duration = Math.floor((endTime - startTime - totalPausedMs - currentPauseDuration) / 1000);
   
   // Initialize combat breakdown
   const combat: CombatBreakdown = {
@@ -247,6 +266,7 @@ export function calculateSessionStats(
     healingReceived: 0,
     healingGiven: 0,
     healthRegen: 0,
+    healCount: 0,
     kills: 0,
     deaths: 0,
     killsInferred: 0,
@@ -371,8 +391,7 @@ export function calculateSessionStats(
       case "deflect":
         combat.deflects++;
         combat.totalIncomingAttacks++;
-        // NOTE: Deflects do NOT cause armor/plate decay - only damage_taken does
-        // A deflect means armor blocked 100% of damage, no wear occurred
+        combat.armorHits++;  // Deflects also cause armor/plate decay - armor absorbed the hit
         break;
         
       case "player_dodged":
@@ -398,6 +417,7 @@ export function calculateSessionStats(
       // ==================== Healing ====================
       case "self_heal":
         combat.selfHealing += event.amount ?? 0;
+        combat.healCount++;  // Track heal actions for FAP decay
         break;
         
       case "healed_by":
@@ -414,9 +434,17 @@ export function calculateSessionStats(
         const value = event.value ?? 0;
         const quantity = event.quantity ?? 1;
 
-        // Skip Universal Ammo - it's a false positive (consumed ammo, not actual loot)
-        if (itemName.toLowerCase().includes("universal ammo")) {
-          ammoValue += value;  // Track for reference but don't count as loot
+        // Skip Universal Ammo and Nanocubes - false positives (consumed items, not actual loot)
+        if (
+          itemName.toLowerCase().includes("universal ammo") ||
+          itemName.toLowerCase().includes("nanocube")
+        ) {
+          ammoValue += value; // Track for reference but don't count as loot
+          break;
+        }
+
+        // Skip ignored items - user has marked them to be excluded from tracking
+        if (markupLibrary?.items[itemName]?.ignored) {
           break;
         }
 
@@ -600,47 +628,39 @@ export function calculateSessionStats(
     });
   }
   
-  const profit = totalLootValue - totalSpend;
-  const returnRate = totalSpend > 0 ? (totalLootValue / totalSpend) * 100 : 0;
-  
   // ==================== Decay Calculation ====================
   // NOTE: Weapon/amp/scope/sight decay is now included in totalSpend (via costPerShot)
   // The "decay" stat now ONLY tracks armor decay (per-hit), not weapon decay (per-shot)
   //
   // Armor decay types:
   // 1. Per-hit decay: armor set (1 piece), armor plate (1 plate)
+  // 2. Per-heal decay: FAP decay per heal action
   //
   // Repair Bill = UL armor only (L items lose TT, can't be repaired)
-  // Decay stat = Armor decay only (weapon decay is in totalSpend)
+  // Decay stat = Armor decay + FAP decay (weapon decay is in totalSpend)
   
   // --- DEFENSIVE DECAY (per hit/deflect) ---
   // armorHits = damage_taken + deflects (dodges/evades/misses don't decay armor)
   
-  // Armor set: 1 piece decays per hit
-  const armorSetDecayPerHit = activeLoadout?.armor 
-    ? calculateArmorDecayPerHit(activeLoadout.armor) 
-    : 0;
-  const isArmorLimited = activeLoadout?.armor?.isLimited ?? false;
+  // Use manual decayPerHit if set, otherwise use calculated values (for backwards compatibility)
+  const manualDecayPerHit = activeLoadout?.decayPerHit ?? 0;
+  const manualDecayPerHeal = activeLoadout?.decayPerHeal ?? 0;
   
-  // Armor plates: 1 plate decays per hit (average across equipped plates)
-  const plateDecayPerHit = activeLoadout?.armorPlates?.length 
-    ? calculateSinglePlateDecayPerHit(activeLoadout.armorPlates) 
-    : 0;
+  // Armor decay from hits (manual input in PEC, convert to PED)
+  const hitDecay = combat.armorHits * (manualDecayPerHit / 100);
   
-  // Total defensive decay per hit (armor set + 1 plate)
-  const totalDefensiveDecayPerHit = armorSetDecayPerHit + plateDecayPerHit;
-  const totalDefensiveDecay = combat.armorHits * totalDefensiveDecayPerHit;
+  // FAP decay from heals (manual input in PEC, convert to PED)
+  const healDecay = combat.healCount * (manualDecayPerHeal / 100);
   
-  // UL defensive decay per hit (non-L armor + plates, plates are always UL)
-  const ulDefensiveDecayPerHit = (isArmorLimited ? 0 : armorSetDecayPerHit) + plateDecayPerHit;
-  const ulDefensiveDecay = combat.armorHits * ulDefensiveDecayPerHit;
+  // Total defensive decay
+  const totalDefensiveDecay = hitDecay + healDecay;
   
   // --- TOTALS ---
-  // Decay stat: ARMOR ONLY (weapon decay is included in totalSpend)
+  // Decay stat: ARMOR + FAP decay (weapon decay is in totalSpend)
   const decay = totalDefensiveDecay;
 
-  // Repair bill: UL armor only (weapon repair is included in totalSpend)
-  const repairBill = ulDefensiveDecay;
+  // Repair bill: same as decay for now (all UL items)
+  const repairBill = totalDefensiveDecay;
   
   // Build skill breakdown
   const skills: SkillBreakdown = {
@@ -683,9 +703,11 @@ export function calculateSessionStats(
   }
   
   // Markup-adjusted profit calculations
-  const profitWithMarkup = lootValueWithMarkup - totalSpend;
+  const manualCosts = (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0);
+  const totalCostWithManual = totalSpend + manualCosts;
+  const profitWithMarkup = lootValueWithMarkup - totalCostWithManual;
   const netProfitWithMarkup = profitWithMarkup - decay;
-  const returnRateWithMarkup = totalSpend > 0 ? (lootValueWithMarkup / totalSpend) * 100 : 0;
+  const returnRateWithMarkup = totalCostWithManual > 0 ? (lootValueWithMarkup / totalCostWithManual) * 100 : 0;
   
   // Build loot breakdown
   const loot: LootBreakdown = {
@@ -719,10 +741,19 @@ export function calculateSessionStats(
     lootCount: totalLootItems,
     lootValue: totalLootValue,
     totalSpend,
-    profit,
-    netProfit: profit - decay,  // True profit after ALL decay (UL repair + L TT loss)
-    returnRate,
+    weaponCost: totalSpend,
+    armorCost: session.manualArmorCost ?? 0,
+    fapCost: session.manualFapCost ?? 0,
+    miscCost: session.manualMiscCost ?? 0,
+    totalCost: totalSpend + (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0),
+    profit: totalLootValue - (totalSpend + (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0)),
+    netProfit: totalLootValue - (totalSpend + (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0)) - decay,  // True profit after ALL decay (UL repair + L TT loss)
+    returnRate: (totalSpend + (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0)) > 0 
+      ? (totalLootValue / (totalSpend + (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0))) * 100 
+      : 0,
     decay,
+    armorDecay: hitDecay,
+    fapDecay: healDecay,
     repairBill,
     
     // Markup-adjusted economy

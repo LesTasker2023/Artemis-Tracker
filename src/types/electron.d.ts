@@ -54,12 +54,19 @@ interface LiveStats {
   criticals: number;
   lootValue: number;
   totalSpend: number;
+  weaponCost: number;
+  armorCost: number;
+  fapCost: number;
+  miscCost: number;
+  totalCost: number;
   returnRate: number;
   damageDealt: number;
   damageTaken: number;
   damageReduced: number;
   deflects: number;
   decay: number;
+  armorDecay: number;
+  fapDecay: number;
   repairBill: number;
   skillGains: number;
   skillEvents: number;
@@ -70,6 +77,14 @@ interface LiveStats {
   netProfitWithMarkup?: number;
   returnRateWithMarkup?: number;
   markupEnabled?: boolean;
+  // Manual expense inputs (for syncing between main/popout)
+  manualArmorCost?: number;
+  manualFapCost?: number;
+  manualMiscCost?: number;
+  // Session state
+  sessionActive?: boolean;
+  sessionPaused?: boolean;
+  sessionName?: string;
 }
 
 interface PopoutAPI {
@@ -82,6 +97,12 @@ interface PopoutAPI {
   requestStats: () => void;
   onStatsRequest: (callback: () => void) => () => void;
   onClose: (callback: () => void) => () => void;
+  // Manual expense sync
+  updateExpenses: (expenses: { armorCost: number; fapCost: number; miscCost: number }) => void;
+  onExpenseUpdate: (callback: (expenses: { armorCost: number; fapCost: number; miscCost: number }) => void) => () => void;
+  // Session control
+  controlSession: (action: 'start' | 'stop' | 'pause' | 'resume') => void;
+  onSessionControl: (callback: (action: 'start' | 'stop' | 'pause' | 'resume') => void) => () => void;
 }
 
 interface AsteroidLoot {
@@ -151,10 +172,11 @@ interface MarkupSearchOptions {
 
 interface MarkupItemUpdate {
   markupPercent?: number;
-  markupFixed?: number;
+  markupValue?: number;  // Fixed markup in PED (renamed from markupFixed for consistency)
   useFixed?: boolean;
   notes?: string;
   favorite?: boolean;
+  ignored?: boolean;
 }
 
 interface MarkupAPI {

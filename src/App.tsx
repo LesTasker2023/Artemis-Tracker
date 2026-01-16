@@ -146,6 +146,7 @@ function App() {
     library: markupLibrary,
     config: markupConfig,
     refresh: refreshMarkupLibrary,
+    updateItem: updateMarkupItem,
   } = useMarkupLibrary();
   const [showMarkup, setShowMarkup] = useState(true); // Default to showing markup values
 
@@ -153,11 +154,15 @@ function App() {
     session,
     stats,
     isActive: sessionActive,
+    isPaused: sessionPaused,
     start: startSession,
     stop: stopSession,
+    pause: pauseSession,
+    unpause: unpauseSession,
     resume: resumeSession,
     addEvent,
     recalculateStats,
+    updateExpenses,
   } = useSession({
     markupLibrary,
     defaultMarkupPercent: markupConfig?.defaultMarkupPercent || 100,
@@ -270,12 +275,19 @@ function App() {
         criticals: stats.criticals,
         lootValue: stats.lootValue,
         totalSpend: stats.totalSpend,
+        weaponCost: stats.weaponCost,
+        armorCost: stats.armorCost,
+        fapCost: stats.fapCost,
+        miscCost: session.manualMiscCost ?? 0,
+        totalCost: stats.totalCost,
         returnRate: stats.returnRate,
         damageDealt: stats.damageDealt,
         damageTaken: stats.damageTaken,
         damageReduced: stats.combat.damageReduced,
         deflects: stats.deflects,
         decay: stats.decay,
+        armorDecay: stats.armorDecay,
+        fapDecay: stats.fapDecay,
         repairBill: stats.repairBill,
         skillGains: stats.skills.totalSkillGains,
         skillEvents: stats.skills.totalSkillEvents,
@@ -286,6 +298,14 @@ function App() {
         netProfitWithMarkup: stats.netProfitWithMarkup,
         returnRateWithMarkup: stats.returnRateWithMarkup,
         markupEnabled: stats.markupEnabled,
+        // Manual expense values
+        manualArmorCost: session.manualArmorCost ?? 0,
+        manualFapCost: session.manualFapCost ?? 0,
+        manualMiscCost: session.manualMiscCost ?? 0,
+        // Session state
+        sessionActive: sessionActive,
+        sessionPaused: sessionPaused,
+        sessionName: session.name,
       };
       console.log("[App] Sending to popout:", {
         markupEnabled: liveStats.markupEnabled,
@@ -296,12 +316,23 @@ function App() {
       });
       window.electron?.popout?.sendStats(liveStats);
     }
-  }, [session?.events.length, stats, events.length]);
+  }, [
+    session?.events.length,
+    session?.manualArmorCost,
+    session?.manualFapCost,
+    session?.manualMiscCost,
+    session?.pausedAt,
+    session?.totalPausedTime,
+    sessionActive,
+    sessionPaused,
+    stats,
+    events.length,
+  ]);
 
   // Listen for popout stats requests
   useEffect(() => {
     const unsubscribe = window.electron?.popout?.onStatsRequest(() => {
-      if (stats) {
+      if (stats && session) {
         const lastEvent =
           events.length > 0 ? events[events.length - 1].raw : undefined;
         const liveStats = {
@@ -314,12 +345,19 @@ function App() {
           criticals: stats.criticals,
           lootValue: stats.lootValue,
           totalSpend: stats.totalSpend,
+          weaponCost: stats.weaponCost,
+          armorCost: stats.armorCost,
+          fapCost: stats.fapCost,
+          miscCost: session.manualMiscCost ?? 0,
+          totalCost: stats.totalCost,
           returnRate: stats.returnRate,
           damageDealt: stats.damageDealt,
           damageTaken: stats.damageTaken,
           damageReduced: stats.combat.damageReduced,
           deflects: stats.deflects,
           decay: stats.decay,
+          armorDecay: stats.armorDecay,
+          fapDecay: stats.fapDecay,
           repairBill: stats.repairBill,
           skillGains: stats.skills.totalSkillGains,
           skillEvents: stats.skills.totalSkillEvents,
@@ -330,6 +368,14 @@ function App() {
           netProfitWithMarkup: stats.netProfitWithMarkup,
           returnRateWithMarkup: stats.returnRateWithMarkup,
           markupEnabled: stats.markupEnabled,
+          // Manual expense values
+          manualArmorCost: session.manualArmorCost ?? 0,
+          manualFapCost: session.manualFapCost ?? 0,
+          manualMiscCost: session.manualMiscCost ?? 0,
+          // Session state
+          sessionActive: sessionActive,
+          sessionPaused: sessionPaused,
+          sessionName: session.name,
         };
         window.electron?.popout?.sendStats(liveStats);
       }
@@ -337,7 +383,46 @@ function App() {
     return () => {
       unsubscribe?.();
     };
-  }, [stats, events.length]);
+  }, [stats, session, session?.pausedAt, sessionActive, sessionPaused, events.length]);
+
+  // Listen for expense updates from popout
+  useEffect(() => {
+    const unsubscribe = window.electron?.popout?.onExpenseUpdate(
+      (expenses: { armorCost: number; fapCost: number; miscCost: number }) => {
+        console.log("[App] Received expense update from popout:", expenses);
+        updateExpenses(expenses);
+      }
+    );
+    return () => {
+      unsubscribe?.();
+    };
+  }, [updateExpenses]);
+
+  // Listen for session control from popout
+  useEffect(() => {
+    const unsubscribe = window.electron?.popout?.onSessionControl(
+      (action: "start" | "stop" | "pause" | "resume") => {
+        console.log("[App] Received session control from popout:", action);
+        switch (action) {
+          case "start":
+            start();
+            break;
+          case "stop":
+            stopSession();
+            break;
+          case "pause":
+            pauseSession();
+            break;
+          case "resume":
+            unpauseSession();
+            break;
+        }
+      }
+    );
+    return () => {
+      unsubscribe?.();
+    };
+  }, [stopSession, pauseSession, unpauseSession]);
 
   // Show start session modal
   const start = () => {
@@ -715,7 +800,16 @@ function App() {
 
       {activeTab === "loot" && (
         <div style={styles.tabContent}>
-          <LootAnalysis stats={displayStats} />
+          <LootAnalysis
+            stats={displayStats}
+            markupLibrary={markupLibrary}
+            markupConfig={markupConfig}
+            onUpdateMarkup={async (itemName, updates) => {
+              await updateMarkupItem(itemName, updates);
+              refreshMarkupLibrary();
+            }}
+            onRefreshMarkup={refreshMarkupLibrary}
+          />
         </div>
       )}
 
@@ -739,6 +833,9 @@ function App() {
           <SessionsPage
             onViewSession={handleViewSession}
             onResumeSession={handleResumeSession}
+            activeSessionId={session?.id}
+            activeSession={session}
+            onExpenseUpdate={updateExpenses}
           />
         </div>
       )}
