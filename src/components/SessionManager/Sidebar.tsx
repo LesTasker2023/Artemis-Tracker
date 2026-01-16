@@ -16,6 +16,10 @@ interface SidebarProps {
     active: number;
     completed: number;
   };
+  showMarkup: boolean;
+  onToggleMarkup: () => void;
+  applyExpenses: boolean;
+  onToggleExpenses: () => void;
 }
 
 export function Sidebar({
@@ -23,16 +27,46 @@ export function Sidebar({
   onFilterChange,
   allTags,
   sessionCounts,
+  showMarkup,
+  onToggleMarkup,
+  applyExpenses,
+  onToggleExpenses,
 }: SidebarProps) {
-  const filterButtons: { mode: FilterMode; label: string; icon: React.ReactNode; count: number }[] = [
-    { mode: "all", label: "All Sessions", icon: <Clock size={16} />, count: sessionCounts.all },
-    { mode: "active", label: "Active", icon: <Clock size={16} />, count: sessionCounts.active },
-    { mode: "completed", label: "Completed", icon: <CheckCircle size={16} />, count: sessionCounts.completed },
+  const filterButtons: {
+    mode: FilterMode;
+    label: string;
+    icon: React.ReactNode;
+    count: number;
+  }[] = [
+    {
+      mode: "all",
+      label: "All Sessions",
+      icon: <Clock size={16} />,
+      count: sessionCounts.all,
+    },
+    {
+      mode: "active",
+      label: "Active",
+      icon: <Clock size={16} />,
+      count: sessionCounts.active,
+    },
+    {
+      mode: "completed",
+      label: "Completed",
+      icon: <CheckCircle size={16} />,
+      count: sessionCounts.completed,
+    },
   ];
 
   const sortOptions: { value: SortBy; label: string }[] = [
     { value: "newest", label: "Newest First" },
     { value: "oldest", label: "Oldest First" },
+    { value: "duration-high", label: "Duration: High → Low" },
+    { value: "duration-low", label: "Duration: Low → High" },
+    { value: "profit-high", label: "Profit: High → Low" },
+    { value: "profit-low", label: "Profit: Low → High" },
+    { value: "return-high", label: "Return: High → Low" },
+    { value: "return-low", label: "Return: Low → High" },
     { value: "name-asc", label: "Name A-Z" },
     { value: "name-desc", label: "Name Z-A" },
   ];
@@ -69,6 +103,62 @@ export function Sidebar({
               <X size={12} />
             </button>
           )}
+        </div>
+      </div>
+
+      {/* MU and AE Toggles */}
+      <div style={styles.section}>
+        <div style={styles.toggleRow}>
+          <button
+            onClick={onToggleMarkup}
+            style={{
+              ...styles.toggleBtn,
+              color: showMarkup ? "#06b6d4" : "hsl(220 13% 50%)",
+              backgroundColor: showMarkup
+                ? "rgba(6, 182, 212, 0.15)"
+                : "transparent",
+              borderColor: showMarkup
+                ? "rgba(6, 182, 212, 0.3)"
+                : "hsl(220 13% 20%)",
+            }}
+            title="Toggle Markup Values"
+          >
+            MU
+          </button>
+          <button
+            onClick={onToggleExpenses}
+            style={{
+              ...styles.toggleBtn,
+              color: applyExpenses ? "#f59e0b" : "hsl(220 13% 50%)",
+              backgroundColor: applyExpenses
+                ? "rgba(245, 158, 11, 0.15)"
+                : "transparent",
+              borderColor: applyExpenses
+                ? "rgba(245, 158, 11, 0.3)"
+                : "hsl(220 13% 20%)",
+            }}
+            title="Apply Additional Expenses"
+          >
+            AE
+          </button>
+        </div>
+        <div style={styles.toggleLabels}>
+          <span
+            style={{
+              color: showMarkup ? "#06b6d4" : "hsl(220 13% 45%)",
+              fontSize: "10px",
+            }}
+          >
+            {showMarkup ? "Markup" : "TT Only"}
+          </span>
+          <span
+            style={{
+              color: applyExpenses ? "#f59e0b" : "hsl(220 13% 45%)",
+              fontSize: "10px",
+            }}
+          >
+            {applyExpenses ? "+ Expenses" : "No Expenses"}
+          </span>
         </div>
       </div>
 
@@ -128,7 +218,9 @@ export function Sidebar({
                 onClick={() => toggleTag(tag)}
                 style={{
                   ...styles.tagButton,
-                  ...(filters.selectedTags.includes(tag) ? styles.tagButtonActive : {}),
+                  ...(filters.selectedTags.includes(tag)
+                    ? styles.tagButtonActive
+                    : {}),
                 }}
               >
                 <Tag size={10} />
@@ -296,5 +388,25 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: "rgba(99, 102, 241, 0.2)",
     borderColor: "rgba(99, 102, 241, 0.4)",
     color: "#a5b4fc",
+  },
+  toggleRow: {
+    display: "flex",
+    gap: "8px",
+  },
+  toggleBtn: {
+    flex: 1,
+    padding: "8px 12px",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderRadius: "6px",
+    fontSize: "12px",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.15s",
+  },
+  toggleLabels: {
+    display: "flex",
+    justifyContent: "space-around",
+    marginTop: "4px",
   },
 };

@@ -842,6 +842,7 @@ function App() {
             onResumeSession={handleResumeSession}
             activeSessionId={session?.id}
             activeSession={session}
+            markupLibrary={markupLibrary}
           />
         </div>
       )}

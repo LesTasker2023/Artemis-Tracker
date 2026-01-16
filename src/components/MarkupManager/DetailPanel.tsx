@@ -4,16 +4,32 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { Save, Trash2, Star, StarOff, Eye, EyeOff } from "lucide-react";
+import {
+  Save,
+  Trash2,
+  Star,
+  StarOff,
+  Eye,
+  EyeOff,
+  RefreshCw,
+} from "lucide-react";
 import type { ItemWithMeta, MarkupFormData } from "./types";
 
 interface DetailPanelProps {
   item: ItemWithMeta | null;
   onUpdate: (itemName: string, updates: Partial<ItemWithMeta>) => void;
   onDelete?: (itemName: string) => void;
+  onSync?: () => void;
+  isSyncing?: boolean;
 }
 
-export function DetailPanel({ item, onUpdate, onDelete }: DetailPanelProps) {
+export function DetailPanel({
+  item,
+  onUpdate,
+  onDelete,
+  onSync,
+  isSyncing,
+}: DetailPanelProps) {
   const [formData, setFormData] = useState<MarkupFormData>({
     ttValue: "0",
     markupPercent: "100",
@@ -40,7 +56,23 @@ export function DetailPanel({ item, onUpdate, onDelete }: DetailPanelProps) {
   if (!item) {
     return (
       <div style={styles.empty}>
-        <div style={styles.emptyText}>Select an item to edit</div>
+        <div style={styles.emptyContent}>
+          <div style={styles.emptyText}>Select an item to edit</div>
+          {onSync && (
+            <button
+              onClick={onSync}
+              disabled={isSyncing}
+              style={styles.syncButton}
+              title="Sync from database"
+            >
+              <RefreshCw
+                size={14}
+                style={isSyncing ? styles.spinner : undefined}
+              />
+              <span>{isSyncing ? "Syncing..." : "Sync Database"}</span>
+            </button>
+          )}
+        </div>
       </div>
     );
   }
@@ -264,8 +296,10 @@ const styles: Record<string, React.CSSProperties> = {
     width: "360px",
     minWidth: "360px",
     flexShrink: 0,
-    backgroundColor: "hsl(220 13% 10%)",
-    borderRadius: "8px",
+    backgroundColor: "hsl(220 13% 9%)",
+    borderLeftWidth: "1px",
+    borderLeftStyle: "solid",
+    borderLeftColor: "hsl(220 13% 18%)",
     padding: "16px",
     display: "flex",
     flexDirection: "column",
@@ -277,21 +311,48 @@ const styles: Record<string, React.CSSProperties> = {
     width: "360px",
     minWidth: "360px",
     flexShrink: 0,
-    backgroundColor: "hsl(220 13% 10%)",
-    borderRadius: "8px",
+    backgroundColor: "hsl(220 13% 9%)",
+    borderLeftWidth: "1px",
+    borderLeftStyle: "solid",
+    borderLeftColor: "hsl(220 13% 18%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     height: "100%",
   },
+  emptyContent: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "16px",
+  },
   emptyText: {
     fontSize: "14px",
-    color: "hsl(220 13% 50%)",
+    color: "hsl(220 13% 45%)",
     textAlign: "center",
+  },
+  syncButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 16px",
+    backgroundColor: "hsl(220 13% 15%)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "hsl(220 13% 22%)",
+    borderRadius: "6px",
+    color: "hsl(0 0% 85%)",
+    fontSize: "13px",
+    fontWeight: 500,
+    cursor: "pointer",
+    transition: "all 0.15s",
+  },
+  spinner: {
+    animation: "spin 1s linear infinite",
   },
   header: {
     paddingBottom: "12px",
-    borderBottom: "1px solid hsl(220 13% 20%)",
+    borderBottom: "1px solid hsl(220 13% 15%)",
   },
   title: {
     fontSize: "14px",
@@ -308,9 +369,9 @@ const styles: Record<string, React.CSSProperties> = {
   sectionTitle: {
     fontSize: "11px",
     fontWeight: 600,
-    color: "hsl(220 13% 50%)",
+    color: "hsl(220 13% 45%)",
     textTransform: "uppercase",
-    letterSpacing: "0.1em",
+    letterSpacing: "0.5px",
   },
   itemName: {
     fontSize: "16px",

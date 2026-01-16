@@ -1,9 +1,9 @@
 /**
  * SessionManager - Detail Panel Component
- * Right panel showing selected session details and loadout breakdown
+ * Right panel showing selected session details OR aggregate tag stats
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Clock,
   Crosshair,
@@ -14,31 +14,107 @@ import {
   Trash2,
   Eye,
   RotateCcw,
+  Layers,
+  Shield,
+  Heart,
+  Wrench,
 } from "lucide-react";
 import type { Session, LoadoutBreakdown } from "../../core/session";
 import { calculateSessionStats } from "../../core/session";
 import { getStoredPlayerName } from "../../hooks/usePlayerName";
+import type { MarkupLibrary } from "../../core/markup";
+
+// Aggregate stats when viewing by tag
+export interface AggregateStats {
+  tagName: string;
+  sessionCount: number;
+  totalDuration: number;
+  profit: number;
+  profitWithMarkup: number;
+  returnRate: number;
+  returnRateWithMarkup: number;
+  lootValue: number;
+  lootValueWithMarkup: number;
+  totalCost: number;
+  manualExpenses: number;
+  kills: number;
+  shots: number;
+  hits: number;
+  criticals: number;
+  skillGains: number;
+  globalCount: number;
+  hofs: number;
+}
 
 interface DetailPanelProps {
   session: Session | null;
+  aggregateStats?: AggregateStats | null;
   onDelete?: (session: Session) => void;
   onViewInTabs?: (session: Session) => void;
   onResume?: (session: Session) => void;
   isActiveSession?: boolean;
+  onExpenseUpdate?: (expenses: {
+    armorCost: number;
+    fapCost: number;
+    miscCost: number;
+  }) => void;
+  showMarkup?: boolean;
+  applyExpenses?: boolean;
+  markupLibrary?: MarkupLibrary | null;
 }
 
 export function DetailPanel({
   session,
+  aggregateStats,
   onDelete,
   onViewInTabs,
   onResume,
   isActiveSession,
+  onExpenseUpdate,
+  showMarkup = false,
+  applyExpenses = true,
+  markupLibrary,
 }: DetailPanelProps) {
   const stats = useMemo(() => {
     if (!session) return null;
     const playerName = getStoredPlayerName();
-    return calculateSessionStats(session, playerName || undefined);
-  }, [session]);
+    return calculateSessionStats(session, playerName || undefined, null, markupLibrary);
+  }, [session, markupLibrary]);
+
+  // Expense state
+  const [armorCost, setArmorCost] = useState(0);
+  const [fapCost, setFapCost] = useState(0);
+  const [miscCost, setMiscCost] = useState(0);
+
+  // Sync expense state when session changes
+  useEffect(() => {
+    if (session) {
+      setArmorCost(session.manualArmorCost ?? 0);
+      setFapCost(session.manualFapCost ?? 0);
+      setMiscCost(session.manualMiscCost ?? 0);
+    }
+  }, [session?.id]);
+
+  const handleCostChange = (type: "armor" | "fap" | "misc", value: number) => {
+    const newArmorCost = type === "armor" ? value : armorCost;
+    const newFapCost = type === "fap" ? value : fapCost;
+    const newMiscCost = type === "misc" ? value : miscCost;
+
+    if (type === "armor") setArmorCost(value);
+    if (type === "fap") setFapCost(value);
+    if (type === "misc") setMiscCost(value);
+
+    onExpenseUpdate?.({
+      armorCost: newArmorCost,
+      fapCost: newFapCost,
+      miscCost: newMiscCost,
+    });
+  };
+
+  // Show aggregate stats view if provided
+  if (aggregateStats) {
+    return <AggregateDetailView stats={aggregateStats} showMarkup={showMarkup} applyExpenses={applyExpenses} />;
+  }
 
   if (!session || !stats) {
     return (
@@ -74,7 +150,24 @@ export function DetailPanel({
   // Calculated derived stats
   const accuracy = stats.shots > 0 ? (stats.hits / stats.shots) * 100 : 0;
   const critRate = stats.hits > 0 ? (stats.criticals / stats.hits) * 100 : 0;
-  const killsPerHour = stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
+  const killsPerHour =
+    stats.duration > 0 ? (stats.kills / stats.duration) * 3600 : 0;
+
+  // Calculate display values based on MU/AE toggles
+  const manualExpenses = (session.manualArmorCost ?? 0) + (session.manualFapCost ?? 0) + (session.manualMiscCost ?? 0);
+  
+  // Get base values (with or without markup)
+  let displayProfit = showMarkup ? stats.profitWithMarkup : stats.profit;
+  let displayLootValue = showMarkup ? stats.lootValueWithMarkup : stats.lootValue;
+  let displayTotalSpend = stats.totalSpend;
+  let displayReturnRate = showMarkup ? stats.returnRateWithMarkup : stats.returnRate;
+  
+  // If applyExpenses is OFF, add back manual expenses
+  if (!applyExpenses && manualExpenses > 0) {
+    displayProfit += manualExpenses;
+    displayTotalSpend -= manualExpenses;
+    displayReturnRate = displayTotalSpend > 0 ? (displayLootValue / displayTotalSpend) * 100 : 0;
+  }
 
   return (
     <div style={styles.container}>
@@ -147,21 +240,31 @@ export function DetailPanel({
         <div style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statLabel}>Profit</div>
-            <div style={{
-              ...styles.statValue,
-              color: stats.profit >= 0 ? "#22c55e" : "#ef4444",
-            }}>
-              {stats.profit >= 0 ? "+" : ""}{stats.profit.toFixed(2)}
+            <div
+              style={{
+                ...styles.statValue,
+                color: displayProfit >= 0 ? "#22c55e" : "#ef4444",
+              }}
+            >
+              {displayProfit >= 0 ? "+" : ""}
+              {displayProfit.toFixed(2)}
             </div>
             <div style={styles.statUnit}>PED</div>
           </div>
           <div style={styles.statCard}>
             <div style={styles.statLabel}>Return</div>
-            <div style={{
-              ...styles.statValue,
-              color: stats.returnRate >= 90 ? "#22c55e" : stats.returnRate >= 80 ? "#f59e0b" : "#ef4444",
-            }}>
-              {stats.returnRate.toFixed(1)}%
+            <div
+              style={{
+                ...styles.statValue,
+                color:
+                  displayReturnRate >= 90
+                    ? "#22c55e"
+                    : displayReturnRate >= 80
+                    ? "#f59e0b"
+                    : "#ef4444",
+              }}
+            >
+              {displayReturnRate.toFixed(1)}%
             </div>
           </div>
           <div style={styles.statCard}>
@@ -184,11 +287,15 @@ export function DetailPanel({
         <div style={styles.statsList}>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Shots</span>
-            <span style={styles.statRowValue}>{stats.shots.toLocaleString()}</span>
+            <span style={styles.statRowValue}>
+              {stats.shots.toLocaleString()}
+            </span>
           </div>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Hits</span>
-            <span style={{ ...styles.statRowValue, color: "#22c55e" }}>{stats.hits.toLocaleString()}</span>
+            <span style={{ ...styles.statRowValue, color: "#22c55e" }}>
+              {stats.hits.toLocaleString()}
+            </span>
           </div>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Accuracy</span>
@@ -196,7 +303,9 @@ export function DetailPanel({
           </div>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Criticals</span>
-            <span style={{ ...styles.statRowValue, color: "#f59e0b" }}>{stats.criticals}</span>
+            <span style={{ ...styles.statRowValue, color: "#f59e0b" }}>
+              {stats.criticals}
+            </span>
           </div>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Crit Rate</span>
@@ -215,19 +324,82 @@ export function DetailPanel({
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Total Spend</span>
             <span style={{ ...styles.statRowValue, color: "#ef4444" }}>
-              -{stats.totalSpend.toFixed(2)} PED
+              -{displayTotalSpend.toFixed(2)} PED
             </span>
           </div>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Loot Value</span>
             <span style={{ ...styles.statRowValue, color: "#22c55e" }}>
-              +{stats.lootValue.toFixed(2)} PED
+              +{displayLootValue.toFixed(2)} PED
             </span>
           </div>
           <div style={styles.statRow}>
             <span style={styles.statRowLabel}>Loot Items</span>
             <span style={styles.statRowValue}>{stats.lootCount}</span>
           </div>
+        </div>
+      </div>
+
+      {/* Additional Expenses */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>
+          <Wrench size={12} />
+          ADDITIONAL EXPENSES
+        </div>
+        <div style={styles.expensesList}>
+          <div style={styles.expenseRow}>
+            <Shield size={12} style={{ color: "#06b6d4" }} />
+            <span style={styles.expenseLabel}>Armor</span>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={armorCost || ""}
+              onChange={(e) =>
+                handleCostChange("armor", parseFloat(e.target.value) || 0)
+              }
+              placeholder="0.00"
+              style={styles.expenseInput}
+            />
+          </div>
+          <div style={styles.expenseRow}>
+            <Heart size={12} style={{ color: "#ef4444" }} />
+            <span style={styles.expenseLabel}>FAP</span>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={fapCost || ""}
+              onChange={(e) =>
+                handleCostChange("fap", parseFloat(e.target.value) || 0)
+              }
+              placeholder="0.00"
+              style={styles.expenseInput}
+            />
+          </div>
+          <div style={styles.expenseRow}>
+            <Wrench size={12} style={{ color: "#f59e0b" }} />
+            <span style={styles.expenseLabel}>Misc</span>
+            <input
+              type="number"
+              min={0}
+              step={0.01}
+              value={miscCost || ""}
+              onChange={(e) =>
+                handleCostChange("misc", parseFloat(e.target.value) || 0)
+              }
+              placeholder="0.00"
+              style={styles.expenseInput}
+            />
+          </div>
+          {(armorCost > 0 || fapCost > 0 || miscCost > 0) && (
+            <div style={styles.expenseTotal}>
+              <span style={styles.expenseTotalLabel}>Total Extra</span>
+              <span style={styles.expenseTotalValue}>
+                -{(armorCost + fapCost + miscCost).toFixed(2)} PED
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -285,22 +457,212 @@ function LoadoutRow({ breakdown }: LoadoutRowProps) {
         <span style={styles.loadoutName}>{breakdown.loadoutName}</span>
       </div>
       <div style={styles.loadoutStats}>
-        <span style={styles.loadoutStat}>
-          {breakdown.shots} shots
-        </span>
+        <span style={styles.loadoutStat}>{breakdown.shots} shots</span>
         <span style={{ ...styles.loadoutStat, color: "#ef4444" }}>
           -{breakdown.spend.toFixed(2)}
         </span>
         <span style={{ ...styles.loadoutStat, color: "#22c55e" }}>
           +{breakdown.lootValue.toFixed(2)}
         </span>
-        <span style={{
-          ...styles.loadoutStat,
-          fontWeight: 600,
-          color: breakdown.profit >= 0 ? "#22c55e" : "#ef4444",
-        }}>
-          {breakdown.profit >= 0 ? "+" : ""}{breakdown.profit.toFixed(2)}
+        <span
+          style={{
+            ...styles.loadoutStat,
+            fontWeight: 600,
+            color: breakdown.profit >= 0 ? "#22c55e" : "#ef4444",
+          }}
+        >
+          {breakdown.profit >= 0 ? "+" : ""}
+          {breakdown.profit.toFixed(2)}
         </span>
+      </div>
+    </div>
+  );
+}
+
+// Aggregate view for tag stats
+function AggregateDetailView({ 
+  stats, 
+  showMarkup, 
+  applyExpenses 
+}: { 
+  stats: AggregateStats; 
+  showMarkup: boolean; 
+  applyExpenses: boolean;
+}) {
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
+  const accuracy = stats.shots > 0 ? (stats.hits / stats.shots) * 100 : 0;
+  const critRate = stats.hits > 0 ? (stats.criticals / stats.hits) * 100 : 0;
+  const killsPerHour =
+    stats.totalDuration > 0 ? (stats.kills / stats.totalDuration) * 3600 : 0;
+
+  // Calculate adjusted values based on toggles
+  const manualExpenses = stats.manualExpenses ?? 0;
+  
+  // Get base values (with or without markup)
+  let baseProfit = showMarkup ? stats.profitWithMarkup : stats.profit;
+  let baseLootValue = showMarkup ? stats.lootValueWithMarkup : stats.lootValue;
+  let baseTotalCost = stats.totalCost;
+  let baseReturnRate = showMarkup ? stats.returnRateWithMarkup : stats.returnRate;
+  
+  // If applyExpenses is OFF, add back manual expenses
+  if (!applyExpenses && manualExpenses > 0) {
+    baseProfit += manualExpenses;
+    baseTotalCost -= manualExpenses;
+    baseReturnRate = baseTotalCost > 0 ? (baseLootValue / baseTotalCost) * 100 : 0;
+  }
+
+  const displayProfit = baseProfit;
+  const displayReturnRate = baseReturnRate;
+  const displayLootValue = baseLootValue;
+  const displayTotalCost = baseTotalCost;
+
+  return (
+    <div style={styles.container}>
+      {/* Header */}
+      <div style={styles.header}>
+        <div style={styles.headerInfo}>
+          <div style={styles.aggregateLabel}>
+            <Layers size={14} />
+            TAG AGGREGATE
+          </div>
+          <h2 style={styles.title}>{stats.tagName}</h2>
+          <div style={styles.meta}>
+            <Clock size={12} />
+            <span>{stats.sessionCount} sessions</span>
+            <span style={styles.dot}>•</span>
+            <span>{formatDuration(stats.totalDuration)} total</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Key Stats */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>KEY STATS</div>
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <div style={styles.statLabel}>Profit</div>
+            <div
+              style={{
+                ...styles.statValue,
+                color: displayProfit >= 0 ? "#22c55e" : "#ef4444",
+              }}
+            >
+              {displayProfit >= 0 ? "+" : ""}
+              {displayProfit.toFixed(3)}
+            </div>
+            <div style={styles.statUnit}>PED</div>
+          </div>
+          <div style={styles.statCard}>
+            <div style={styles.statLabel}>Return</div>
+            <div
+              style={{
+                ...styles.statValue,
+                color:
+                  displayReturnRate >= 90
+                    ? "#22c55e"
+                    : displayReturnRate >= 80
+                    ? "#f59e0b"
+                    : "#ef4444",
+              }}
+            >
+              {displayReturnRate.toFixed(3)}%
+            </div>
+          </div>
+          <div style={styles.statCard}>
+            <div style={styles.statLabel}>Loot Value</div>
+            <div style={{ ...styles.statValue, color: "#22c55e" }}>
+              {displayLootValue.toFixed(3)}
+            </div>
+            <div style={styles.statUnit}>PED</div>
+          </div>
+          <div style={styles.statCard}>
+            <div style={styles.statLabel}>Total Cost</div>
+            <div style={{ ...styles.statValue, color: "#ef4444" }}>
+              {displayTotalCost.toFixed(3)}
+            </div>
+            <div style={styles.statUnit}>PED</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Combat Stats */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>
+          <Crosshair size={12} />
+          COMBAT
+        </div>
+        <div style={styles.statsList}>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Kills</span>
+            <span style={styles.statRowValue}>
+              {stats.kills.toLocaleString()}
+            </span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Kills/hr</span>
+            <span style={styles.statRowValue}>{killsPerHour.toFixed(1)}</span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Shots</span>
+            <span style={styles.statRowValue}>
+              {stats.shots.toLocaleString()}
+            </span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Hits</span>
+            <span style={{ ...styles.statRowValue, color: "#22c55e" }}>
+              {stats.hits.toLocaleString()}
+            </span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Accuracy</span>
+            <span style={styles.statRowValue}>{accuracy.toFixed(1)}%</span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Criticals</span>
+            <span style={{ ...styles.statRowValue, color: "#f59e0b" }}>
+              {stats.criticals.toLocaleString()}
+            </span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Crit Rate</span>
+            <span style={styles.statRowValue}>{critRate.toFixed(1)}%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Other Stats */}
+      <div style={styles.section}>
+        <div style={styles.sectionTitle}>
+          <Award size={12} />
+          ACHIEVEMENTS
+        </div>
+        <div style={styles.statsList}>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Skill Gains</span>
+            <span style={{ ...styles.statRowValue, color: "#60a5fa" }}>
+              {stats.skillGains}
+            </span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>Globals</span>
+            <span style={{ ...styles.statRowValue, color: "#f59e0b" }}>
+              {stats.globalCount}
+            </span>
+          </div>
+          <div style={styles.statRow}>
+            <span style={styles.statRowLabel}>HOFs</span>
+            <span style={{ ...styles.statRowValue, color: "#a855f7" }}>
+              {stats.hofs}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -363,6 +725,17 @@ const styles: Record<string, React.CSSProperties> = {
   },
   dot: {
     color: "hsl(220 13% 30%)",
+  },
+  aggregateLabel: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "10px",
+    fontWeight: 600,
+    color: "#a855f7",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    marginBottom: "4px",
   },
   tags: {
     display: "flex",
@@ -528,5 +901,54 @@ const styles: Record<string, React.CSSProperties> = {
   loadoutStat: {
     fontSize: "11px",
     color: "hsl(220 13% 60%)",
+  },
+  expensesList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  },
+  expenseRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  expenseLabel: {
+    fontSize: "12px",
+    color: "hsl(220 13% 60%)",
+    width: "50px",
+  },
+  expenseInput: {
+    flex: 1,
+    padding: "6px 10px",
+    backgroundColor: "hsl(220 13% 12%)",
+    color: "hsl(0 0% 90%)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "hsl(220 13% 20%)",
+    borderRadius: "6px",
+    fontSize: "12px",
+    fontWeight: 500,
+    outline: "none",
+    textAlign: "right",
+  },
+  expenseTotal: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "8px",
+    paddingTop: "8px",
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: "hsl(220 13% 18%)",
+  },
+  expenseTotalLabel: {
+    fontSize: "12px",
+    fontWeight: 500,
+    color: "hsl(220 13% 60%)",
+  },
+  expenseTotalValue: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "#ef4444",
   },
 };

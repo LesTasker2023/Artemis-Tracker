@@ -5,28 +5,59 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import type { Session } from "../../core/session";
+import { calculateSessionStats } from "../../core/session";
 import type { SessionMeta } from "../../types/electron";
 import type { FilterState, SessionManagerProps } from "./types";
 import { Sidebar } from "./Sidebar";
 import { SessionList } from "./SessionList";
-import { DetailPanel } from "./DetailPanel";
+import { DetailPanel, AggregateStats } from "./DetailPanel";
+import { getStoredPlayerName } from "../../hooks/usePlayerName";
 
 const MAX_DISPLAY_SESSIONS = 100;
+
+// Cache for session stats (avoids recomputing on each sort)
+interface SessionStatsCache {
+  profit: number;
+  profitWithMarkup: number;
+  returnRate: number;
+  returnRateWithMarkup: number;
+  duration: number;
+  lootValue: number;
+  lootValueWithMarkup: number;
+  totalCost: number;
+  kills: number;
+  shots: number;
+  hits: number;
+  criticals: number;
+  skillGains: number;
+  globalCount: number;
+  hofs: number;
+  manualExpenses: number; // Sum of armor + fap + misc costs
+}
 
 export function SessionManager({
   onViewSession,
   onResumeSession,
   activeSessionId,
   activeSession,
+  markupLibrary,
 }: SessionManagerProps) {
   // Raw data from storage
   const [sessions, setSessions] = useState<SessionMeta[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
+  // Stats cache for sorting by profit/return
+  const [statsCache, setStatsCache] = useState<
+    Record<string, SessionStatsCache>
+  >({});
+  const [loadingStats, setLoadingStats] = useState(false);
+
   // Selected session (full data)
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null
+  );
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
-  
+
   // Lazy loading
   const [isReady, setIsReady] = useState(false);
 
@@ -37,6 +68,12 @@ export function SessionManager({
     searchQuery: "",
     sortBy: "newest",
   });
+
+  // Markup toggle (TT vs MU values)
+  const [showMarkup, setShowMarkup] = useState(true);
+
+  // Additional expenses toggle
+  const [applyExpenses, setApplyExpenses] = useState(false);
 
   // Load sessions on mount
   useEffect(() => {
@@ -59,8 +96,119 @@ export function SessionManager({
             : s
         )
       );
+      // Update stats cache for active session
+      if (activeSession) {
+        const playerName = getStoredPlayerName();
+        const stats = calculateSessionStats(
+          activeSession,
+          playerName || undefined,
+          null, // loadout
+          markupLibrary
+        );
+        const start = new Date(activeSession.startedAt).getTime();
+        const end = activeSession.endedAt
+          ? new Date(activeSession.endedAt).getTime()
+          : Date.now();
+        const manualExpenses =
+          (activeSession.manualArmorCost ?? 0) +
+          (activeSession.manualFapCost ?? 0) +
+          (activeSession.manualMiscCost ?? 0);
+        setStatsCache((prev) => ({
+          ...prev,
+          [activeSessionId]: {
+            profit: stats.profit,
+            profitWithMarkup: stats.profitWithMarkup,
+            returnRate: stats.returnRate,
+            returnRateWithMarkup: stats.returnRateWithMarkup,
+            duration: Math.floor((end - start) / 1000),
+            lootValue: stats.lootValue,
+            lootValueWithMarkup: stats.lootValueWithMarkup,
+            totalCost: stats.totalCost,
+            kills: stats.kills,
+            shots: stats.shots,
+            hits: stats.hits,
+            criticals: stats.criticals,
+            skillGains: stats.skillGains,
+            globalCount: stats.globalCount,
+            hofs: stats.hofs,
+            manualExpenses,
+          },
+        }));
+      }
     }
-  }, [activeSession, activeSessionId]);
+  }, [activeSession, activeSessionId, markupLibrary]);
+
+  // Clear stats cache when markupLibrary changes to force recalculation
+  useEffect(() => {
+    setStatsCache({});
+  }, [markupLibrary]);
+
+  // Load stats for all sessions (for display and sorting)
+  useEffect(() => {
+    if (sessions.length === 0) return;
+
+    // Check if we already have stats for all sessions
+    const missingIds = sessions
+      .filter((s) => !statsCache[s.id])
+      .map((s) => s.id);
+    if (missingIds.length === 0) return;
+
+    const loadStats = async () => {
+      setLoadingStats(true);
+      const playerName = getStoredPlayerName();
+      const newCache: Record<string, SessionStatsCache> = { ...statsCache };
+
+      for (const id of missingIds) {
+        try {
+          const session = await window.electron?.session.load(id);
+          if (session) {
+            const stats = calculateSessionStats(
+              session,
+              playerName || undefined,
+              null, // loadout
+              markupLibrary
+            );
+            const start = new Date(session.startedAt).getTime();
+            const end = session.endedAt
+              ? new Date(session.endedAt).getTime()
+              : Date.now();
+            const manualExpenses =
+              (session.manualArmorCost ?? 0) +
+              (session.manualFapCost ?? 0) +
+              (session.manualMiscCost ?? 0);
+            newCache[id] = {
+              profit: stats.profit,
+              profitWithMarkup: stats.profitWithMarkup,
+              returnRate: stats.returnRate,
+              returnRateWithMarkup: stats.returnRateWithMarkup,
+              duration: Math.floor((end - start) / 1000),
+              lootValue: stats.lootValue,
+              lootValueWithMarkup: stats.lootValueWithMarkup,
+              totalCost: stats.totalCost,
+              kills: stats.kills,
+              shots: stats.shots,
+              hits: stats.hits,
+              criticals: stats.criticals,
+              skillGains: stats.skillGains,
+              globalCount: stats.globalCount,
+              hofs: stats.hofs,
+              manualExpenses,
+            };
+          }
+        } catch (err) {
+          console.error(
+            `[SessionManager] Failed to load stats for ${id}:`,
+            err
+          );
+        }
+      }
+
+      setStatsCache(newCache);
+      setLoadingStats(false);
+    };
+
+    loadStats();
+  }, [sessions, statsCache, markupLibrary]);
 
   const loadSessions = async () => {
     setLoading(true);
@@ -80,6 +228,13 @@ export function SessionManager({
       setLoading(false);
     }
   };
+
+  // Helper to get duration in seconds
+  const getDuration = useCallback((s: SessionMeta) => {
+    const start = new Date(s.startedAt).getTime();
+    const end = s.endedAt ? new Date(s.endedAt).getTime() : Date.now();
+    return Math.floor((end - start) / 1000);
+  }, []);
 
   // Extract all unique tags
   const allTags = useMemo(() => {
@@ -125,9 +280,7 @@ export function SessionManager({
     // Apply search filter
     if (filters.searchQuery.trim()) {
       const query = filters.searchQuery.toLowerCase();
-      filtered = filtered.filter((s) =>
-        s.name.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter((s) => s.name.toLowerCase().includes(query));
     }
 
     // Apply sort
@@ -144,6 +297,38 @@ export function SessionManager({
             new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime()
         );
         break;
+      case "duration-high":
+        filtered.sort((a, b) => getDuration(b) - getDuration(a));
+        break;
+      case "duration-low":
+        filtered.sort((a, b) => getDuration(a) - getDuration(b));
+        break;
+      case "profit-high":
+        filtered.sort(
+          (a, b) =>
+            (statsCache[b.id]?.profit ?? 0) - (statsCache[a.id]?.profit ?? 0)
+        );
+        break;
+      case "profit-low":
+        filtered.sort(
+          (a, b) =>
+            (statsCache[a.id]?.profit ?? 0) - (statsCache[b.id]?.profit ?? 0)
+        );
+        break;
+      case "return-high":
+        filtered.sort(
+          (a, b) =>
+            (statsCache[b.id]?.returnRate ?? 0) -
+            (statsCache[a.id]?.returnRate ?? 0)
+        );
+        break;
+      case "return-low":
+        filtered.sort(
+          (a, b) =>
+            (statsCache[a.id]?.returnRate ?? 0) -
+            (statsCache[b.id]?.returnRate ?? 0)
+        );
+        break;
       case "name-asc":
         filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
@@ -154,7 +339,7 @@ export function SessionManager({
 
     // Limit results
     return filtered.slice(0, MAX_DISPLAY_SESSIONS);
-  }, [isReady, sessions, filters]);
+  }, [isReady, sessions, filters, statsCache, getDuration]);
 
   // Handle filter changes
   const handleFilterChange = useCallback((updates: Partial<FilterState>) => {
@@ -192,9 +377,46 @@ export function SessionManager({
   }, []);
 
   // Handle resume
-  const handleResume = useCallback((session: Session) => {
-    onResumeSession?.(session);
-  }, [onResumeSession]);
+  const handleResume = useCallback(
+    (session: Session) => {
+      onResumeSession?.(session);
+    },
+    [onResumeSession]
+  );
+
+  // Handle expense update
+  const handleExpenseUpdate = useCallback(
+    async (expenses: {
+      armorCost: number;
+      fapCost: number;
+      miscCost: number;
+    }) => {
+      if (!selectedSession) return;
+
+      // Update the session with new expenses
+      const updatedSession: Session = {
+        ...selectedSession,
+        manualArmorCost: expenses.armorCost,
+        manualFapCost: expenses.fapCost,
+        manualMiscCost: expenses.miscCost,
+      };
+
+      // Save to storage
+      try {
+        await window.electron?.session.save(updatedSession);
+        setSelectedSession(updatedSession);
+
+        // Invalidate stats cache for this session to force recalculation
+        setStatsCache((prev) => {
+          const { [selectedSession.id]: _, ...rest } = prev;
+          return rest;
+        });
+      } catch (err) {
+        console.error("[SessionManager] Failed to save expenses:", err);
+      }
+    },
+    [selectedSession]
+  );
 
   // Get the session to show in detail panel
   // Use live activeSession data when viewing the active session
@@ -205,6 +427,87 @@ export function SessionManager({
     }
     return selectedSession;
   }, [selectedSession, activeSessionId, activeSession]);
+
+  // Compute aggregate stats when exactly one tag is selected and no session is selected
+  const aggregateStats = useMemo((): AggregateStats | null => {
+    // Only show aggregate when: 1+ tags selected AND no session selected
+    if (filters.selectedTags.length === 0 || selectedSessionId) {
+      return null;
+    }
+
+    const selectedTags = filters.selectedTags;
+    const tagName = selectedTags.length === 1 
+      ? selectedTags[0] 
+      : `${selectedTags.length} Tags`;
+
+    // Find all sessions with ANY of the selected tags
+    const taggedSessions = sessions.filter((s) => 
+      s.tags?.some(tag => selectedTags.includes(tag))
+    );
+    if (taggedSessions.length === 0) return null;
+
+    // Aggregate stats from cache
+    let totalDuration = 0;
+    let profit = 0;
+    let profitWithMarkup = 0;
+    let lootValue = 0;
+    let lootValueWithMarkup = 0;
+    let totalCost = 0;
+    let kills = 0;
+    let shots = 0;
+    let hits = 0;
+    let criticals = 0;
+    let skillGains = 0;
+    let globalCount = 0;
+    let hofs = 0;
+    let manualExpenses = 0;
+
+    for (const s of taggedSessions) {
+      const cached = statsCache[s.id];
+      if (cached) {
+        totalDuration += cached.duration;
+        profit += cached.profit;
+        profitWithMarkup += cached.profitWithMarkup;
+        lootValue += cached.lootValue;
+        lootValueWithMarkup += cached.lootValueWithMarkup;
+        totalCost += cached.totalCost;
+        kills += cached.kills;
+        shots += cached.shots;
+        hits += cached.hits;
+        criticals += cached.criticals;
+        skillGains += cached.skillGains;
+        globalCount += cached.globalCount;
+        hofs += cached.hofs;
+        manualExpenses += cached.manualExpenses ?? 0;
+      }
+    }
+
+    // Calculate return rates
+    const returnRate = totalCost > 0 ? (lootValue / totalCost) * 100 : 0;
+    const returnRateWithMarkup =
+      totalCost > 0 ? (lootValueWithMarkup / totalCost) * 100 : 0;
+
+    return {
+      tagName,
+      sessionCount: taggedSessions.length,
+      totalDuration,
+      profit,
+      profitWithMarkup,
+      returnRate,
+      returnRateWithMarkup,
+      lootValue,
+      lootValueWithMarkup,
+      totalCost,
+      kills,
+      shots,
+      hits,
+      criticals,
+      skillGains,
+      globalCount,
+      hofs,
+      manualExpenses,
+    };
+  }, [filters.selectedTags, selectedSessionId, sessions, statsCache]);
 
   if (!isReady) {
     return (
@@ -222,6 +525,10 @@ export function SessionManager({
         onFilterChange={handleFilterChange}
         allTags={allTags}
         sessionCounts={sessionCounts}
+        showMarkup={showMarkup}
+        onToggleMarkup={() => setShowMarkup(!showMarkup)}
+        applyExpenses={applyExpenses}
+        onToggleExpenses={() => setApplyExpenses(!applyExpenses)}
       />
 
       {/* Middle - Session List */}
@@ -231,18 +538,26 @@ export function SessionManager({
           selectedSessionId={selectedSessionId}
           activeSessionId={activeSessionId}
           onSelectSession={handleSelectSession}
-          loading={loading}
+          loading={loading || loadingStats}
           totalCount={sessions.length}
+          statsCache={statsCache}
+          showMarkup={showMarkup}
+          applyExpenses={applyExpenses}
         />
       </div>
 
       {/* Right - Detail Panel */}
       <DetailPanel
         session={detailSession}
+        aggregateStats={aggregateStats}
         onDelete={handleDelete}
         onViewInTabs={onViewSession}
         onResume={handleResume}
         isActiveSession={selectedSessionId === activeSessionId}
+        onExpenseUpdate={handleExpenseUpdate}
+        showMarkup={showMarkup}
+        applyExpenses={applyExpenses}
+        markupLibrary={markupLibrary}
       />
     </div>
   );

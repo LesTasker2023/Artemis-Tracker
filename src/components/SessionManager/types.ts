@@ -2,10 +2,21 @@
  * SessionManager - Type Definitions
  */
 
-import type { Session, LoadoutBreakdown } from "../../core/session";
+import type { Session } from "../../core/session";
 import type { SessionMeta } from "../../types/electron";
+import type { MarkupLibrary } from "../../core/markup";
 
-export type SortBy = "newest" | "oldest" | "name-asc" | "name-desc";
+export type SortBy =
+  | "newest"
+  | "oldest"
+  | "name-asc"
+  | "name-desc"
+  | "duration-high"
+  | "duration-low"
+  | "profit-high"
+  | "profit-low"
+  | "return-high"
+  | "return-low";
 export type FilterMode = "all" | "active" | "completed";
 
 export interface SessionManagerProps {
@@ -13,6 +24,7 @@ export interface SessionManagerProps {
   onResumeSession?: (session: Session) => void;
   activeSessionId?: string;
   activeSession?: Session | null;
+  markupLibrary?: MarkupLibrary | null;
   onExpenseUpdate?: (expenses: {
     armorCost: number;
     fapCost: number;

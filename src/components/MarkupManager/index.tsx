@@ -1,10 +1,10 @@
 /**
  * MarkupManager - Main Component
  * Clean 3-column layout for managing item markup library
+ * Matching SessionManager UI style
  */
 
 import React, { useState, useMemo } from "react";
-import { Search, RefreshCw } from "lucide-react";
 import { useMarkupLibrary } from "../../hooks/useMarkupLibrary";
 import { Sidebar } from "./Sidebar";
 import { ItemGrid } from "./ItemGrid";
@@ -165,6 +165,10 @@ export function MarkupManager({
     setFilters({ ...filters, searchQuery });
   };
 
+  const handleSortChange = (sortBy: SortBy) => {
+    setFilters({ ...filters, sortBy });
+  };
+
   const handleSync = async () => {
     setIsSyncing(true);
     try {
@@ -230,226 +234,94 @@ export function MarkupManager({
 
   if (loading || !library || !config) {
     return (
-      <div style={styles.loading}>
-        <RefreshCw size={32} style={styles.spinner} />
+      <div style={styles.container}>
+        <div style={styles.loading}>Loading...</div>
       </div>
     );
   }
 
   return (
     <div style={styles.container}>
-      {/* Top Bar */}
-      <div style={styles.topBar}>
-        <div style={styles.topBarLeft}>
-          <div style={styles.title}>Item Library</div>
-          <div style={styles.subtitle}>
-            Manage item markup for profit calculations
+      {/* Left Sidebar */}
+      <Sidebar
+        activeFilter={filters.mode}
+        onFilterChange={handleFilterChange}
+        activeCategory={filters.category}
+        onCategoryChange={handleCategoryChange}
+        categories={categories}
+        stats={stats}
+        searchQuery={filters.searchQuery}
+        onSearchChange={handleSearchChange}
+        sortBy={filters.sortBy}
+        onSortChange={handleSortChange}
+      />
+
+      {/* Middle - Item List */}
+      <div style={styles.listPanel}>
+        <ItemGrid
+          items={sortedItems}
+          selectedItem={selectedItem}
+          onSelectItem={setSelectedItem}
+          onToggleFavorite={handleToggleFavorite}
+          emptyMessage={
+            !isReady
+              ? "Select a filter, category, or search to view items"
+              : filters.mode === "session"
+              ? "No items from current session"
+              : filters.searchQuery
+              ? "No items match your search"
+              : "No items to display"
+          }
+        />
+        {isTruncated && (
+          <div style={styles.truncationNote}>
+            Showing {MAX_DISPLAY_ITEMS} of {displayItems.length}+ items. Use
+            search to narrow results.
           </div>
-        </div>
-
-        <div style={styles.topBarRight}>
-          {/* Search */}
-          <div style={styles.searchContainer}>
-            <Search size={14} style={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search items..."
-              value={filters.searchQuery}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              style={styles.searchInput}
-            />
-          </div>
-
-          {/* Sort */}
-          <select
-            value={filters.sortBy}
-            onChange={(e) =>
-              setFilters({ ...filters, sortBy: e.target.value as SortBy })
-            }
-            style={styles.sortSelect}
-          >
-            <option value="name">Name</option>
-            <option value="category">Category</option>
-            <option value="markup-high">Markup (High)</option>
-            <option value="markup-low">Markup (Low)</option>
-            <option value="recent">Recently Updated</option>
-          </select>
-
-          {/* Sync */}
-          <button
-            onClick={handleSync}
-            disabled={isSyncing}
-            style={styles.button}
-            title="Sync from database"
-          >
-            <RefreshCw
-              size={14}
-              style={isSyncing ? styles.spinner : undefined}
-            />
-          </button>
-        </div>
+        )}
       </div>
 
-      {/* Main Content - 3 Columns */}
-      <div style={styles.content}>
-        {/* Left: Sidebar */}
-        <Sidebar
-          activeFilter={filters.mode}
-          onFilterChange={handleFilterChange}
-          activeCategory={filters.category}
-          onCategoryChange={handleCategoryChange}
-          categories={categories}
-          stats={stats}
-        />
-
-        {/* Center: Item Grid */}
-        <div style={styles.centerColumn}>
-          <ItemGrid
-            items={sortedItems}
-            selectedItem={selectedItem}
-            onSelectItem={setSelectedItem}
-            onToggleFavorite={handleToggleFavorite}
-            emptyMessage={
-              !isReady
-                ? "Select a filter, category, or search to view items"
-                : filters.mode === "session"
-                ? "No items from current session"
-                : filters.searchQuery
-                ? "No items match your search"
-                : "No items to display"
-            }
-          />
-          {isTruncated && (
-            <div style={styles.truncationNote}>
-              Showing {MAX_DISPLAY_ITEMS} of {displayItems.length}+ items. Use
-              search to narrow results.
-            </div>
-          )}
-        </div>
-
-        {/* Right: Detail Panel */}
-        <DetailPanel
-          item={selectedItem}
-          onUpdate={handleUpdateItem}
-          onDelete={handleDeleteItem}
-        />
-      </div>
+      {/* Right - Detail Panel */}
+      <DetailPanel
+        item={selectedItem}
+        onUpdate={handleUpdateItem}
+        onDelete={handleDeleteItem}
+        onSync={handleSync}
+        isSyncing={isSyncing}
+      />
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    height: "100%",
     display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-    padding: "16px",
+    height: "100%",
     backgroundColor: "hsl(220 13% 8%)",
   },
   loading: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "100%",
+    flex: 1,
+    color: "hsl(220 13% 50%)",
+    fontSize: "14px",
   },
-  spinner: {
-    color: "hsl(217 91% 60%)",
-    animation: "spin 1s linear infinite",
-  },
-  topBar: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "16px",
-    flexWrap: "wrap",
-  },
-  topBarLeft: {
+  listPanel: {
+    flex: 1,
     display: "flex",
     flexDirection: "column",
-    gap: "4px",
-  },
-  title: {
-    fontSize: "20px",
-    fontWeight: 600,
-    color: "hsl(0 0% 95%)",
-  },
-  subtitle: {
-    fontSize: "13px",
-    color: "hsl(220 13% 55%)",
-  },
-  topBarRight: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  searchContainer: {
-    position: "relative",
-    minWidth: "240px",
-  },
-  searchIcon: {
-    position: "absolute",
-    left: "10px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    color: "hsl(220 13% 45%)",
-    pointerEvents: "none",
-  },
-  searchInput: {
-    width: "100%",
-    padding: "8px 12px 8px 34px",
-    backgroundColor: "hsl(220 13% 12%)",
-    border: "1px solid hsl(220 13% 22%)",
-    borderRadius: "6px",
-    color: "hsl(0 0% 95%)",
-    fontSize: "13px",
-    outline: "none",
-  },
-  sortSelect: {
-    padding: "8px 12px",
-    backgroundColor: "hsl(220 13% 12%)",
-    border: "1px solid hsl(220 13% 22%)",
-    borderRadius: "6px",
-    color: "hsl(0 0% 95%)",
-    fontSize: "13px",
-    cursor: "pointer",
-    outline: "none",
-  },
-  button: {
-    padding: "8px 12px",
-    backgroundColor: "hsl(220 13% 12%)",
-    border: "1px solid hsl(220 13% 22%)",
-    borderRadius: "6px",
-    color: "hsl(0 0% 90%)",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    transition: "all 0.15s",
-  },
-  content: {
-    display: "flex",
-    gap: "16px",
-    flex: 1,
     overflow: "hidden",
-  },
-  centerColumn: {
-    flex: 1,
-    backgroundColor: "hsl(220 13% 10%)",
-    borderRadius: "8px",
-    padding: "16px",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
   },
   truncationNote: {
     padding: "8px 12px",
-    marginTop: "8px",
-    backgroundColor: "hsl(220 13% 15%)",
-    borderRadius: "6px",
+    backgroundColor: "hsl(220 13% 12%)",
     fontSize: "12px",
     color: "hsl(220 13% 60%)",
     textAlign: "center" as const,
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: "hsl(220 13% 15%)",
   },
 };
 

@@ -1,16 +1,30 @@
 /**
  * SessionManager - Session Card Component
- * Compact row-based card for sessions in the list
+ * Compact row-based card with stats display
  */
 
 import React from "react";
 import type { SessionMeta } from "../../types/electron";
+
+interface SessionStats {
+  profit: number;
+  profitWithMarkup: number;
+  returnRate: number;
+  returnRateWithMarkup: number;
+  duration: number;
+  lootValue?: number;
+  totalCost?: number;
+  manualExpenses?: number;
+}
 
 interface SessionCardProps {
   session: SessionMeta;
   isSelected: boolean;
   isActive: boolean;
   onSelect: (id: string) => void;
+  stats?: SessionStats;
+  showMarkup: boolean;
+  applyExpenses: boolean;
 }
 
 export function SessionCard({
@@ -18,6 +32,9 @@ export function SessionCard({
   isSelected,
   isActive,
   onSelect,
+  stats,
+  showMarkup,
+  applyExpenses,
 }: SessionCardProps) {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -26,14 +43,6 @@ export function SessionCard({
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
-    });
-  };
-
-  const formatTime = (iso: string) => {
-    const date = new Date(iso);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
     });
   };
 
@@ -50,13 +59,36 @@ export function SessionCard({
   const getStatusBadge = () => {
     if (!session.endedAt) {
       return (
-        <span style={{ ...styles.badge, ...styles.badgeActive }}>
-          {isActive ? "Recording" : "Active"}
-        </span>
+        <span style={styles.badgeActive}>{isActive ? "REC" : "LIVE"}</span>
       );
     }
     return null;
   };
+
+  // Calculate adjusted values based on toggles
+  const manualExpenses = stats?.manualExpenses ?? 0;
+
+  // Get base profit (with or without markup)
+  let baseProfit = showMarkup
+    ? stats?.profitWithMarkup ?? 0
+    : stats?.profit ?? 0;
+  let baseReturnRate = showMarkup
+    ? stats?.returnRateWithMarkup ?? 0
+    : stats?.returnRate ?? 0;
+
+  // If applyExpenses is OFF, add back manual expenses to profit
+  if (!applyExpenses && manualExpenses > 0) {
+    baseProfit += manualExpenses;
+    // Recalculate return rate without manual expenses
+    const adjustedCost = (stats?.totalCost ?? 0) - manualExpenses;
+    const lootValue = showMarkup
+      ? stats?.lootValue ?? 0
+      : stats?.lootValue ?? 0;
+    baseReturnRate = adjustedCost > 0 ? (lootValue / adjustedCost) * 100 : 0;
+  }
+
+  const profit = baseProfit;
+  const returnRate = baseReturnRate;
 
   return (
     <div
@@ -69,38 +101,64 @@ export function SessionCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Name + Tags Column */}
-      <div style={styles.nameCol}>
+      {/* Left: Name + Date */}
+      <div style={styles.infoCol}>
         <div style={styles.nameRow}>
           <span style={styles.name}>{session.name}</span>
           {getStatusBadge()}
         </div>
+        <div style={styles.metaRow}>
+          <span style={styles.date}>{formatDate(session.startedAt)}</span>
+          <span style={styles.separator}>•</span>
+          <span style={styles.duration}>
+            {formatDuration(session.startedAt, session.endedAt)}
+          </span>
+        </div>
+        {/* All Tags */}
         {session.tags && session.tags.length > 0 && (
-          <div style={styles.tagRow}>
-            {session.tags.slice(0, 3).map((tag) => (
-              <span key={tag} style={styles.tag}>{tag}</span>
+          <div style={styles.tagsRow}>
+            {session.tags.map((tag, idx) => (
+              <span key={idx} style={styles.tag}>
+                {tag}
+              </span>
             ))}
-            {session.tags.length > 3 && (
-              <span style={styles.tagMore}>+{session.tags.length - 3}</span>
-            )}
           </div>
         )}
       </div>
 
-      {/* Date Column */}
-      <div style={styles.dateCol}>
-        <span style={styles.date}>{formatDate(session.startedAt)}</span>
-        <span style={styles.time}>{formatTime(session.startedAt)}</span>
-      </div>
+      {/* Right: Stats */}
+      <div style={styles.statsCol}>
+        {/* Profit */}
+        <div style={styles.statBox}>
+          <span
+            style={{
+              ...styles.statValue,
+              color: profit >= 0 ? "#22c55e" : "#ef4444",
+            }}
+          >
+            {profit >= 0 ? "+" : ""}
+            {profit.toFixed(3)}
+          </span>
+          <span style={styles.statLabel}>PED</span>
+        </div>
 
-      {/* Duration Column */}
-      <div style={styles.durationCol}>
-        <span style={styles.duration}>{formatDuration(session.startedAt, session.endedAt)}</span>
-      </div>
-
-      {/* Events Column */}
-      <div style={styles.eventsCol}>
-        <span style={styles.events}>{session.eventCount.toLocaleString()}</span>
+        {/* Return Rate */}
+        <div style={styles.statBox}>
+          <span
+            style={{
+              ...styles.statValue,
+              color:
+                returnRate >= 95
+                  ? "#22c55e"
+                  : returnRate >= 85
+                  ? "#f59e0b"
+                  : "#ef4444",
+            }}
+          >
+            {returnRate.toFixed(3)}%
+          </span>
+          <span style={styles.statLabel}>TT%</span>
+        </div>
       </div>
     </div>
   );
@@ -110,25 +168,25 @@ const styles: Record<string, React.CSSProperties> = {
   row: {
     display: "flex",
     alignItems: "center",
-    padding: "10px 12px",
+    padding: "10px 14px",
     backgroundColor: "hsl(220 13% 10%)",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer",
     borderWidth: "1px",
     borderStyle: "solid",
     borderColor: "transparent",
-    transition: "border-color 0.15s, background-color 0.15s",
-    gap: "8px",
+    transition: "all 0.15s ease",
+    gap: "12px",
   },
   rowHover: {
     backgroundColor: "hsl(220 13% 12%)",
-    borderColor: "hsl(220 13% 20%)",
+    borderColor: "hsl(220 13% 22%)",
   },
   rowSelected: {
     borderColor: "hsl(217 91% 60%)",
-    backgroundColor: "hsl(220 13% 13%)",
+    backgroundColor: "hsl(217 91% 60% / 0.08)",
   },
-  nameCol: {
+  infoCol: {
     flex: 1,
     minWidth: 0,
     display: "flex",
@@ -142,82 +200,76 @@ const styles: Record<string, React.CSSProperties> = {
   },
   name: {
     fontSize: "14px",
-    fontWeight: 500,
-    color: "hsl(0 0% 93%)",
+    fontWeight: 600,
+    color: "hsl(0 0% 95%)",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
   },
-  tagRow: {
+  metaRow: {
     display: "flex",
-    gap: "4px",
-    flexWrap: "nowrap",
-    overflow: "hidden",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "12px",
+    color: "hsl(220 13% 50%)",
+  },
+  date: {
+    color: "hsl(220 13% 60%)",
+  },
+  separator: {
+    color: "hsl(220 13% 30%)",
+  },
+  duration: {
+    color: "hsl(220 13% 55%)",
   },
   tag: {
-    padding: "2px 6px",
+    padding: "1px 6px",
     backgroundColor: "hsl(220 13% 18%)",
     borderRadius: "4px",
-    color: "hsl(220 13% 60%)",
+    color: "hsl(220 13% 65%)",
     fontSize: "10px",
     fontWeight: 500,
-    whiteSpace: "nowrap",
   },
-  tagMore: {
+  tagsRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "4px",
+    marginTop: "2px",
+  },
+  badgeActive: {
     padding: "2px 6px",
-    color: "hsl(220 13% 50%)",
-    fontSize: "10px",
-    fontWeight: 500,
+    borderRadius: "4px",
+    fontSize: "9px",
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+    backgroundColor: "rgba(34, 197, 94, 0.2)",
+    color: "#22c55e",
+    flexShrink: 0,
   },
-  dateCol: {
-    width: "70px",
+  statsCol: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    flexShrink: 0,
+  },
+  statBox: {
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-end",
-    gap: "2px",
-    flexShrink: 0,
+    minWidth: "44px",
   },
-  date: {
+  statValue: {
     fontSize: "12px",
-    color: "hsl(220 13% 70%)",
+    fontWeight: 700,
+    fontFamily: "'JetBrains Mono', monospace",
+    lineHeight: 1.2,
+  },
+  statLabel: {
+    fontSize: "9px",
     fontWeight: 500,
-  },
-  time: {
-    fontSize: "11px",
-    color: "hsl(220 13% 45%)",
-  },
-  durationCol: {
-    width: "55px",
-    textAlign: "right",
-    flexShrink: 0,
-  },
-  duration: {
-    fontSize: "12px",
-    color: "hsl(220 13% 60%)",
-    fontWeight: 500,
-    fontFamily: "monospace",
-  },
-  eventsCol: {
-    width: "50px",
-    textAlign: "right",
-    flexShrink: 0,
-  },
-  events: {
-    fontSize: "12px",
-    color: "hsl(220 13% 55%)",
-    fontFamily: "monospace",
-  },
-  badge: {
-    padding: "2px 6px",
-    borderRadius: "4px",
-    fontSize: "10px",
-    fontWeight: 600,
+    color: "hsl(220 13% 40%)",
     textTransform: "uppercase",
-    letterSpacing: "0.3px",
-    flexShrink: 0,
-  },
-  badgeActive: {
-    backgroundColor: "rgba(34, 197, 94, 0.2)",
-    color: "#22c55e",
+    letterSpacing: "0.5px",
   },
 };

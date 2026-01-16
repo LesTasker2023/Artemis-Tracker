@@ -8,6 +8,17 @@ import { Clock, Target, Filter } from "lucide-react";
 import type { SessionMeta } from "../../types/electron";
 import { SessionCard } from "./SessionCard";
 
+interface SessionStats {
+  profit: number;
+  profitWithMarkup: number;
+  returnRate: number;
+  returnRateWithMarkup: number;
+  duration: number;
+  lootValue?: number;
+  totalCost?: number;
+  manualExpenses?: number;
+}
+
 interface SessionListProps {
   sessions: SessionMeta[];
   selectedSessionId: string | null;
@@ -15,6 +26,9 @@ interface SessionListProps {
   onSelectSession: (id: string) => void;
   loading: boolean;
   totalCount: number;
+  statsCache: Record<string, SessionStats>;
+  showMarkup: boolean;
+  applyExpenses: boolean;
 }
 
 export function SessionList({
@@ -24,6 +38,9 @@ export function SessionList({
   onSelectSession,
   loading,
   totalCount,
+  statsCache,
+  showMarkup,
+  applyExpenses,
 }: SessionListProps) {
   if (loading) {
     return (
@@ -62,10 +79,19 @@ export function SessionList({
     <div style={styles.container}>
       {/* Column headers */}
       <div style={styles.header}>
-        <div style={styles.headerName}>Name</div>
-        <div style={styles.headerDate}>Date</div>
-        <div style={styles.headerDuration}>Duration</div>
-        <div style={styles.headerEvents}>Events</div>
+        <div style={styles.headerName}>Session</div>
+        <div
+          style={styles.headerStats}
+          title={showMarkup ? "Profit with Markup" : "TT Profit"}
+        >
+          Profit
+        </div>
+        <div
+          style={styles.headerStats}
+          title={showMarkup ? "Return with Markup" : "TT Return"}
+        >
+          Return
+        </div>
       </div>
       <div style={styles.list}>
         {sessions.map((session) => (
@@ -75,11 +101,15 @@ export function SessionList({
             isSelected={selectedSessionId === session.id}
             isActive={activeSessionId === session.id}
             onSelect={onSelectSession}
+            stats={statsCache[session.id]}
+            showMarkup={showMarkup}
+            applyExpenses={applyExpenses}
           />
         ))}
       </div>
       <div style={styles.footer}>
-        Showing {sessions.length} of {totalCount} session{totalCount !== 1 ? "s" : ""}
+        Showing {sessions.length} of {totalCount} session
+        {totalCount !== 1 ? "s" : ""}
       </div>
     </div>
   );
@@ -94,11 +124,11 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     display: "flex",
     alignItems: "center",
-    padding: "8px 12px",
-    gap: "8px",
-    fontSize: "11px",
+    padding: "10px 14px",
+    gap: "12px",
+    fontSize: "10px",
     fontWeight: 600,
-    color: "hsl(220 13% 45%)",
+    color: "hsl(220 13% 40%)",
     textTransform: "uppercase",
     letterSpacing: "0.5px",
     borderBottomWidth: "1px",
@@ -111,31 +141,23 @@ const styles: Record<string, React.CSSProperties> = {
   headerName: {
     flex: 1,
   },
-  headerDate: {
-    width: "70px",
-    textAlign: "right",
-  },
-  headerDuration: {
-    width: "55px",
-    textAlign: "right",
-  },
-  headerEvents: {
-    width: "50px",
+  headerStats: {
+    width: "44px",
     textAlign: "right",
   },
   list: {
     display: "flex",
     flexDirection: "column",
-    gap: "6px",
+    gap: "4px",
     flex: 1,
     overflow: "auto",
-    padding: "12px 16px",
+    padding: "8px 16px",
   },
   footer: {
-    fontSize: "12px",
-    color: "hsl(220 13% 50%)",
+    fontSize: "11px",
+    color: "hsl(220 13% 45%)",
     textAlign: "center",
-    padding: "12px",
+    padding: "10px",
     borderTopWidth: "1px",
     borderTopStyle: "solid",
     borderTopColor: "hsl(220 13% 15%)",
