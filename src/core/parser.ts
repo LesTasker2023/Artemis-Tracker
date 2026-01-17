@@ -93,9 +93,13 @@ export function logEventToParsedEvent(logEvent: {
     parsed.damageType = String(data.damageType);
   }
   
-  // Extract global-specific data (player name)
+  // Extract global-specific data (player name, resource for mining)
   if (data.player !== undefined) {
     parsed.player = String(data.player);
+  }
+  // Map resource to itemName for mining globals
+  if (data.resource !== undefined) {
+    parsed.itemName = String(data.resource);
   }
   
   return parsed;

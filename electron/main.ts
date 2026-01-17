@@ -29,6 +29,22 @@ let popoutWindow: typeof BrowserWindow | null = null;
 let logWatcher: fs.FSWatcher | null = null;
 let lastPosition = 0;
 
+// ==================== Live Events Buffer ====================
+// Rolling buffer of recent events for display when no session is active
+const LIVE_EVENTS_BUFFER_SIZE = 30;
+let liveEventsBuffer: ParsedEvent[] = [];
+
+function addToLiveEventsBuffer(event: ParsedEvent) {
+  // Filter out noise events we don't want in the live feed
+  const noiseTypes = ['UNKNOWN', 'POSITION', 'position'];
+  if (noiseTypes.includes(event.type)) return;
+  
+  liveEventsBuffer.push(event);
+  if (liveEventsBuffer.length > LIVE_EVENTS_BUFFER_SIZE) {
+    liveEventsBuffer.shift();
+  }
+}
+
 // ==================== Log Path Detection ====================
 
 function detectLogPath(): string | undefined {
@@ -291,20 +307,24 @@ function parseEquipmentEvent(line: string): Partial<ParsedEvent> | null {
 
 // Global parser
 function parseGlobalEvent(line: string): Partial<ParsedEvent> | null {
-  const killGlobalMatch = line.match(/(.+) killed a creature \((.+?)\) with a value of (\d+) PED/);
+  // Strip the timestamp and channel prefix to get clean player name
+  // Format: "2026-01-16 22:40:12 [Globals] [] PlayerName killed a creature..."
+  const cleanLine = line.replace(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \[Globals\] \[\] /, '');
+  
+  const killGlobalMatch = cleanLine.match(/(.+) killed a creature \((.+?)\) with a value of (\d+) PED/);
   if (killGlobalMatch) {
     const isHoF = line.includes('Hall of Fame');
     return { category: 'global', type: isHoF ? 'GLOBAL_HOF' : 'GLOBAL_KILL', data: { player: killGlobalMatch[1].trim(), creature: killGlobalMatch[2], value: parseInt(killGlobalMatch[3]), hof: isHoF } };
   }
 
-  const miningGlobalMatch = line.match(/(.+) found a deposit \((.+?)\) with a value of (\d+) PED/);
+  const miningGlobalMatch = cleanLine.match(/(.+) found a deposit \((.+?)\) with a value of (\d+) PED/);
   if (miningGlobalMatch) {
     const isHoF = line.includes('Hall of Fame');
-    const locationMatch = line.match(/at (.+?)!/);
+    const locationMatch = cleanLine.match(/at (.+?)!/);
     return { category: 'global', type: isHoF ? 'GLOBAL_MINING_HOF' : 'GLOBAL_MINING', data: { player: miningGlobalMatch[1].trim(), resource: miningGlobalMatch[2], value: parseInt(miningGlobalMatch[3]), location: locationMatch ? locationMatch[1] : null, hof: isHoF } };
   }
 
-  const craftGlobalMatch = line.match(/(.+) constructed an item \((.+?)\) worth (\d+) PED/);
+  const craftGlobalMatch = cleanLine.match(/(.+) constructed an item \((.+?)\) worth (\d+) PED/);
   if (craftGlobalMatch) return { category: 'global', type: 'GLOBAL_CRAFT', data: { player: craftGlobalMatch[1].trim(), item: craftGlobalMatch[2], value: parseInt(craftGlobalMatch[3]) } };
 
   return null;
@@ -461,8 +481,13 @@ function readNewLines(logPath: string) {
       for (const line of lines) {
         const parsed = parseLine(line);
         if (parsed) {
+          // Add to live events buffer (always, regardless of session state)
+          addToLiveEventsBuffer(parsed);
+          
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.webContents.send('log-event', parsed);
+            // Also send live event for the activity panel
+            mainWindow.webContents.send('live-event', parsed);
           }
           // Forward position and loot events to popout window for asteroid tracking
           if (popoutWindow && !popoutWindow.isDestroyed()) {
@@ -552,8 +577,8 @@ function createWindow() {
   // Load app
   if (process.env.VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL);
-    // Open DevTools in development
-    mainWindow.webContents.openDevTools();
+    // Open DevTools in development - DISABLED FOR PRODUCTION
+    // mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
@@ -609,8 +634,8 @@ function createPopoutWindow() {
   // Load popout page
   if (process.env.VITE_DEV_SERVER_URL) {
     popoutWindow.loadURL(process.env.VITE_DEV_SERVER_URL + '/popout.html');
-    // Open DevTools for popout in dev mode
-    popoutWindow.webContents.openDevTools({ mode: 'detach' });
+    // Open DevTools for popout in dev mode - DISABLED FOR PRODUCTION
+    // popoutWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     popoutWindow.loadFile(path.join(__dirname, '../dist/popout.html'));
   }
@@ -758,6 +783,17 @@ ipcMain.handle('log:status', () => {
     watching: logWatcher !== null,
     position: lastPosition,
   };
+});
+
+// Get current live events buffer
+ipcMain.handle('live-events:get', () => {
+  return [...liveEventsBuffer];
+});
+
+// Clear live events buffer
+ipcMain.handle('live-events:clear', () => {
+  liveEventsBuffer = [];
+  return true;
 });
 
 // Diagnostic probe: return detected path and file stats (exists/size)

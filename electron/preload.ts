@@ -69,6 +69,15 @@ contextBridge.exposeInMainWorld('electron', {
       return () => ipcRenderer.removeListener('log-event', handler);
     },
   },
+  liveEvents: {
+    get: (): Promise<LogEvent[]> => ipcRenderer.invoke('live-events:get'),
+    clear: () => ipcRenderer.invoke('live-events:clear'),
+    onEvent: (callback: (event: LogEvent) => void) => {
+      const handler = (_: unknown, data: LogEvent) => callback(data);
+      ipcRenderer.on('live-event', handler);
+      return () => ipcRenderer.removeListener('live-event', handler);
+    },
+  },
   equipment: {
     load: (type: string) => ipcRenderer.invoke('equipment:load', type),
     checkUpdates: () => ipcRenderer.invoke('equipment:check-updates'),

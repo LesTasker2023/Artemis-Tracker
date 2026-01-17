@@ -21,14 +21,16 @@ interface DetailPanelProps {
   onDelete?: (itemName: string) => void;
   onSync?: () => void;
   isSyncing?: boolean;
+  readOnlyTT?: boolean;
 }
 
 export function DetailPanel({
   item,
   onUpdate,
   onDelete,
-  onSync,
-  isSyncing,
+  onSync: _onSync,
+  isSyncing: _isSyncing,
+  readOnlyTT = false,
 }: DetailPanelProps) {
   const [formData, setFormData] = useState<MarkupFormData>({
     ttValue: "0",
@@ -56,23 +58,7 @@ export function DetailPanel({
   if (!item) {
     return (
       <div style={styles.empty}>
-        <div style={styles.emptyContent}>
-          <div style={styles.emptyText}>Select an item to edit</div>
-          {onSync && (
-            <button
-              onClick={onSync}
-              disabled={isSyncing}
-              style={styles.syncButton}
-              title="Sync from database"
-            >
-              <RefreshCw
-                size={14}
-                style={isSyncing ? styles.spinner : undefined}
-              />
-              <span>{isSyncing ? "Syncing..." : "Sync Database"}</span>
-            </button>
-          )}
-        </div>
+        <div style={styles.emptyContent}></div>
       </div>
     );
   }
@@ -134,7 +120,7 @@ export function DetailPanel({
 
       {/* TT Value */}
       <div style={styles.section}>
-        <div style={styles.sectionTitle}>TT VALUE</div>
+        <div style={styles.sectionTitle}>TT VALUE (per unit)</div>
         <div style={styles.radioRow}>
           <input
             type="number"
@@ -142,14 +128,22 @@ export function DetailPanel({
             onChange={(e) =>
               setFormData({ ...formData, ttValue: e.target.value })
             }
-            style={styles.input}
+            style={{
+              ...styles.input,
+              ...(readOnlyTT ? { opacity: 0.7, cursor: "not-allowed" } : {}),
+            }}
             step="0.01"
             min="0"
             placeholder="0.00"
+            readOnly={readOnlyTT}
           />
           <span style={styles.unit}>PED</span>
         </div>
-        <div style={styles.helpText}>Trade Terminal value of the item</div>
+        <div style={styles.helpText}>
+          {readOnlyTT
+            ? "Per-unit TT value from session data (read-only)"
+            : "Trade Terminal value of the item"}
+        </div>
       </div>
 
       {/* Markup Settings */}

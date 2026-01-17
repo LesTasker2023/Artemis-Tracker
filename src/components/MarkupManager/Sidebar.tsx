@@ -4,7 +4,15 @@
  */
 
 import React from "react";
-import { Star, Edit, AlertCircle, EyeOff, Search, X } from "lucide-react";
+import {
+  Star,
+  Edit,
+  AlertCircle,
+  EyeOff,
+  Search,
+  X,
+  CheckCircle,
+} from "lucide-react";
 import type { FilterMode, SortBy } from "./types";
 
 interface SidebarProps {
@@ -43,21 +51,41 @@ export function Sidebar({
     label: string;
     icon: React.ReactNode;
     count?: number;
+    color: string;
   }> = [
     {
-      mode: "custom",
-      label: "Custom",
-      icon: <Edit size={16} />,
-      count: stats.custom,
+      mode: "hasMarkup",
+      label: "Has Markup",
+      icon: <CheckCircle size={16} />,
+      count: stats.configured,
+      color: "hsl(142 71% 45%)", // Green
+    },
+    {
+      mode: "missing",
+      label: "Needs Markup",
+      icon: <AlertCircle size={16} />,
+      color: "hsl(38 92% 50%)", // Orange/amber
     },
     {
       mode: "favorites",
       label: "Favorites",
       icon: <Star size={16} />,
       count: stats.favorites,
+      color: "hsl(45 93% 47%)", // Gold
     },
-    { mode: "missing", label: "Needs Markup", icon: <AlertCircle size={16} /> },
-    { mode: "ignored", label: "Ignored", icon: <EyeOff size={16} /> },
+    {
+      mode: "custom",
+      label: "Custom",
+      icon: <Edit size={16} />,
+      count: stats.custom,
+      color: "hsl(217 91% 60%)", // Blue
+    },
+    {
+      mode: "ignored",
+      label: "Ignored",
+      icon: <EyeOff size={16} />,
+      color: "hsl(220 13% 50%)", // Gray
+    },
   ];
 
   const sortOptions: { value: SortBy; label: string }[] = [
@@ -98,7 +126,14 @@ export function Sidebar({
         {filters.map((filter) => (
           <button
             key={filter.mode}
-            onClick={() => onFilterChange(filter.mode)}
+            onClick={() => {
+              // Toggle off if clicking active filter
+              if (activeFilter === filter.mode) {
+                onFilterChange(null);
+              } else {
+                onFilterChange(filter.mode);
+              }
+            }}
             style={{
               ...styles.filterButton,
               ...(activeFilter === filter.mode
@@ -106,7 +141,7 @@ export function Sidebar({
                 : {}),
             }}
           >
-            {filter.icon}
+            <span style={{ color: filter.color }}>{filter.icon}</span>
             <span style={styles.filterLabel}>{filter.label}</span>
             {filter.count !== undefined && (
               <span style={styles.filterCount}>{filter.count}</span>
@@ -170,8 +205,8 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: "flex",
     flexDirection: "column",
-    width: "220px",
-    minWidth: "220px",
+    width: "280px",
+    minWidth: "280px",
     backgroundColor: "hsl(220 13% 9%)",
     borderRightWidth: "1px",
     borderRightStyle: "solid",

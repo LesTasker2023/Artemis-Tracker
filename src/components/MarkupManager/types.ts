@@ -4,7 +4,7 @@
 
 import type { ItemMarkupEntry } from "../../core/markup";
 
-export type FilterMode = "session" | "custom" | "favorites" | "missing" | "ignored";
+export type FilterMode = "session" | "custom" | "favorites" | "missing" | "hasMarkup" | "ignored" | null;
 export type SortBy = "name" | "category" | "markup-high" | "markup-low" | "recent";
 
 export interface MarkupManagerProps {
@@ -31,6 +31,8 @@ export interface FilterState {
 export interface ItemWithMeta extends ItemMarkupEntry {
   isInSession?: boolean;
   needsMarkup?: boolean;
+  quantity?: number;
+  sessionValue?: number;
 }
 
 export interface MarkupFormData {

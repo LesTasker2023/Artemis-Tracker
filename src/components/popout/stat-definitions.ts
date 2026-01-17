@@ -35,7 +35,7 @@ export interface StatDefinition {
   key: string;
   label: string;
   icon: LucideIcon;
-  category: "combat" | "economy" | "skills" | "efficiency" | "time";
+  category: "combat" | "economy" | "skills" | "efficiency" | "time" | "hourly";
   description: string;
   getValue: (data: StatData) => StatValue;
 }
@@ -67,6 +67,7 @@ export interface StatData {
   skillGains: number;
   skillEvents: number;
   duration: number;
+  totalEvents?: number; // Total log events count
   // Weapon stats for realistic DPS
   usesPerMinute?: number;  // Attack speed from active loadout
   // Markup-adjusted values
@@ -417,12 +418,12 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     },
   },
 
-  // ==================== EFFICIENCY / TIME ====================
+  // ==================== HOURLY RATES ====================
   {
     key: "killsPerHour",
     label: "KILLS/HR",
     icon: Timer,
-    category: "efficiency",
+    category: "hourly",
     description: "Kill rate per hour",
     getValue: (d) => {
       const rate = d.duration > 0 ? (d.kills / d.duration) * 3600 : 0;
@@ -437,7 +438,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     key: "lootPerHour",
     label: "LOOT/HR",
     icon: Clock,
-    category: "efficiency",
+    category: "hourly",
     description: "Loot collected per hour",
     getValue: (d) => {
       const loot = d.showMarkup && d.markupEnabled && d.lootValueWithMarkup !== undefined
@@ -456,7 +457,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     key: "skillPerHour",
     label: "SKILL/HR",
     icon: TrendingUp,
-    category: "efficiency",
+    category: "hourly",
     description: "Skill points gained per hour",
     getValue: (d) => {
       const rate = d.duration > 0 ? (d.skillGains / d.duration) * 3600 : 0;
@@ -471,7 +472,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     key: "profitPerHour",
     label: "PROFIT/HR",
     icon: DollarSign,
-    category: "efficiency",
+    category: "hourly",
     description: "Net profit per hour",
     getValue: (d) => {
       const rate = d.duration > 0 ? (d.profit / d.duration) * 3600 : 0;
@@ -523,7 +524,7 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
     key: "costPerHour",
     label: "COST/HR",
     icon: ArrowDownRight,
-    category: "efficiency",
+    category: "hourly",
     description: "Cost per hour (spend + decay)",
     getValue: (d) => {
       const totalCost = d.totalSpend + d.decay;
@@ -615,6 +616,112 @@ export const STAT_DEFINITIONS: StatDefinition[] = [
       };
     },
   },
+
+  // ==================== ADDITIONAL HOURLY ====================
+  {
+    key: "dmgPerHour",
+    label: "DMG/HR",
+    icon: Swords,
+    category: "hourly",
+    description: "Damage output per hour",
+    getValue: (d) => {
+      const rate = d.duration > 0 ? (d.damageDealt / d.duration) * 3600 : 0;
+      return {
+        value: formatDecimal(rate, 0),
+        color: colors.warning,
+        numericValue: rate,
+      };
+    },
+  },
+
+  // ==================== ADDITIONAL EFFICIENCY ====================
+  {
+    key: "shotsPerKill",
+    label: "SHOTS/KILL",
+    icon: Crosshair,
+    category: "efficiency",
+    description: "Average shots needed per kill",
+    getValue: (d) => {
+      const avg = d.kills > 0 ? d.shots / d.kills : 0;
+      return {
+        value: formatDecimal(avg, 1),
+        color: colors.info,
+        numericValue: avg,
+      };
+    },
+  },
+  {
+    key: "avgDmgPerHit",
+    label: "DMG/HIT",
+    icon: Target,
+    category: "efficiency",
+    description: "Average damage per successful hit",
+    getValue: (d) => {
+      const avg = d.hits > 0 ? d.damageDealt / d.hits : 0;
+      return {
+        value: formatDecimal(avg, 1),
+        color: colors.warning,
+        numericValue: avg,
+      };
+    },
+  },
+  {
+    key: "killsPerPed",
+    label: "KILLS/PED",
+    icon: Skull,
+    category: "efficiency",
+    description: "Kills per PED spent",
+    getValue: (d) => {
+      const rate = d.totalSpend > 0 ? d.kills / d.totalSpend : 0;
+      return {
+        value: formatDecimal(rate, 2),
+        color: colors.warning,
+        numericValue: rate,
+      };
+    },
+  },
+  {
+    key: "skillsPerKill",
+    label: "SKILLS/KILL",
+    icon: TrendingUp,
+    category: "skills",
+    description: "Average skill gains per kill",
+    getValue: (d) => {
+      const rate = d.kills > 0 ? d.skillGains / d.kills : 0;
+      return {
+        value: `+${formatDecimal(rate, 4)}`,
+        color: colors.purple,
+        numericValue: rate,
+      };
+    },
+  },
+  {
+    key: "skillsPerPed",
+    label: "SKILLS/PED",
+    icon: TrendingUp,
+    category: "skills",
+    description: "Skill gains per PED spent",
+    getValue: (d) => {
+      const rate = d.totalSpend > 0 ? d.skillGains / d.totalSpend : 0;
+      return {
+        value: `+${formatDecimal(rate, 4)}`,
+        color: colors.purple,
+        numericValue: rate,
+      };
+    },
+  },
+  {
+    key: "totalEvents",
+    label: "EVENTS",
+    icon: Activity,
+    category: "time",
+    description: "Total log events recorded",
+    getValue: (d) => ({
+      value: d.totalEvents ?? 0,
+      color: colors.textPrimary,
+      numericValue: d.totalEvents ?? 0,
+    }),
+  },
 ];
 
 // Create lookup map for easy access
@@ -626,6 +733,7 @@ export const STATS_BY_CATEGORY = {
   economy: STAT_DEFINITIONS.filter((s) => s.category === "economy"),
   skills: STAT_DEFINITIONS.filter((s) => s.category === "skills"),
   efficiency: STAT_DEFINITIONS.filter((s) => s.category === "efficiency"),
+  hourly: STAT_DEFINITIONS.filter((s) => s.category === "hourly"),
   time: STAT_DEFINITIONS.filter((s) => s.category === "time"),
 };
 

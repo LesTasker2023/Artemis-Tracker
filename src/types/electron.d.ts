@@ -21,6 +21,12 @@ interface LogAPI {
   onEvent: (callback: (event: LogEvent) => void) => () => void;
 }
 
+interface LiveEventsAPI {
+  get: () => Promise<LogEvent[]>;
+  clear: () => Promise<boolean>;
+  onEvent: (callback: (event: LogEvent) => void) => () => void;
+}
+
 interface UpdateResult {
   updated: string[];
   failed: string[];
@@ -180,8 +186,9 @@ interface MarkupSearchOptions {
 }
 
 interface MarkupItemUpdate {
+  ttValue?: number;       // TT buyback value
   markupPercent?: number;
-  markupValue?: number;  // Fixed markup in PED (renamed from markupFixed for consistency)
+  markupValue?: number;   // Fixed markup in PED (renamed from markupFixed for consistency)
   useFixed?: boolean;
   notes?: string;
   favorite?: boolean;
@@ -218,6 +225,7 @@ declare global {
   interface Window {
     electron?: {
       log: LogAPI;
+      liveEvents: LiveEventsAPI;
       equipment: EquipmentAPI;
       session: SessionAPI;
       popout: PopoutAPI;
@@ -233,4 +241,4 @@ declare global {
 // Re-export for convenience
 export type { LogEvent } from '../core/types';
 
-export type { LogEvent, LogAPI, SessionAPI, SessionMeta, PopoutAPI, LiveStats, AsteroidAPI, Asteroid, AsteroidLoot, UpdateAPI, UpdateInfo, UpdateProgress, IpcRendererAPI, MarkupAPI, MarkupSyncResult, MarkupImportResult, MarkupSearchOptions, MarkupItemUpdate };
+export type { LogEvent, LogAPI, LiveEventsAPI, SessionAPI, SessionMeta, PopoutAPI, LiveStats, AsteroidAPI, Asteroid, AsteroidLoot, UpdateAPI, UpdateInfo, UpdateProgress, IpcRendererAPI, MarkupAPI, MarkupSyncResult, MarkupImportResult, MarkupSearchOptions, MarkupItemUpdate };

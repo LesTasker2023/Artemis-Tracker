@@ -30,14 +30,15 @@ import projectLogo from "../data/artemis logo.png";
 import { useLogEvents } from "./hooks/useLogEvents";
 import { useSession } from "./hooks/useSession";
 import { usePlayerName } from "./hooks/usePlayerName";
+import { useLiveEvents } from "./hooks/useLiveEvents";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { UpdateNotification } from "./components/UpdateNotification";
 import { WelcomePage } from "./components/WelcomePage";
-import { LoadoutManager, LoadoutDropdown } from "./components/LoadoutManager";
+import { LoadoutManager } from "./components/LoadoutManager";
 import { useLoadouts } from "./hooks/useLoadouts";
 import { SessionManager } from "./components/SessionManager";
 import { Dashboard } from "./components/Dashboard";
-import { LootAnalysis } from "./components/LootAnalysis";
+import { LootManager } from "./components/LootManager";
 import { StartSessionModal } from "./components/StartSessionModal";
 import { MarkupManager } from "./components/MarkupManager";
 import ActiveSessionDashboard from "./components/ActiveSessionDashboard";
@@ -163,6 +164,9 @@ function App() {
     clear: _clear,
     selectFile,
   } = useLogEvents();
+
+  // Live events for activity panel (works without active session)
+  const { liveEvents, clearLiveEvents } = useLiveEvents();
 
   // Auto-start log watcher after initialization (uses saved path from settings if available)
   useEffect(() => {
@@ -720,10 +724,47 @@ function App() {
       console.error("[App] Failed to stop session:", e);
     }
 
-    // Keep the user on the Dashboard tab but show session ended state
-    setActiveTab("dashboard");
+    // Stay on current page
     console.log("[App] stop() complete");
   };
+
+  // Force stop all active sessions (for stuck sessions)
+  const forceStopAllSessions = useCallback(async () => {
+    console.log("[App] forceStopAllSessions() called");
+
+    // First stop current session if any
+    try {
+      await stopLog();
+      stopSession();
+    } catch (e) {
+      console.error("[App] Error stopping current session:", e);
+    }
+
+    // Get all sessions and mark active ones as ended
+    try {
+      const sessionList = await window.electron?.session?.list();
+      if (sessionList) {
+        for (const meta of sessionList) {
+          if (!meta.endedAt) {
+            // Load the session
+            const sessionData = await window.electron?.session?.load(meta.id);
+            if (sessionData) {
+              // Mark it as ended
+              const endedSession = {
+                ...sessionData,
+                endedAt: new Date().toISOString(),
+              };
+              await window.electron?.session?.save(endedSession);
+              console.log(`[App] Force-ended session: ${meta.id}`);
+            }
+          }
+        }
+      }
+      console.log("[App] forceStopAllSessions() complete");
+    } catch (e) {
+      console.error("[App] forceStopAllSessions failed:", e);
+    }
+  }, [stopLog, stopSession]);
 
   // Popout state and helpers
   const [popoutOpen, setPopoutOpen] = useState<boolean>(false);
@@ -923,89 +964,94 @@ function App() {
               alt="Project Delta"
               style={{ height: 48, objectFit: "contain" }}
             />
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <h1 style={styles.title}>ARTEMIS</h1>
-              <span style={styles.subtitle}>v{__APP_VERSION__}</span>
-            </div>
+            <span
+              style={{
+                ...styles.subtitle,
+                marginLeft: "-10px",
+                alignSelf: "flex-end",
+              }}
+            >
+              v{__APP_VERSION__}
+            </span>
           </div>
         </div>
         <div style={styles.controls}>
-          {/* Active Loadout Selector */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "4px",
-              alignItems: "center",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "10px",
-                color: "hsl(220 13% 45%)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
-              Active Loadout
-            </span>
-            <LoadoutDropdown
-              loadouts={loadouts}
-              activeLoadout={activeLoadout}
-              onSelect={setActiveLoadout}
-              compact
-            />
-          </div>
-
+          {/* Start/Stop Button */}
           {!sessionActive ? (
-            <button onClick={start} style={styles.buttonPrimary}>
-              <Play size={14} style={{ marginRight: 6 }} /> Start
+            <button
+              onClick={start}
+              style={styles.buttonPrimary}
+              title="Start new session"
+            >
+              <Play size={14} style={{ marginRight: 6 }} />
+              Start
             </button>
           ) : (
-            <button onClick={stop} style={styles.buttonDanger}>
-              <Square size={14} style={{ marginRight: 6 }} /> Stop
+            <button
+              onClick={stop}
+              style={styles.buttonDanger}
+              title="Stop active session"
+            >
+              <Square size={14} style={{ marginRight: 6 }} />
+              Stop
             </button>
           )}
 
-          {/* DEV: Generate Test Session Button */}
-          {!sessionActive && (
+          {/* Pause/Resume Button - only show when session active */}
+          {sessionActive && (
             <button
-              onClick={generateTestSession}
-              style={{
-                ...styles.buttonSecondary,
-                backgroundColor: "hsl(280 60% 20%)",
-                borderColor: "hsl(280 60% 40%)",
-              }}
-              title="Generate test session with mock data"
+              onClick={() =>
+                sessionPaused ? unpauseSession() : pauseSession()
+              }
+              style={
+                sessionPaused ? styles.buttonWarning : styles.buttonSecondary
+              }
+              title={sessionPaused ? "Resume session" : "Pause session"}
             >
-              <Zap size={14} style={{ marginRight: 6 }} /> Test
+              {sessionPaused ? (
+                <Play size={14} style={{ marginRight: 4 }} />
+              ) : (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  style={{ marginRight: 4 }}
+                >
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              )}
+              {sessionPaused ? "Resume" : "Pause"}
             </button>
           )}
 
           {/* Update controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {updateStatus === "checking" && (
-              <span style={{ color: "hsl(220 13% 45%)" }}>Checking…</span>
+              <span style={{ color: "hsl(220 13% 45%)", fontSize: "12px" }}>
+                Checking…
+              </span>
             )}
             {updateStatus === "available" && (
-              <span style={{ color: "hsl(217 91% 68%)" }}>
+              <span style={{ color: "hsl(217 91% 68%)", fontSize: "12px" }}>
                 Update available
               </span>
             )}
             {updateStatus === "downloading" && (
-              <span style={{ color: "hsl(217 91% 68%)" }}>
+              <span style={{ color: "hsl(217 91% 68%)", fontSize: "12px" }}>
                 {updateProgress}%
               </span>
             )}
 
             {updateStatus === "error" && (
-              <span style={{ color: "hsl(0 84% 60%)" }}>
+              <span style={{ color: "hsl(0 84% 60%)", fontSize: "12px" }}>
                 {updateError || "Update error"}
               </span>
             )}
           </div>
 
-          {/* Popout / HUD toggle button */}
+          {/* Overlay Button */}
           <button
             onClick={async () => {
               try {
@@ -1020,10 +1066,11 @@ function App() {
                 console.error("Popout toggle failed:", e);
               }
             }}
-            style={styles.buttonSecondary}
+            style={popoutOpen ? styles.buttonWarning : styles.buttonSecondary}
             title={popoutOpen ? "Close overlay" : "Show overlay"}
           >
-            <ExternalLink size={14} />
+            <ExternalLink size={14} style={{ marginRight: 4 }} />
+            Overlay
           </button>
         </div>
       </header>
@@ -1036,7 +1083,7 @@ function App() {
         >
           <Activity size={14} /> Dashboard
         </button>
-        <button
+        {/* <button
           key={`performance-${animationKey}`}
           onClick={() => setActiveTab("performance")}
           style={{
@@ -1119,7 +1166,7 @@ function App() {
           }`}
         >
           <Clock size={14} /> Hourly Rates
-        </button>
+        </button> */}
         <button
           key={`loot-${animationKey}`}
           onClick={() => setActiveTab("loot")}
@@ -1200,6 +1247,8 @@ function App() {
             stats={stats}
             activeLoadout={activeLoadout}
             onNavigateToPage={setActiveTab}
+            isPaused={sessionPaused}
+            liveEvents={liveEvents}
           />
         </div>
       )}
@@ -1241,8 +1290,8 @@ function App() {
       )}
 
       {activeTab === "loot" && (
-        <div style={styles.tabContent}>
-          <LootAnalysis
+        <div style={{ ...styles.tabContent, overflow: "hidden" }}>
+          <LootManager
             stats={displayStats}
             markupLibrary={markupLibrary}
             markupConfig={markupConfig}
@@ -1275,6 +1324,8 @@ function App() {
           <SessionManager
             onViewSession={handleViewSession}
             onResumeSession={handleResumeSession}
+            onForceStopAll={forceStopAllSessions}
+            onStop={stop}
             activeSessionId={session?.id}
             activeSession={session}
             markupLibrary={markupLibrary}
@@ -1497,6 +1548,7 @@ const styles: Record<string, React.CSSProperties> = {
     transition: "all 0.2s ease",
     whiteSpace: "nowrap",
     flexShrink: 0,
+    zIndex: 99999999,
   },
   tabActive: {
     padding: "12px 20px",
@@ -1682,6 +1734,24 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
+  },
+  buttonWarning: {
+    padding: "8px 16px",
+    fontSize: "13px",
+    fontWeight: "600",
+    backgroundColor: "rgba(251, 191, 36, 0.15)",
+    color: "#fbbf24",
+    border: "1px solid rgba(251, 191, 36, 0.3)",
+    borderRadius: "6px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    transition: "all 0.2s ease",
+  },
+  controlGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
   },
   error: {
     padding: "12px 24px",

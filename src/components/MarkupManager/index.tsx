@@ -29,7 +29,7 @@ export function MarkupManager({
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({
-    mode: "missing",
+    mode: null,
     category: null,
     searchQuery: "",
     sortBy: "name",
@@ -60,6 +60,9 @@ export function MarkupManager({
   const displayItems = useMemo(() => {
     if (!isReady || !library?.items) return [];
 
+    // If no filter selected and no search query, show nothing
+    if (!filters.mode && !filters.searchQuery.trim()) return [];
+
     const items = library.items;
     const sessionKeys = sessionLoot ? new Set(Object.keys(sessionLoot)) : null;
     let results: ItemWithMeta[] = [];
@@ -70,26 +73,32 @@ export function MarkupManager({
       const isInSession = sessionKeys?.has(name) ?? false;
       const needsMarkup = !item.markupPercent || item.markupPercent === 100;
 
-      let passes = false;
-      switch (filters.mode) {
-        case "session":
-          passes = isInSession;
-          break;
-        case "custom":
-          passes = item.isCustom || item.source === "manual";
-          break;
-        case "favorites":
-          passes = !!item.favorite;
-          break;
-        case "missing":
-          passes = needsMarkup;
-          break;
-        case "ignored":
-          passes = !!item.ignored;
-          break;
+      // Check filter mode (if set)
+      let passesFilter = true;
+      if (filters.mode) {
+        switch (filters.mode) {
+          case "session":
+            passesFilter = isInSession;
+            break;
+          case "custom":
+            passesFilter = item.isCustom || item.source === "manual";
+            break;
+          case "favorites":
+            passesFilter = !!item.favorite;
+            break;
+          case "missing":
+            passesFilter = needsMarkup;
+            break;
+          case "hasMarkup":
+            passesFilter = !needsMarkup; // Has markup = not missing markup
+            break;
+          case "ignored":
+            passesFilter = !!item.ignored;
+            break;
+        }
       }
 
-      if (!passes) continue;
+      if (!passesFilter) continue;
 
       // Category filter
       if (filters.category && item.category !== filters.category) continue;

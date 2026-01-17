@@ -1351,7 +1351,7 @@ const detailStyles: Record<string, React.CSSProperties> = {
     fontSize: "21px",
     fontWeight: "500",
     marginLeft: "4px",
-    opacity: 0.7",
+    opacity: 0.7,
   },
   heroSubtext: {
     fontSize: "18px",

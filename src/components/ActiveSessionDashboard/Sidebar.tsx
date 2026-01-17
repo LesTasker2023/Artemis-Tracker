@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Clock, Target } from "lucide-react";
 import { Session } from "../../core/session";
 import { Loadout } from "../../core/loadout";
+import { getStoredPlayerName } from "../../hooks/usePlayerName";
 
 const formatDuration = (ms: number): string => {
   const seconds = Math.floor(ms / 1000);
@@ -22,6 +23,7 @@ interface SidebarProps {
   setApplyMarkup: (value: boolean) => void;
   applyAdditionalExpenses: boolean;
   setApplyAdditionalExpenses: (value: boolean) => void;
+  isPaused?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -31,7 +33,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   setApplyMarkup,
   applyAdditionalExpenses,
   setApplyAdditionalExpenses,
+  isPaused = false,
 }) => {
+  // Check if session is active (exists and not ended)
+  const isSessionActive = session && !session.endedAt;
+
   // Use default values if no session
   const displaySession =
     session ||
@@ -40,20 +46,56 @@ const Sidebar: React.FC<SidebarProps> = ({
       startedAt: new Date().toISOString(),
     } as Session);
 
-  const duration = Date.now() - new Date(displaySession.startedAt).getTime();
+  // Calculate initial duration accounting for paused time
+  const getActiveDuration = () => {
+    if (!isSessionActive) return 0;
+    const elapsed = Date.now() - new Date(displaySession.startedAt).getTime();
+    const pausedTime = session?.totalPausedTime || 0;
+    return elapsed - pausedTime;
+  };
+
+  // State for real-time duration updates
+  const [duration, setDuration] = useState(getActiveDuration());
+
+  // Reset duration when session ends
+  useEffect(() => {
+    if (!isSessionActive) {
+      setDuration(0);
+    }
+  }, [isSessionActive]);
+
+  // Update duration every second when session is active and not paused
+  useEffect(() => {
+    if (!isSessionActive || isPaused) return;
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - new Date(displaySession.startedAt).getTime();
+      const pausedTime = session?.totalPausedTime || 0;
+      setDuration(elapsed - pausedTime);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    isSessionActive,
+    displaySession.startedAt,
+    isPaused,
+    session?.totalPausedTime,
+  ]);
 
   return (
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <h2 style={styles.title}>Active Session</h2>
-        <p style={styles.subtitle}>Live Statistics</p>
+        <h2 style={styles.title}>
+          {isSessionActive ? "Active Session" : "No Session"}
+        </h2>
+        {isSessionActive && <p style={styles.subtitle}>Live Statistics</p>}
       </div>
 
       {/* Session Info */}
       <div style={styles.content}>
         {/* Session Name - Only show if session is active */}
-        {session && (
+        {isSessionActive && (
           <div style={styles.section}>
             <div style={styles.label}>Session</div>
             <div style={styles.value}>
@@ -63,18 +105,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Duration - Only show if session is active */}
-        {session && (
+        {isSessionActive && (
           <div style={styles.section}>
-            <div style={styles.labelRow}>
-              <Clock size={12} />
-              <span style={styles.label}>Duration</span>
-            </div>
-            <div style={styles.value}>{formatDuration(duration)}</div>
+            <div style={styles.durationValue}>{formatDuration(duration)}</div>
           </div>
         )}
 
         {/* Loadout */}
-        {loadout && (
+        {isSessionActive && loadout && (
           <div style={styles.section}>
             <div style={styles.labelRow}>
               <Target size={12} />
@@ -85,7 +123,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Tags */}
-        {session && session.tags && session.tags.length > 0 && (
+        {isSessionActive && session.tags && session.tags.length > 0 && (
           <div style={styles.section}>
             <div style={styles.label}>Tags</div>
             <div style={styles.tagList}>
@@ -100,75 +138,95 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Toggles */}
-      <div style={styles.togglesSection}>
-        <div style={styles.buttonRow}>
-          <button
-            onClick={() => setApplyMarkup(!applyMarkup)}
-            style={{
-              ...styles.toggleButton,
-              color: applyMarkup ? "rgb(6, 182, 212)" : "rgb(111, 122, 144)",
-              backgroundColor: applyMarkup
-                ? "rgba(6, 182, 212, 0.15)"
-                : "transparent",
-              borderColor: applyMarkup
-                ? "rgba(6, 182, 212, 0.3)"
-                : "rgb(44, 49, 58)",
-            }}
-            title="Toggle Markup Values"
-          >
-            MU
-          </button>
-          <button
-            onClick={() => setApplyAdditionalExpenses(!applyAdditionalExpenses)}
-            style={{
-              ...styles.toggleButton,
-              color: applyAdditionalExpenses
-                ? "rgb(251, 191, 36)"
-                : "rgb(111, 122, 144)",
-              backgroundColor: applyAdditionalExpenses
-                ? "rgba(251, 191, 36, 0.15)"
-                : "transparent",
-              borderColor: applyAdditionalExpenses
-                ? "rgba(251, 191, 36, 0.3)"
-                : "rgb(44, 49, 58)",
-            }}
-            title="Apply Additional Expenses"
-          >
-            AE
-          </button>
+      {isSessionActive && (
+        <div style={styles.togglesSection}>
+          <div style={styles.buttonRow}>
+            <button
+              onClick={() => setApplyMarkup(!applyMarkup)}
+              style={{
+                ...styles.toggleButton,
+                color: applyMarkup ? "rgb(6, 182, 212)" : "rgb(111, 122, 144)",
+                backgroundColor: applyMarkup
+                  ? "rgba(6, 182, 212, 0.15)"
+                  : "transparent",
+                borderColor: applyMarkup
+                  ? "rgba(6, 182, 212, 0.3)"
+                  : "rgb(44, 49, 58)",
+              }}
+              title="Toggle Markup Values"
+            >
+              MU
+            </button>
+            <button
+              onClick={() =>
+                setApplyAdditionalExpenses(!applyAdditionalExpenses)
+              }
+              style={{
+                ...styles.toggleButton,
+                color: applyAdditionalExpenses
+                  ? "rgb(251, 191, 36)"
+                  : "rgb(111, 122, 144)",
+                backgroundColor: applyAdditionalExpenses
+                  ? "rgba(251, 191, 36, 0.15)"
+                  : "transparent",
+                borderColor: applyAdditionalExpenses
+                  ? "rgba(251, 191, 36, 0.3)"
+                  : "rgb(44, 49, 58)",
+              }}
+              title="Apply Additional Expenses"
+            >
+              AE
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Quick Stats */}
-      <div style={styles.quickStats}>
-        <div style={styles.statsList}>
-          <div style={styles.miniStat}>
-            <span style={styles.miniStatValue}>
-              {session?.events?.length ?? 0}
-            </span>
-            <span style={styles.miniStatLabel}>Events</span>
-          </div>
-          <div style={styles.miniStat}>
-            <span style={styles.miniStatValue}>
-              {session?.events?.filter((e) => e.type === "kill")?.length ?? 0}
-            </span>
-            <span style={styles.miniStatLabel}>Kills</span>
-          </div>
-          <div style={styles.miniStat}>
-            <span style={styles.miniStatValue}>
-              {session?.events?.filter((e) => e.type === "global")?.length ?? 0}
-            </span>
-            <span style={styles.miniStatLabel}>Globals</span>
-          </div>
-        </div>
-      </div>
+      {/* Recent Globals Log */}
+      {session &&
+        session.events &&
+        (() => {
+          const playerName = getStoredPlayerName();
+          const myGlobals = session.events.filter(
+            (e) =>
+              (e.type === "global" || e.type === "hof") &&
+              e.player?.toLowerCase() === playerName?.toLowerCase()
+          );
+          return (
+            <div style={styles.globalsSection}>
+              <div style={styles.globalsSectionHeader}>
+                <span style={styles.globalsSectionTitle}>My Globals</span>
+              </div>
+              <div style={styles.globalsList}>
+                {myGlobals
+                  .slice(-5)
+                  .reverse()
+                  .map((global, idx) => (
+                    <div key={idx} style={styles.globalItem}>
+                      <div style={styles.globalValue}>
+                        {global.value?.toFixed(2) || "0.00"} PED
+                      </div>
+                      <div style={styles.globalTime}>
+                        {new Date(global.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                {myGlobals.length === 0 && (
+                  <div style={styles.noGlobals}>No globals yet</div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
     </div>
   );
 };
 
 const styles = {
   container: {
-    width: "220px",
+    width: "280px",
     backgroundColor: "hsl(220 13% 12%)",
     borderRight: "1px solid hsl(220 13% 18%)",
     display: "flex",
@@ -232,6 +290,20 @@ const styles = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap" as const,
+  },
+  durationValue: {
+    fontSize: "20px",
+    fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+    fontWeight: 700,
+    color: "#00a8ff",
+    textShadow:
+      "0 0 10px rgba(0, 168, 255, 0.5), 0 0 20px rgba(0, 168, 255, 0.3)",
+    letterSpacing: "0.1em",
+    backgroundColor: "rgba(0, 168, 255, 0.05)",
+    padding: "8px 12px",
+    borderRadius: "6px",
+    border: "1px solid rgba(0, 168, 255, 0.3)",
+    fontVariantNumeric: "tabular-nums" as const,
   },
   tagList: {
     display: "flex",
@@ -297,6 +369,63 @@ const styles = {
     color: "#3b82f6",
     textTransform: "uppercase" as const,
     letterSpacing: "0.05em",
+  },
+  globalsSection: {
+    padding: "12px",
+    borderTop: "1px solid hsl(220 13% 18%)",
+    flex: 1,
+    overflow: "auto",
+    display: "flex",
+    flexDirection: "column" as const,
+  },
+  globalsSectionHeader: {
+    marginBottom: "8px",
+  },
+  globalsSectionTitle: {
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "hsl(220 13% 50%)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.05em",
+  },
+  globalsList: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "6px",
+  },
+  globalItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 10px",
+    backgroundColor: "rgba(251, 191, 36, 0.1)",
+    borderRadius: "6px",
+    border: "1px solid rgba(251, 191, 36, 0.2)",
+  },
+  globalValue: {
+    fontSize: "13px",
+    fontWeight: 700,
+    color: "#fbbf24",
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  globalPlayer: {
+    fontSize: "12px",
+    color: "hsl(0 0% 85%)",
+    flex: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap" as const,
+  },
+  globalTime: {
+    fontSize: "10px",
+    color: "hsl(220 13% 50%)",
+  },
+  noGlobals: {
+    fontSize: "12px",
+    color: "hsl(220 13% 40%)",
+    textAlign: "center" as const,
+    padding: "16px",
+    fontStyle: "italic",
   },
 };
 

@@ -4,7 +4,15 @@
  */
 
 import React from "react";
-import { Clock, CheckCircle, Tag, X, Search, Package } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  Tag,
+  X,
+  Search,
+  Package,
+  AlertTriangle,
+} from "lucide-react";
 import type { FilterState, FilterMode, SortBy } from "./types";
 
 interface SidebarProps {
@@ -22,6 +30,7 @@ interface SidebarProps {
   onToggleMarkup: () => void;
   applyExpenses: boolean;
   onToggleExpenses: () => void;
+  onForceStopAll?: () => Promise<void>;
 }
 
 export function Sidebar({
@@ -35,6 +44,7 @@ export function Sidebar({
   onToggleMarkup,
   applyExpenses,
   onToggleExpenses,
+  onForceStopAll,
 }: SidebarProps) {
   const filterButtons: {
     mode: FilterMode;
@@ -279,6 +289,20 @@ export function Sidebar({
           </div>
         </div>
       )}
+
+      {/* Force Stop - at bottom with spacer */}
+      {sessionCounts.active > 0 && onForceStopAll && (
+        <div style={styles.forceStopSection}>
+          <button
+            onClick={onForceStopAll}
+            style={styles.forceStopButton}
+            title="Force stop all sessions that are stuck in active state"
+          >
+            <AlertTriangle size={14} />
+            Force Stop All ({sessionCounts.active})
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -287,8 +311,8 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: "flex",
     flexDirection: "column",
-    width: "220px",
-    minWidth: "220px",
+    width: "280px",
+    minWidth: "280px",
     backgroundColor: "hsl(220 13% 9%)",
     borderRightWidth: "1px",
     borderRightStyle: "solid",
@@ -457,5 +481,30 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     justifyContent: "space-around",
     marginTop: "4px",
+  },
+  forceStopSection: {
+    marginTop: "auto",
+    padding: "16px",
+    borderTopWidth: "1px",
+    borderTopStyle: "solid",
+    borderTopColor: "hsl(220 13% 15%)",
+  },
+  forceStopButton: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    padding: "10px 12px",
+    backgroundColor: "rgba(239, 68, 68, 0.1)",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    borderColor: "rgba(239, 68, 68, 0.3)",
+    borderRadius: "6px",
+    color: "#ef4444",
+    fontSize: "12px",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "all 0.15s",
   },
 };

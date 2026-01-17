@@ -108,7 +108,7 @@ export function ItemCard({
         <button
           onClick={handleViewOnDelta}
           style={styles.viewButton}
-          title="View on The Delta Project"
+          title="View"
         >
           <ExternalLink size={14} />
         </button>

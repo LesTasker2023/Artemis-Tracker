@@ -123,8 +123,8 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     display: "flex",
     flexDirection: "column",
-    width: "220px",
-    minWidth: "220px",
+    width: "280px",
+    minWidth: "280px",
     backgroundColor: "hsl(220 13% 9%)",
     borderRightWidth: "1px",
     borderRightStyle: "solid",

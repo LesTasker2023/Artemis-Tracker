@@ -22,6 +22,8 @@ export type FilterMode = "all" | "active" | "completed";
 export interface SessionManagerProps {
   onViewSession?: (session: Session) => void;
   onResumeSession?: (session: Session) => void;
+  onForceStopAll?: () => Promise<void>;
+  onStop?: () => void;
   activeSessionId?: string;
   activeSession?: Session | null;
   markupLibrary?: MarkupLibrary | null;

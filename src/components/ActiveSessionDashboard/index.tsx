@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Session, SessionStats } from "../../core/session";
 import { Loadout } from "../../core/loadout";
+import { LogEvent } from "../../core/types";
 import Sidebar from "./Sidebar";
 import MainContent from "./MainContent";
 import DetailPanel from "./DetailPanel";
@@ -10,6 +11,8 @@ interface ActiveSessionDashboardProps {
   stats: SessionStats | null;
   activeLoadout: Loadout | null;
   onNavigateToPage?: (page: string) => void;
+  isPaused?: boolean;
+  liveEvents?: LogEvent[];
 }
 
 const DEFAULT_HERO_STATS: [string, string, string] = [
@@ -23,6 +26,8 @@ const ActiveSessionDashboard: React.FC<ActiveSessionDashboardProps> = ({
   stats,
   activeLoadout,
   onNavigateToPage,
+  isPaused = false,
+  liveEvents = [],
 }) => {
   const [applyMarkup, setApplyMarkup] = useState(false);
   const [applyAdditionalExpenses, setApplyAdditionalExpenses] = useState(false);
@@ -60,6 +65,7 @@ const ActiveSessionDashboard: React.FC<ActiveSessionDashboardProps> = ({
         setApplyMarkup={setApplyMarkup}
         applyAdditionalExpenses={applyAdditionalExpenses}
         setApplyAdditionalExpenses={setApplyAdditionalExpenses}
+        isPaused={isPaused}
       />
 
       {/* Main Content - Flexible */}
@@ -75,7 +81,7 @@ const ActiveSessionDashboard: React.FC<ActiveSessionDashboardProps> = ({
       />
 
       {/* Detail Panel - 360px */}
-      <DetailPanel session={session} />
+      <DetailPanel session={session} liveEvents={liveEvents} />
     </div>
   );
 };

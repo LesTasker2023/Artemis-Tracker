@@ -87,31 +87,85 @@ const DEFAULT_CONFIG: PopoutConfig = {
 };
 
 const PRESETS = {
+  all: [
+    // Combat
+    "kills",
+    "shots",
+    "hits",
+    "hitRate",
+    "criticals",
+    "critRate",
+    "deaths",
+    "kdr",
+    "damageDealt",
+    "damageTaken",
+    "damageReduced",
+    "deflects",
+    // Economy
+    "netProfit",
+    "lootValue",
+    "returnRate",
+    "weaponCost",
+    "totalCost",
+    // Skills
+    "skillGains",
+    "skillEvents",
+    "avgSkillPerEvent",
+    "skillsPerKill",
+    "skillsPerPed",
+    // Hourly
+    "killsPerHour",
+    "lootPerHour",
+    "skillPerHour",
+    "profitPerHour",
+    "costPerHour",
+    "dmgPerHour",
+    // Efficiency
+    "avgLootPerKill",
+    "costPerKill",
+    "dps",
+    "dpp",
+    "shotsPerKill",
+    "avgDmgPerHit",
+    "killsPerPed",
+    // Time
+    "duration",
+    "totalEvents",
+  ],
   economy: [
     "netProfit",
     "lootValue",
     "totalSpend",
     "returnRate",
     "decay",
-    "lootPerHour",
+    "totalCost",
   ],
   efficiency: [
     "avgLootPerKill",
-    "lootPerHour",
     "costPerKill",
-    "costPerHour",
     "hitRate",
     "critRate",
+    "dps",
+    "dpp",
   ],
   combat: ["kills", "deaths", "kdr", "hitRate", "critRate", "damageDealt"],
   skills: [
     "skillGains",
     "skillEvents",
     "avgSkillPerEvent",
-    "kills",
-    "hitRate",
-    "kdr",
+    "skillsPerKill",
+    "skillsPerPed",
+    "skillPerHour",
   ],
+  hourly: [
+    "killsPerHour",
+    "lootPerHour",
+    "profitPerHour",
+    "costPerHour",
+    "skillPerHour",
+    "dmgPerHour",
+  ],
+  time: ["duration", "totalEvents", "kills", "shots", "hits", "deaths"],
 };
 
 function loadConfig(): PopoutConfig {
@@ -405,7 +459,7 @@ export function PopoutStatsV2() {
         <div style={s.miniBar}>
           {/* Stats */}
           <div style={s.miniStats}>
-            {config.stats.slice(0, 6).map((key) => {
+            {config.stats.map((key) => {
               const stat = STAT_MAP.get(key);
               if (!stat) return null;
               const val = stat.getValue(statData);
@@ -572,7 +626,7 @@ export function PopoutStatsV2() {
                   canRemove={config.stats.length > 1}
                 />
               ))}
-              {showSettings && config.stats.length < 8 && (
+              {showSettings && (
                 <button onClick={handleAddStat} style={s.addChipBtn}>
                   +
                 </button>
@@ -712,7 +766,7 @@ export function PopoutStatsV2() {
                   canRemove={config.stats.length > 1}
                 />
               ))}
-              {showSettings && config.stats.length < 10 && (
+              {showSettings && (
                 <button onClick={handleAddStat} style={s.addRowBtn}>
                   + Add Stat
                 </button>
@@ -1645,12 +1699,13 @@ function StatSelectorModal({
       return acc;
     }, {} as Record<string, typeof statsList>);
 
-  // Category colors and labels
+  // Category colors and labels - now 5 categories (excluding time)
   const categories = [
     { key: "combat", label: "Combat", color: colors.danger },
     { key: "economy", label: "Economy", color: colors.success },
     { key: "skills", label: "Skills", color: colors.info },
     { key: "efficiency", label: "Efficiency", color: colors.warning },
+    { key: "hourly", label: "Hourly", color: "#a855f7" }, // purple
   ];
 
   const activeStats = groups[activeTab] || [];

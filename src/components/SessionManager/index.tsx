@@ -40,6 +40,8 @@ interface SessionStatsCache {
 export function SessionManager({
   onViewSession,
   onResumeSession,
+  onForceStopAll,
+  onStop,
   activeSessionId,
   activeSession,
   markupLibrary,
@@ -62,6 +64,10 @@ export function SessionManager({
     null
   );
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+
+  // Multi-select mode state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // Lazy loading
   const [isReady, setIsReady] = useState(false);
@@ -543,34 +549,80 @@ export function SessionManager({
     [activeSessionId]
   );
 
-  // Handle combining multiple sessions into one
-  const handleCombineSessions = useCallback(async () => {
-    // Get sessions matching the current filters (tags + loadouts)
-    const selectedTags = filters.selectedTags;
-    if (selectedTags.length === 0) return;
+  // Multi-select handlers
+  const handleToggleSelectionMode = useCallback(() => {
+    setSelectionMode((prev) => !prev);
+    setSelectedIds(new Set());
+  }, []);
 
-    const sessionsToMerge = sessions.filter((s) =>
-      s.tags?.some((tag) => selectedTags.includes(tag))
-    );
+  const handleCheckChange = useCallback((id: string, checked: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(id);
+      } else {
+        next.delete(id);
+      }
+      return next;
+    });
+  }, []);
 
-    if (sessionsToMerge.length === 0) return;
+  const handleSelectAll = useCallback(() => {
+    // Select all visible/filtered sessions
+    const allIds = new Set(displaySessions.map((s: SessionMeta) => s.id));
+    setSelectedIds(allIds);
+  }, [displaySessions]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const handleMassDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
 
     const confirmed = window.confirm(
-      `Combine ${sessionsToMerge.length} session${
-        sessionsToMerge.length > 1 ? "s" : ""
-      } into a single session?\n\nOriginal sessions will be deleted.`
+      `Delete ${selectedIds.size} session${
+        selectedIds.size > 1 ? "s" : ""
+      }?\n\nThis cannot be undone.`
     );
 
     if (!confirmed) return;
 
     try {
-      // Load all sessions
+      for (const id of selectedIds) {
+        await window.electron?.session.delete(id);
+      }
+
+      // Clear selection
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+      setSelectedSessionId(null);
+      setSelectedSession(null);
+
+      // Reload
+      loadSessions();
+    } catch (err) {
+      console.error("[SessionManager] Failed to mass delete sessions:", err);
+    }
+  }, [selectedIds]);
+
+  const handleMassCombine = useCallback(async () => {
+    if (selectedIds.size < 2) return;
+
+    const confirmed = window.confirm(
+      `Combine ${selectedIds.size} sessions into a single session?\n\nOriginal sessions will be deleted.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Load all selected sessions
       const loadedSessions = await Promise.all(
-        sessionsToMerge.map((meta) => window.electron?.session.load(meta.id))
+        Array.from(selectedIds).map((id) => window.electron?.session.load(id))
       );
       const validSessions = loadedSessions.filter((s): s is Session => !!s);
 
-      if (validSessions.length === 0) return;
+      if (validSessions.length < 2) return;
 
       // Sort by startedAt
       validSessions.sort(
@@ -581,17 +633,21 @@ export function SessionManager({
       // Create combined session
       const firstSession = validSessions[0];
       const lastSession = validSessions[validSessions.length - 1];
-      const tagName =
-        selectedTags.length === 1
-          ? selectedTags[0]
-          : `${selectedTags.length} Tags`;
+
+      // Collect all unique tags
+      const allTags = Array.from(
+        new Set(validSessions.flatMap((s) => s.tags || []))
+      );
+
+      // Combined sessions should always be closed - use last session's end time or current time
+      const combinedEndedAt = lastSession.endedAt || new Date().toISOString();
 
       const combinedSession: Session = {
         id: `combined-${Date.now()}`,
-        name: `Combined ${tagName} (${validSessions.length} sessions)`,
-        tags: selectedTags,
+        name: `Combined (${validSessions.length} sessions)`,
+        tags: allTags,
         startedAt: firstSession.startedAt,
-        endedAt: lastSession.endedAt,
+        endedAt: combinedEndedAt,
         events: [],
         loadoutSnapshots: {},
         manualCostPerShot: 0,
@@ -633,14 +689,82 @@ export function SessionManager({
         await window.electron?.session.delete(session.id);
       }
 
-      // Reload session list
-      loadSessions();
-      setSelectedSessionId(null);
-      setSelectedSession(null);
+      // Create SessionMeta for the combined session
+      const combinedMeta: SessionMeta = {
+        id: combinedSession.id,
+        name: combinedSession.name,
+        tags: combinedSession.tags,
+        startedAt: combinedSession.startedAt,
+        endedAt: lastSession.endedAt,
+        eventCount: combinedSession.events?.length || 0,
+      };
+
+      // Add combined session to list
+      setSessions((prev) => [
+        combinedMeta,
+        ...prev.filter((s) => !selectedIds.has(s.id)),
+      ]);
+
+      // Calculate stats for combined session
+      const playerName = getStoredPlayerName();
+      const stats = calculateSessionStats(
+        combinedSession,
+        playerName || undefined,
+        null,
+        markupLibrary
+      );
+      const start = new Date(combinedSession.startedAt).getTime();
+      const end = combinedSession.endedAt
+        ? new Date(combinedSession.endedAt).getTime()
+        : Date.now();
+      const manualExpenses =
+        (combinedSession.manualArmorCost ?? 0) +
+        (combinedSession.manualFapCost ?? 0) +
+        (combinedSession.manualMiscCost ?? 0);
+      const loadoutIds = Array.from(
+        new Set(
+          combinedSession.events
+            ?.map((e) => e.loadoutId)
+            .filter((id): id is string => !!id) ?? []
+        )
+      );
+
+      setStatsCache((prev) => ({
+        ...prev,
+        [combinedSession.id]: {
+          profit: stats.profit,
+          profitWithMarkup: stats.profitWithMarkup,
+          returnRate: stats.returnRate,
+          returnRateWithMarkup: stats.returnRateWithMarkup,
+          duration: Math.floor((end - start) / 1000),
+          lootValue: stats.lootValue,
+          lootValueWithMarkup: stats.lootValueWithMarkup,
+          totalCost: stats.totalCost,
+          kills: stats.kills,
+          shots: stats.shots,
+          hits: stats.hits,
+          criticals: stats.criticals,
+          skillGains: stats.skillGains,
+          globalCount: stats.globalCount,
+          hofs: stats.hofs,
+          manualExpenses,
+          loadoutIds,
+        },
+      }));
+
+      // Clear selection mode and select the combined session
+      setSelectedIds(new Set());
+      setSelectionMode(false);
+
+      // Use setTimeout to ensure state updates after session is added
+      setTimeout(() => {
+        setSelectedSessionId(combinedSession.id);
+        setSelectedSession(combinedSession);
+      }, 10);
     } catch (err) {
       console.error("[SessionManager] Failed to combine sessions:", err);
     }
-  }, [filters.selectedTags, sessions]);
+  }, [selectedIds, markupLibrary]);
 
   // Get the session to show in detail panel
   // Use live activeSession data when viewing the active session
@@ -652,9 +776,87 @@ export function SessionManager({
     return selectedSession;
   }, [selectedSession, activeSessionId, activeSession]);
 
-  // Compute aggregate stats when exactly one tag is selected and no session is selected
+  // Compute aggregate stats when tags are selected OR multiple sessions are selected via checkboxes
   const aggregateStats = useMemo((): AggregateStats | null => {
-    // Only show aggregate when: 1+ tags selected AND no session selected
+    // Priority 1: Multi-select mode with 2+ sessions selected
+    if (selectionMode && selectedIds.size >= 2) {
+      const selectedSessions = sessions.filter((s) => selectedIds.has(s.id));
+      if (selectedSessions.length < 2) return null;
+
+      // Aggregate stats from cache
+      let totalDuration = 0;
+      let profit = 0;
+      let profitWithMarkup = 0;
+      let lootValue = 0;
+      let lootValueWithMarkup = 0;
+      let totalCost = 0;
+      let kills = 0;
+      let shots = 0;
+      let hits = 0;
+      let criticals = 0;
+      let skillGains = 0;
+      let globalCount = 0;
+      let hofs = 0;
+      let manualExpenses = 0;
+      const allLoadoutIds = new Set<string>();
+
+      for (const s of selectedSessions) {
+        const cached = statsCache[s.id];
+        if (cached) {
+          totalDuration += cached.duration;
+          profit += cached.profit;
+          profitWithMarkup += cached.profitWithMarkup;
+          lootValue += cached.lootValue;
+          lootValueWithMarkup += cached.lootValueWithMarkup;
+          totalCost += cached.totalCost;
+          kills += cached.kills;
+          shots += cached.shots;
+          hits += cached.hits;
+          criticals += cached.criticals;
+          skillGains += cached.skillGains;
+          globalCount += cached.globalCount;
+          hofs += cached.hofs;
+          manualExpenses += cached.manualExpenses ?? 0;
+          cached.loadoutIds?.forEach((id) => allLoadoutIds.add(id));
+        }
+      }
+
+      // Calculate return rates
+      const returnRate = totalCost > 0 ? (lootValue / totalCost) * 100 : 0;
+      const returnRateWithMarkup =
+        totalCost > 0 ? (lootValueWithMarkup / totalCost) * 100 : 0;
+
+      // Convert loadout IDs to names
+      const loadoutIds = Array.from(allLoadoutIds);
+      const loadoutNames = loadoutIds.map(
+        (id) => loadoutNameMap[id] || "Unknown Loadout"
+      );
+
+      return {
+        tagName: `${selectedSessions.length} Selected Sessions`,
+        sessionCount: selectedSessions.length,
+        totalDuration,
+        profit,
+        profitWithMarkup,
+        returnRate,
+        returnRateWithMarkup,
+        lootValue,
+        lootValueWithMarkup,
+        totalCost,
+        kills,
+        shots,
+        hits,
+        criticals,
+        skillGains,
+        globalCount,
+        hofs,
+        manualExpenses,
+        loadoutIds,
+        loadoutNames,
+      };
+    }
+
+    // Priority 2: Tags selected and no session selected
     if (filters.selectedTags.length === 0 || selectedSessionId) {
       return null;
     }
@@ -686,6 +888,7 @@ export function SessionManager({
     let globalCount = 0;
     let hofs = 0;
     let manualExpenses = 0;
+    const allLoadoutIds = new Set<string>();
 
     for (const s of taggedSessions) {
       const cached = statsCache[s.id];
@@ -704,6 +907,7 @@ export function SessionManager({
         globalCount += cached.globalCount;
         hofs += cached.hofs;
         manualExpenses += cached.manualExpenses ?? 0;
+        cached.loadoutIds?.forEach((id) => allLoadoutIds.add(id));
       }
     }
 
@@ -711,6 +915,12 @@ export function SessionManager({
     const returnRate = totalCost > 0 ? (lootValue / totalCost) * 100 : 0;
     const returnRateWithMarkup =
       totalCost > 0 ? (lootValueWithMarkup / totalCost) * 100 : 0;
+
+    // Convert loadout IDs to names
+    const loadoutIds = Array.from(allLoadoutIds);
+    const loadoutNames = loadoutIds.map(
+      (id) => loadoutNameMap[id] || "Unknown Loadout"
+    );
 
     return {
       tagName,
@@ -731,8 +941,18 @@ export function SessionManager({
       globalCount,
       hofs,
       manualExpenses,
+      loadoutIds,
+      loadoutNames,
     };
-  }, [filters.selectedTags, selectedSessionId, sessions, statsCache]);
+  }, [
+    filters.selectedTags,
+    selectedSessionId,
+    sessions,
+    statsCache,
+    selectionMode,
+    selectedIds,
+    loadoutNameMap,
+  ]);
 
   if (!isReady) {
     return (
@@ -756,6 +976,7 @@ export function SessionManager({
         onToggleMarkup={() => setShowMarkup(!showMarkup)}
         applyExpenses={applyExpenses}
         onToggleExpenses={() => setApplyExpenses(!applyExpenses)}
+        onForceStopAll={onForceStopAll}
       />
 
       {/* Middle - Session List */}
@@ -770,6 +991,14 @@ export function SessionManager({
           statsCache={statsCache}
           showMarkup={showMarkup}
           applyExpenses={applyExpenses}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelectionMode={handleToggleSelectionMode}
+          onCheckChange={handleCheckChange}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onMassDelete={handleMassDelete}
+          onMassCombine={handleMassCombine}
         />
       </div>
 
@@ -780,13 +1009,15 @@ export function SessionManager({
         onDelete={handleDelete}
         onViewInTabs={onViewSession}
         onResume={handleResume}
+        onStop={onStop}
         onSessionUpdate={handleSessionUpdate}
-        isActiveSession={selectedSessionId === activeSessionId}
+        isActiveSession={
+          selectedSessionId === activeSessionId && !detailSession?.endedAt
+        }
         onExpenseUpdate={handleExpenseUpdate}
         showMarkup={showMarkup}
         applyExpenses={applyExpenses}
         markupLibrary={markupLibrary}
-        onCombineSessions={handleCombineSessions}
       />
     </div>
   );

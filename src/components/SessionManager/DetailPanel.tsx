@@ -3,7 +3,13 @@
  * Right panel showing selected session details OR aggregate tag stats
  */
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import {
   Clock,
   Crosshair,
@@ -21,6 +27,7 @@ import {
   Edit2,
   Check,
   X as XIcon,
+  Square,
 } from "lucide-react";
 import type { Session, LoadoutBreakdown } from "../../core/session";
 import { calculateSessionStats } from "../../core/session";
@@ -47,6 +54,8 @@ export interface AggregateStats {
   skillGains: number;
   globalCount: number;
   hofs: number;
+  loadoutIds?: string[];
+  loadoutNames?: string[];
 }
 
 interface DetailPanelProps {
@@ -55,7 +64,7 @@ interface DetailPanelProps {
   onDelete?: (session: Session) => void;
   onViewInTabs?: (session: Session) => void;
   onResume?: (session: Session) => void;
-  onCombineSessions?: () => void;
+  onStop?: () => void;
   onSessionUpdate?: (
     session: Session,
     updates: { name?: string; tags?: string[] }
@@ -77,7 +86,7 @@ export function DetailPanel({
   onDelete,
   onViewInTabs,
   onResume,
-  onCombineSessions,
+  onStop,
   onSessionUpdate,
   isActiveSession,
   onExpenseUpdate,
@@ -101,6 +110,8 @@ export function DetailPanel({
   const [editedName, setEditedName] = useState("");
   const [editedTags, setEditedTags] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const tagInputRef = useRef<HTMLInputElement>(null);
 
   // Expense state
   const [armorCost, setArmorCost] = useState(0);
@@ -109,14 +120,16 @@ export function DetailPanel({
 
   // Sync edit state when session changes
   useEffect(() => {
-    if (session) {
+    if (session && !isEditing) {
       setEditedName(session.name);
       setEditedTags(session.tags || []);
-      setIsEditing(false);
     }
-  }, [session?.id]);
+  }, [session?.id, session?.name, session?.tags, isEditing]);
 
   // Sync expense state when session changes
+  // Debounce timer ref for expense updates
+  const expenseDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     if (session) {
       setArmorCost(session.manualArmorCost ?? 0);
@@ -125,21 +138,42 @@ export function DetailPanel({
     }
   }, [session?.id]);
 
-  const handleCostChange = (type: "armor" | "fap" | "misc", value: number) => {
-    const newArmorCost = type === "armor" ? value : armorCost;
-    const newFapCost = type === "fap" ? value : fapCost;
-    const newMiscCost = type === "misc" ? value : miscCost;
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (expenseDebounceRef.current) {
+        clearTimeout(expenseDebounceRef.current);
+      }
+    };
+  }, []);
 
-    if (type === "armor") setArmorCost(value);
-    if (type === "fap") setFapCost(value);
-    if (type === "misc") setMiscCost(value);
+  const handleCostChange = useCallback(
+    (type: "armor" | "fap" | "misc", value: number) => {
+      // Update local state immediately for responsive UI
+      if (type === "armor") setArmorCost(value);
+      if (type === "fap") setFapCost(value);
+      if (type === "misc") setMiscCost(value);
 
-    onExpenseUpdate?.({
-      armorCost: newArmorCost,
-      fapCost: newFapCost,
-      miscCost: newMiscCost,
-    });
-  };
+      // Clear any existing debounce timer
+      if (expenseDebounceRef.current) {
+        clearTimeout(expenseDebounceRef.current);
+      }
+
+      // Debounce the actual save - wait 500ms after user stops typing
+      expenseDebounceRef.current = setTimeout(() => {
+        const newArmorCost = type === "armor" ? value : armorCost;
+        const newFapCost = type === "fap" ? value : fapCost;
+        const newMiscCost = type === "misc" ? value : miscCost;
+
+        onExpenseUpdate?.({
+          armorCost: newArmorCost,
+          fapCost: newFapCost,
+          miscCost: newMiscCost,
+        });
+      }, 500);
+    },
+    [armorCost, fapCost, miscCost, onExpenseUpdate]
+  );
 
   const handleStartEdit = () => {
     setEditedName(session?.name || "");
@@ -177,6 +211,7 @@ export function DetailPanel({
   };
 
   const handleTagKeyDown = (e: React.KeyboardEvent) => {
+    e.stopPropagation();
     if (e.key === "Enter") {
       e.preventDefault();
       handleAddTag();
@@ -190,7 +225,6 @@ export function DetailPanel({
         stats={aggregateStats}
         showMarkup={showMarkup}
         applyExpenses={applyExpenses}
-        onCombine={onCombineSessions}
       />
     );
   }
@@ -263,12 +297,24 @@ export function DetailPanel({
         <div style={styles.headerInfo}>
           {isEditing ? (
             <input
+              ref={nameInputRef}
               type="text"
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                nameInputRef.current?.focus();
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                // Prevent any parent from stealing focus
+                setTimeout(() => nameInputRef.current?.focus(), 0);
+              }}
               style={styles.nameInput}
               placeholder="Session name"
               autoFocus
+              tabIndex={0}
             />
           ) : (
             <h2 style={styles.title}>{session.name}</h2>
@@ -297,12 +343,22 @@ export function DetailPanel({
               </div>
               <div style={styles.addTagRow}>
                 <input
+                  ref={tagInputRef}
                   type="text"
                   value={newTagInput}
                   onChange={(e) => setNewTagInput(e.target.value)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    tagInputRef.current?.focus();
+                  }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    setTimeout(() => tagInputRef.current?.focus(), 0);
+                  }}
                   onKeyDown={handleTagKeyDown}
                   placeholder="Add tag..."
                   style={styles.tagInput}
+                  tabIndex={0}
                 />
                 <button onClick={handleAddTag} style={styles.addTagButton}>
                   <Tag size={12} />
@@ -322,6 +378,17 @@ export function DetailPanel({
                 ))}
               </div>
             )
+          )}
+          {/* Loadouts used in session */}
+          {!isEditing && stats.loadoutBreakdown.length > 0 && (
+            <div style={styles.headerLoadouts}>
+              {stats.loadoutBreakdown.map((lb, idx) => (
+                <span key={lb.loadoutId ?? idx} style={styles.loadoutTag}>
+                  <Crosshair size={10} />
+                  {lb.loadoutName}
+                </span>
+              ))}
+            </div>
           )}
         </div>
 
@@ -350,7 +417,15 @@ export function DetailPanel({
                   onClick={handleStartEdit}
                 />
               )}
-              {onResume && session.endedAt && (
+              {onStop && isActiveSession && (
+                <ActionButton
+                  icon={<Square size={14} />}
+                  label="Stop"
+                  onClick={onStop}
+                  danger
+                />
+              )}
+              {onResume && session.endedAt && !isActiveSession && (
                 <ActionButton
                   icon={<RotateCcw size={14} />}
                   label="Resume"
@@ -638,12 +713,10 @@ function AggregateDetailView({
   stats,
   showMarkup,
   applyExpenses,
-  onCombine,
 }: {
   stats: AggregateStats;
   showMarkup: boolean;
   applyExpenses: boolean;
-  onCombine?: () => void;
 }) {
   const formatDuration = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -698,35 +771,6 @@ function AggregateDetailView({
             <span>{formatDuration(stats.totalDuration)} total</span>
           </div>
         </div>
-        {onCombine && stats.sessionCount > 1 && (
-          <button
-            onClick={onCombine}
-            style={{
-              marginTop: "8px",
-              padding: "6px 12px",
-              backgroundColor: "hsl(217 91% 60%)",
-              border: "none",
-              borderRadius: "4px",
-              color: "white",
-              fontSize: "11px",
-              fontWeight: 600,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              transition: "background-color 0.15s",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "hsl(217 91% 55%)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "hsl(217 91% 60%)")
-            }
-          >
-            <Layers size={12} />
-            Combine Sessions
-          </button>
-        )}
       </div>
 
       {/* Key Stats */}
@@ -852,6 +896,27 @@ function AggregateDetailView({
           </div>
         </div>
       </div>
+
+      {/* Loadouts Used */}
+      {stats.loadoutNames && stats.loadoutNames.length > 0 && (
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>
+            <Crosshair size={12} />
+            LOADOUTS USED
+          </div>
+          <div style={styles.loadoutTagsContainer}>
+            {stats.loadoutNames.map((name, idx) => (
+              <span
+                key={stats.loadoutIds?.[idx] ?? idx}
+                style={styles.loadoutTag}
+              >
+                <Crosshair size={10} />
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -942,6 +1007,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "11px",
     fontWeight: 500,
   },
+  headerLoadouts: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "4px",
+    marginTop: "6px",
+  },
   headerActions: {
     display: "none",
   },
@@ -963,6 +1034,9 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "6px",
     outline: "none",
     marginBottom: "8px",
+    cursor: "text",
+    WebkitUserSelect: "text",
+    userSelect: "text",
   },
   editTagsContainer: {
     display: "flex",
@@ -1006,6 +1080,9 @@ const styles: Record<string, React.CSSProperties> = {
     borderColor: "hsl(220 13% 22%)",
     borderRadius: "4px",
     outline: "none",
+    cursor: "text",
+    WebkitUserSelect: "text",
+    userSelect: "text",
   },
   addTagButton: {
     display: "flex",
@@ -1137,6 +1214,23 @@ const styles: Record<string, React.CSSProperties> = {
   loadoutStat: {
     fontSize: "11px",
     color: "hsl(220 13% 60%)",
+  },
+  loadoutTagsContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px",
+  },
+  loadoutTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "4px 10px",
+    backgroundColor: "hsl(220 13% 12%)",
+    borderRadius: "4px",
+    fontSize: "11px",
+    fontWeight: 500,
+    color: "#f59e0b",
+    border: "1px solid hsl(220 13% 18%)",
   },
   expensesList: {
     display: "flex",

@@ -4,6 +4,7 @@
  */
 
 import React from "react";
+import { Check } from "lucide-react";
 import type { SessionMeta } from "../../types/electron";
 
 interface SessionStats {
@@ -25,6 +26,9 @@ interface SessionCardProps {
   stats?: SessionStats;
   showMarkup: boolean;
   applyExpenses: boolean;
+  isChecked?: boolean;
+  onCheckChange?: (id: string, checked: boolean) => void;
+  selectionMode?: boolean;
 }
 
 export function SessionCard({
@@ -35,6 +39,9 @@ export function SessionCard({
   stats,
   showMarkup,
   applyExpenses,
+  isChecked = false,
+  onCheckChange,
+  selectionMode = false,
 }: SessionCardProps) {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -89,17 +96,36 @@ export function SessionCard({
   const profit = baseProfit;
   const returnRate = baseReturnRate;
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onCheckChange?.(session.id, !isChecked);
+  };
+
   return (
     <div
       style={{
         ...styles.row,
         ...(isSelected ? styles.rowSelected : {}),
         ...(isHovered ? styles.rowHover : {}),
+        ...(isChecked ? styles.rowChecked : {}),
       }}
       onClick={() => onSelect(session.id)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Checkbox */}
+      {selectionMode && (
+        <div
+          style={{
+            ...styles.checkbox,
+            ...(isChecked ? styles.checkboxChecked : {}),
+          }}
+          onClick={handleCheckboxClick}
+        >
+          {isChecked && <Check size={12} strokeWidth={3} />}
+        </div>
+      )}
+
       {/* Left: Name + Date */}
       <div style={styles.infoCol}>
         <div style={styles.nameRow}>
@@ -184,6 +210,27 @@ const styles: Record<string, React.CSSProperties> = {
   rowSelected: {
     borderColor: "hsl(217 91% 60%)",
     backgroundColor: "hsl(217 91% 60% / 0.08)",
+  },
+  rowChecked: {
+    backgroundColor: "hsl(217 91% 60% / 0.12)",
+  },
+  checkbox: {
+    width: "18px",
+    height: "18px",
+    borderRadius: "4px",
+    border: "2px solid hsl(220 13% 35%)",
+    backgroundColor: "transparent",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    color: "white",
+  },
+  checkboxChecked: {
+    backgroundColor: "hsl(217 91% 60%)",
+    borderColor: "hsl(217 91% 60%)",
   },
   infoCol: {
     flex: 1,
