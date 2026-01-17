@@ -54,6 +54,7 @@ interface SessionAPI {
   load: (sessionId: string) => Promise<Session | null>;
   delete: (sessionId: string) => Promise<{ success: boolean; error?: string }>;
   list: () => Promise<SessionMeta[]>;
+  listAll: () => Promise<SessionMeta[]>;
   export: (sessionId: string, path: string) => Promise<{ success: boolean; error?: string }>;
   import: (path: string) => Promise<{ success: boolean; session?: Session; error?: string }>;
 }
@@ -106,6 +107,9 @@ interface PopoutAPI {
   open: () => Promise<{ success: boolean }>;
   close: () => Promise<{ success: boolean }>;
   resize: (width: number, height: number) => Promise<{ success: boolean }>;
+  getPosition: () => Promise<{ x: number; y: number }>;
+  setPosition: (x: number, y: number) => Promise<{ success: boolean }>;
+  center: () => Promise<{ success: boolean }>;
   status: () => Promise<{ open: boolean }>;
   sendStats: (stats: LiveStats) => void;
   onStatsUpdate: (callback: (stats: LiveStats) => void) => () => void;
@@ -207,9 +211,9 @@ interface MarkupAPI {
   exportCSV: () => Promise<string>;
   importCSV: (csvContent: string, mode: 'merge' | 'replace') => Promise<MarkupImportResult>;
   bulkUpdate: (updates: Array<{ itemName: string; updates: MarkupItemUpdate }>) => Promise<{ success: boolean; updatedCount: number }>;
-  deleteItem: (itemName: string) => Promise<void>;
+  deleteItem: (itemName: string) => Promise<{ success: boolean; error?: string }>;
   itemExists: (itemName: string) => Promise<boolean>;
-  addManualItem: (itemName: string, ttValue: number, markup: number, useFixed: boolean) => Promise<void>;
+  addManualItem: (itemName: string, ttValue: number, markup?: number, fixedValue?: number) => Promise<{ success: boolean; error?: string }>;
 }
 
 interface IpcRendererAPI {

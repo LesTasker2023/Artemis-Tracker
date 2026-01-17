@@ -95,6 +95,9 @@ contextBridge.exposeInMainWorld('electron', {
     open: () => ipcRenderer.invoke('popout:open'),
     close: () => ipcRenderer.invoke('popout:close'),
     resize: (width: number, height: number) => ipcRenderer.invoke('popout:resize', width, height),
+    getPosition: (): Promise<{ x: number; y: number }> => ipcRenderer.invoke('popout:getPosition'),
+    setPosition: (x: number, y: number) => ipcRenderer.invoke('popout:setPosition', x, y),
+    center: () => ipcRenderer.invoke('popout:center'),
     status: (): Promise<{open:boolean}> => ipcRenderer.invoke('popout:status'),
     sendStats: (stats: LiveStats) => ipcRenderer.send('popout:stats', stats),
     onStatsUpdate: (callback: (stats: LiveStats) => void) => {

@@ -282,20 +282,38 @@ export function PopoutStatsV2() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Toggle settings with window resize
-  const toggleSettings = () => {
+  // State for previous position when settings opens
+  const [previousPosition, setPreviousPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Toggle settings with window resize and position
+  const toggleSettings = async () => {
     if (!showSettings) {
-      // Opening settings - save current size and expand
+      // Opening settings - save current size and position, then expand and center
       setPreviousSize({ width: window.innerWidth, height: window.innerHeight });
+      const pos = await window.electron?.popout?.getPosition();
+      if (pos) {
+        setPreviousPosition(pos);
+      }
       window.electron?.popout?.resize(550, 550);
+      window.electron?.popout?.center();
     } else {
-      // Closing settings - restore previous size
+      // Closing settings - restore previous size and position
       if (previousSize) {
         window.electron?.popout?.resize(
           previousSize.width,
           previousSize.height
         );
         setPreviousSize(null);
+      }
+      if (previousPosition) {
+        window.electron?.popout?.setPosition(
+          previousPosition.x,
+          previousPosition.y
+        );
+        setPreviousPosition(null);
       }
     }
     setShowSettings(!showSettings);

@@ -12,7 +12,10 @@ interface EfficiencyPageProps {
   stats: SessionStats | null;
 }
 
-export function EfficiencyPage({ session, stats }: EfficiencyPageProps) {
+export function EfficiencyPage({
+  session: _session,
+  stats: _stats,
+}: EfficiencyPageProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>

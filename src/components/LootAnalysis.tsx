@@ -115,14 +115,14 @@ export function LootAnalysis({
     setAddingInProgress(true);
 
     try {
-      const result = await window.electron.markup.addManualItem(
+      const result = await window.electron?.markup.addManualItem(
         addingItem,
         ttValue,
         addUseFixed ? undefined : parseFloat(addMarkupPercent),
         addUseFixed ? parseFloat(addMarkupValue) : undefined
       );
 
-      if (result.success) {
+      if (result?.success) {
         // Refresh markup library
         if (onRefreshMarkup) {
           await onRefreshMarkup();
@@ -131,7 +131,7 @@ export function LootAnalysis({
         setAddingItem(null);
         alert(`✓ ${addingItem} has been added to the library!`);
       } else {
-        alert(`Failed to add item: ${result.error || "Unknown error"}`);
+        alert(`Failed to add item: ${result?.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("[LootAnalysis] Failed to add item:", error);
@@ -156,16 +156,16 @@ export function LootAnalysis({
     }
 
     try {
-      const result = await window.electron.markup.deleteItem(itemName);
+      const result = await window.electron?.markup.deleteItem(itemName);
 
-      if (result.success) {
+      if (result?.success) {
         // Refresh markup library
         if (onRefreshMarkup) {
           await onRefreshMarkup();
         }
         alert(`✓ ${itemName} has been removed from the library.`);
       } else {
-        alert(`Failed to delete item: ${result.error || "Unknown error"}`);
+        alert(`Failed to delete item: ${result?.error || "Unknown error"}`);
       }
     } catch (error) {
       console.error("[LootAnalysis] Failed to delete item:", error);

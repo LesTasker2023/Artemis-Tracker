@@ -12,7 +12,10 @@ interface HourlyRatesPageProps {
   stats: SessionStats | null;
 }
 
-export function HourlyRatesPage({ session, stats }: HourlyRatesPageProps) {
+export function HourlyRatesPage({
+  session: _session,
+  stats: _stats,
+}: HourlyRatesPageProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>

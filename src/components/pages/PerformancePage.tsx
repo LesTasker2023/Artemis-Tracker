@@ -12,7 +12,10 @@ interface PerformancePageProps {
   stats: SessionStats | null;
 }
 
-export function PerformancePage({ session, stats }: PerformancePageProps) {
+export function PerformancePage({
+  session: _session,
+  stats: _stats,
+}: PerformancePageProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>

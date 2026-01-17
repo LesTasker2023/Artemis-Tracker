@@ -610,9 +610,16 @@ function createPopoutWindow() {
   const iconPath = getIconPath();
   const windowIcon = fs.existsSync(iconPath) ? nativeImage.createFromPath(iconPath) : undefined;
 
+  // Load saved bounds or use defaults
+  const savedBounds = settingsStore.getSetting('popoutBounds');
+  const defaultBounds = { width: 280, height: 200 };
+  const bounds = savedBounds || defaultBounds;
+
   popoutWindow = new BrowserWindow({
-    width: 280,
-    height: 200,
+    width: bounds.width,
+    height: bounds.height,
+    x: savedBounds?.x,
+    y: savedBounds?.y,
     minWidth: 280,
     minHeight: 100,
     useContentSize: false,
@@ -630,6 +637,17 @@ function createPopoutWindow() {
       sandbox: true,
     },
   });
+
+  // Save bounds on move and resize
+  const saveBounds = () => {
+    if (popoutWindow && !popoutWindow.isDestroyed()) {
+      const currentBounds = popoutWindow.getBounds();
+      settingsStore.saveSettings({ popoutBounds: currentBounds });
+    }
+  };
+
+  popoutWindow.on('move', saveBounds);
+  popoutWindow.on('resize', saveBounds);
 
   // Load popout page
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -1081,6 +1099,28 @@ ipcMain.handle('popout:resize', (_event: unknown, width: number, height: number)
   if (popoutWindow && !popoutWindow.isDestroyed()) {
     // Use setContentSize for accurate sizing (accounts for any frame/border)
     popoutWindow.setContentSize(Math.round(width), Math.round(height));
+  }
+  return { success: true };
+});
+
+ipcMain.handle('popout:getPosition', () => {
+  if (popoutWindow && !popoutWindow.isDestroyed()) {
+    const [x, y] = popoutWindow.getPosition();
+    return { x, y };
+  }
+  return { x: 0, y: 0 };
+});
+
+ipcMain.handle('popout:setPosition', (_event: unknown, x: number, y: number) => {
+  if (popoutWindow && !popoutWindow.isDestroyed()) {
+    popoutWindow.setPosition(Math.round(x), Math.round(y));
+  }
+  return { success: true };
+});
+
+ipcMain.handle('popout:center', () => {
+  if (popoutWindow && !popoutWindow.isDestroyed()) {
+    popoutWindow.center();
   }
   return { success: true };
 });

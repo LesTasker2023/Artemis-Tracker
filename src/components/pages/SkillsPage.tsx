@@ -12,7 +12,10 @@ interface SkillsPageProps {
   stats: SessionStats | null;
 }
 
-export function SkillsPage({ session, stats }: SkillsPageProps) {
+export function SkillsPage({
+  session: _session,
+  stats: _stats,
+}: SkillsPageProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>

@@ -21,6 +21,7 @@ import {
   rebuildRunningStats,
 } from "../core/session";
 import { LogEvent } from "../core/types";
+import type { SessionMeta } from "../types/electron";
 import { logEventToParsedEvent, isCriticalHit } from "../core/parser";
 import { getActiveLoadout } from "../core/loadout";
 import { getStoredPlayerName } from "./usePlayerName";
@@ -215,8 +216,7 @@ export function useSession(options: UseSessionOptions = {}): UseSessionReturn {
     try {
       const allSessions = await window.electron?.session?.listAll();
       if (allSessions) {
-        const now = new Date().toISOString();
-        const orphanedSessions = allSessions.filter(meta => !meta.endedAt);
+        const orphanedSessions = allSessions.filter((meta: SessionMeta) => !meta.endedAt);
         
         // End all orphaned sessions
         for (const meta of orphanedSessions) {

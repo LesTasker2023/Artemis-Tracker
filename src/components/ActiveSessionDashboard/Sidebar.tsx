@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Clock, Target } from "lucide-react";
+import { Target } from "lucide-react";
 import { Session } from "../../core/session";
 import { Loadout } from "../../core/loadout";
 import { getStoredPlayerName } from "../../hooks/usePlayerName";
@@ -336,7 +336,7 @@ const styles = {
     cursor: "pointer",
     transition: "all 0.15s ease",
   },
-  labelRow: {
+  labelRowSecondary: {
     display: "flex",
     justifyContent: "space-around",
     marginTop: "4px",

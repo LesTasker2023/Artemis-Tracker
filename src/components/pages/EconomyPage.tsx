@@ -12,7 +12,10 @@ interface EconomyPageProps {
   stats: SessionStats | null;
 }
 
-export function EconomyPage({ session, stats }: EconomyPageProps) {
+export function EconomyPage({
+  session: _session,
+  stats: _stats,
+}: EconomyPageProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>

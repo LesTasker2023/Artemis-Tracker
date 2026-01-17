@@ -4,15 +4,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import {
-  Save,
-  Trash2,
-  Star,
-  StarOff,
-  Eye,
-  EyeOff,
-  RefreshCw,
-} from "lucide-react";
+import { Save, Trash2, Star, StarOff, Eye, EyeOff } from "lucide-react";
 import type { ItemWithMeta, MarkupFormData } from "./types";
 
 interface DetailPanelProps {

@@ -3,14 +3,19 @@
  */
 
 import React from "react";
-import { Swords, TrendingUp, BarChart3, Settings } from "lucide-react";
 import projectLogo from "../../data/artemis logo.png";
 
 interface WelcomePageProps {
   onDismiss: () => void;
+  playerName: string;
+  chatLogPath: string;
 }
 
-export function WelcomePage({ onDismiss }: WelcomePageProps) {
+export function WelcomePage({
+  onDismiss,
+  playerName,
+  chatLogPath,
+}: WelcomePageProps) {
   return (
     <div style={styles.overlay}>
       <div style={styles.container}>
@@ -19,84 +24,44 @@ export function WelcomePage({ onDismiss }: WelcomePageProps) {
           <img
             src={projectLogo}
             alt="ARTEMIS"
-            style={{ height: 80, objectFit: "contain" }}
+            style={{ height: 100, objectFit: "contain" }}
           />
         </div>
 
-        {/* Title */}
-        <h1 style={styles.title}>Welcome to ARTEMIS</h1>
-        <p style={styles.subtitle}>Your Entropia Universe Hunting Companion</p>
+        {/* Version Title */}
+        <h1 style={styles.title}>Welcome to v0.4.0</h1>
 
-        {/* Features Grid */}
-        <div style={styles.featuresGrid}>
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>
-              <BarChart3 size={24} />
-            </div>
-            <h3 style={styles.featureTitle}>Live Tracking</h3>
-            <p style={styles.featureDesc}>
-              Track your hunts in real-time with detailed statistics and
-              analytics
-            </p>
+        {/* User Info Section */}
+        <div style={styles.infoSection}>
+          <h2 style={styles.sectionTitle}>Current Configuration</h2>
+          <div style={styles.infoItem}>
+            <span style={styles.infoLabel}>Character Name:</span>
+            <span style={styles.infoValue}>{playerName || "Not set"}</span>
           </div>
-
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>
-              <Swords size={24} />
-            </div>
-            <h3 style={styles.featureTitle}>Loadout Manager</h3>
-            <p style={styles.featureDesc}>
-              Manage multiple weapon and armor configurations with ease
-            </p>
-          </div>
-
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>
-              <TrendingUp size={24} />
-            </div>
-            <h3 style={styles.featureTitle}>Markup System</h3>
-            <p style={styles.featureDesc}>
-              Calculate your profit margins with built-in markup tracking
-            </p>
-          </div>
-
-          <div style={styles.feature}>
-            <div style={styles.featureIcon}>
-              <Settings size={24} />
-            </div>
-            <h3 style={styles.featureTitle}>Session Management</h3>
-            <p style={styles.featureDesc}>
-              Save and analyze your hunting sessions over time
-            </p>
+          <div style={styles.infoItem}>
+            <span style={styles.infoLabel}>Chat Log Path:</span>
+            <span style={styles.infoValue}>{chatLogPath || "Not set"}</span>
           </div>
         </div>
 
-        {/* Getting Started */}
-        <div style={styles.gettingStarted}>
-          <h2 style={styles.sectionTitle}>Getting Started</h2>
-          <ol style={styles.steps}>
+        {/* Important Notes */}
+        <div style={styles.warningSection}>
+          <h2 style={styles.warningTitle}>⚠️ Important Notice</h2>
+          <ul style={styles.warningList}>
             <li>
-              <strong>Set your character name</strong> in Settings so ARTEMIS
-              can track your globals
+              <strong>Loadouts:</strong> Old loadouts from previous versions
+              should be re-made in the new Loadout Manager
             </li>
             <li>
-              <strong>Configure a loadout</strong> with your weapon and armor in
-              the Loadouts tab
+              <strong>Sessions:</strong> Previous session data may not load
+              properly in the new session viewer
             </li>
-            <li>
-              <strong>Start a hunt</strong> by clicking the Start button and
-              ARTEMIS will begin tracking
-            </li>
-            <li>
-              <strong>View your stats</strong> on the Dashboard and Loot tabs
-              during an active session
-            </li>
-          </ol>
+          </ul>
         </div>
 
         {/* Dismiss Button */}
         <button onClick={onDismiss} style={styles.dismissButton}>
-          Get Started
+          Continue to ARTEMIS
         </button>
       </div>
     </div>
@@ -122,86 +87,79 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "12px",
     border: "1px solid hsl(220 13% 25%)",
     padding: "48px",
-    maxWidth: "800px",
-    maxHeight: "90vh",
-    overflowY: "auto",
+    maxWidth: "600px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "32px",
+    gap: "24px",
   },
   logoContainer: {
     display: "flex",
     justifyContent: "center",
   },
   title: {
-    fontSize: "36px",
+    fontSize: "28px",
     fontWeight: "700",
     color: "hsl(0 0% 95%)",
     margin: 0,
     textAlign: "center",
   },
-  subtitle: {
-    fontSize: "16px",
-    color: "hsl(220 13% 50%)",
-    margin: 0,
-    textAlign: "center",
-  },
-  featuresGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-    gap: "20px",
+  infoSection: {
     width: "100%",
-  },
-  feature: {
     padding: "20px",
     backgroundColor: "hsl(220 13% 18%)",
     borderRadius: "8px",
     border: "1px solid hsl(220 13% 25%)",
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
     gap: "12px",
-    textAlign: "center",
-  },
-  featureIcon: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "8px",
-    backgroundColor: "hsl(217 91% 60%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-  },
-  featureTitle: {
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "hsl(0 0% 95%)",
-    margin: 0,
-  },
-  featureDesc: {
-    fontSize: "12px",
-    color: "hsl(220 13% 50%)",
-    margin: 0,
-  },
-  gettingStarted: {
-    width: "100%",
-    padding: "24px",
-    backgroundColor: "hsl(220 13% 18%)",
-    borderRadius: "8px",
-    border: "1px solid hsl(220 13% 25%)",
   },
   sectionTitle: {
-    fontSize: "16px",
+    fontSize: "14px",
     fontWeight: "600",
+    color: "hsl(217 91% 60%)",
+    margin: "0 0 12px 0",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
+  },
+  infoItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    fontSize: "12px",
+    padding: "8px 0",
+    borderBottom: "1px solid hsl(220 13% 25%)",
+  },
+  infoLabel: {
+    color: "hsl(220 13% 50%)",
+    fontWeight: "600",
+  },
+  infoValue: {
     color: "hsl(0 0% 95%)",
+    fontFamily: "monospace",
+    wordBreak: "break-all",
+    textAlign: "right",
+    maxWidth: "60%",
+  },
+  warningSection: {
+    width: "100%",
+    padding: "20px",
+    backgroundColor: "hsl(39 89% 25%)",
+    borderRadius: "8px",
+    border: "1px solid hsl(39 89% 35%)",
+  },
+  warningTitle: {
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "hsl(39 89% 70%)",
     margin: "0 0 12px 0",
   },
-  steps: {
+  warningList: {
     margin: 0,
     paddingLeft: "20px",
-    color: "hsl(220 13% 50%)",
+    color: "hsl(220 13% 85%)",
+    lineHeight: "1.6",
+    fontSize: "13px",
   },
   dismissButton: {
     padding: "12px 32px",

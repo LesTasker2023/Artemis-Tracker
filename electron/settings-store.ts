@@ -9,9 +9,17 @@ import { app } from "electron";
 
 const SETTINGS_FILE = "settings.json";
 
+interface WindowBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface AppSettings {
   logPath?: string; // Manually selected chat.log path
   lastPlayerName?: string;
+  popoutBounds?: WindowBounds; // Persisted popout window position and size
   // Add more settings as needed
 }
 

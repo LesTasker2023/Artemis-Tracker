@@ -12,7 +12,10 @@ interface CombatPageProps {
   stats: SessionStats | null;
 }
 
-export function CombatPage({ session, stats }: CombatPageProps) {
+export function CombatPage({
+  session: _session,
+  stats: _stats,
+}: CombatPageProps) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>

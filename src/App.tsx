@@ -17,11 +17,6 @@ import {
   Settings,
   Target,
   TrendingUp,
-  Zap,
-  DollarSign,
-  BookOpen,
-  Swords,
-  Clock,
   Bug,
 } from "lucide-react";
 
@@ -37,7 +32,6 @@ import { WelcomePage } from "./components/WelcomePage";
 import { LoadoutManager } from "./components/LoadoutManager";
 import { useLoadouts } from "./hooks/useLoadouts";
 import { SessionManager } from "./components/SessionManager";
-import { Dashboard } from "./components/Dashboard";
 import { LootManager } from "./components/LootManager";
 import { StartSessionModal } from "./components/StartSessionModal";
 import { MarkupManager } from "./components/MarkupManager";
@@ -50,10 +44,10 @@ import {
   CombatPage,
   HourlyRatesPage,
 } from "./components/pages";
-import { DevDebugPage, UnifiedDebugPage } from "./components/pages";
+import { UnifiedDebugPage } from "./components/pages";
 import { useMarkupLibrary } from "./hooks/useMarkupLibrary";
-import type { Session, SessionStats } from "./core/session";
 import { calculateSessionStats } from "./core/session";
+import type { Session, SessionStats } from "./core/session";
 import { getActiveLoadout } from "./core/loadout";
 
 type Tab =
@@ -82,6 +76,22 @@ function App() {
 
   // Welcome page state
   const [showWelcome, setShowWelcome] = useState<boolean | null>(null);
+
+  // Debug mode state (enabled by clicking version 20 times)
+  const [debugModeUnlocked, setDebugModeUnlocked] = useState(false);
+  const [versionClickCount, setVersionClickCount] = useState(0);
+
+  // Handle version click for debug mode
+  const handleVersionClick = () => {
+    const newCount = versionClickCount + 1;
+    setVersionClickCount(newCount);
+
+    if (newCount === 20) {
+      setDebugModeUnlocked(true);
+      setActiveTab("dev-debug");
+      setVersionClickCount(0);
+    }
+  };
 
   // Check if user has seen welcome page
   useEffect(() => {
@@ -166,7 +176,7 @@ function App() {
   } = useLogEvents();
 
   // Live events for activity panel (works without active session)
-  const { liveEvents, clearLiveEvents } = useLiveEvents();
+  const { liveEvents } = useLiveEvents();
 
   // Auto-start log watcher after initialization (uses saved path from settings if available)
   useEffect(() => {
@@ -192,7 +202,6 @@ function App() {
     refresh: refreshMarkupLibrary,
     updateItem: updateMarkupItem,
   } = useMarkupLibrary();
-  const [showMarkup, setShowMarkup] = useState(true); // Default to showing markup values
 
   const {
     session,
@@ -212,11 +221,7 @@ function App() {
     defaultMarkupPercent: markupConfig?.defaultMarkupPercent || 100,
   });
   const { playerName, setPlayerName, hasPlayerName } = usePlayerName();
-  const {
-    loadouts,
-    activeLoadout,
-    setActive: setActiveLoadout,
-  } = useLoadouts();
+  const { activeLoadout } = useLoadouts();
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
   // Collapsed tabs state - collapse all left tabs on startup
@@ -260,160 +265,6 @@ function App() {
       setAnimationKey((k) => k + 1); // Force animation restart
     }
   }, [sessionActive]);
-
-  // DEV: Generate test session from last 24 hours of chat.log
-  const generateTestSession = useCallback(async () => {
-    if (sessionActive) return;
-
-    try {
-      console.log("[DEV] Generating test session from chat.log...");
-
-      // Read raw chat.log
-      const result = await window.electron?.log?.readRaw();
-      if (!result?.success || !result.lines) {
-        console.error("[DEV] Failed to read chat.log:", result?.error);
-        alert("Failed to read chat.log file");
-        return;
-      }
-
-      const lines: string[] = result.lines;
-      const cutoffTime = Date.now() - 24 * 60 * 60 * 1000; // 24 hours ago
-      const events: Array<{
-        timestamp: number;
-        raw: string;
-        category: string;
-        type: string;
-        data: Record<string, unknown>;
-      }> = [];
-
-      // Parse events from chat.log
-      for (const line of lines) {
-        const timestampMatch = line.match(
-          /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/
-        );
-        if (!timestampMatch) continue;
-
-        const lineTime = new Date(timestampMatch[1]).getTime();
-        if (lineTime < cutoffTime) continue;
-
-        // Parse different event types
-        // Hits (damage dealt)
-        const hitMatch = line.match(/You inflicted ([\d.]+) points of dama/);
-        if (hitMatch) {
-          const isCrit = line.includes("Critical hit");
-          events.push({
-            timestamp: lineTime,
-            raw: line,
-            category: "combat",
-            type: isCrit ? "critical" : "hit",
-            data: { damage: parseFloat(hitMatch[1]), critical: isCrit },
-          });
-          continue;
-        }
-
-        // Misses
-        if (
-          line.includes("You missed") ||
-          line.includes("target Dodged") ||
-          line.includes("target Evaded")
-        ) {
-          events.push({
-            timestamp: lineTime,
-            raw: line,
-            category: "combat",
-            type: "miss",
-            data: {},
-          });
-          continue;
-        }
-
-        // Loot with value
-        const lootMatch = line.match(/You received (.+?) Value: ([\d.]+) PED/);
-        if (lootMatch) {
-          events.push({
-            timestamp: lineTime,
-            raw: line,
-            category: "loot",
-            type: "loot",
-            data: {
-              itemName: lootMatch[1].trim(),
-              value: parseFloat(lootMatch[2]),
-            },
-          });
-          continue;
-        }
-
-        // Skill gains
-        const skillMatch = line.match(
-          /You have gained ([\d.]+) experience in your (.+?) skill/
-        );
-        if (skillMatch) {
-          events.push({
-            timestamp: lineTime,
-            raw: line,
-            category: "skill",
-            type: "skill.gain",
-            data: { value: parseFloat(skillMatch[1]), skill: skillMatch[2] },
-          });
-          continue;
-        }
-
-        // Damage taken
-        const dmgTakenMatch = line.match(/You took ([\d.]+) points of dama/);
-        if (dmgTakenMatch) {
-          events.push({
-            timestamp: lineTime,
-            raw: line,
-            category: "combat",
-            type: "damage_taken",
-            data: { damage: parseFloat(dmgTakenMatch[1]) },
-          });
-          continue;
-        }
-
-        // Self healing
-        const healMatch = line.match(/You healed yourself ([\d.]+) points/);
-        if (healMatch) {
-          events.push({
-            timestamp: lineTime,
-            raw: line,
-            category: "healing",
-            type: "heal",
-            data: { amount: parseFloat(healMatch[1]) },
-          });
-          continue;
-        }
-      }
-
-      if (events.length === 0) {
-        console.warn("[DEV] No events found in last 7 days of chat.log");
-        alert("No events found in last 7 days of chat.log");
-        return;
-      }
-
-      // Pick a random loadout if available
-      if (loadouts.length > 0) {
-        const randomLoadout =
-          loadouts[Math.floor(Math.random() * loadouts.length)];
-        console.log(`[DEV] Using random loadout: ${randomLoadout.name}`);
-        setActiveLoadout(randomLoadout.id);
-      }
-
-      // Start session with test tags
-      startSession("Test Session (24h Log)", ["test", "dev", "chat-log"]);
-
-      // Add events after a short delay to ensure session is ready
-      setTimeout(() => {
-        events.forEach((event) => addEvent(event));
-        console.log(
-          `[DEV] Generated test session with ${events.length} events from chat.log`
-        );
-      }, 100);
-    } catch (err) {
-      console.error("[DEV] Error generating test session:", err);
-      alert("Error generating test session: " + String(err));
-    }
-  }, [sessionActive, startSession, addEvent, loadouts, setActiveLoadout]);
 
   // First-time name setup - show modal if no name is set
   const [showNameSetup, setShowNameSetup] = useState(false);
@@ -953,7 +804,13 @@ function App() {
         }
       `}</style>
       {/* Welcome Page - shown once on first load */}
-      {showWelcome && <WelcomePage onDismiss={handleDismissWelcome} />}
+      {showWelcome && (
+        <WelcomePage
+          onDismiss={handleDismissWelcome}
+          playerName={playerName}
+          chatLogPath={logPath}
+        />
+      )}
 
       {/* Header */}
       <header style={styles.header}>
@@ -969,7 +826,9 @@ function App() {
                 ...styles.subtitle,
                 marginLeft: "-10px",
                 alignSelf: "flex-end",
+                userSelect: "none",
               }}
+              onClick={handleVersionClick}
             >
               v{__APP_VERSION__}
             </span>
@@ -1206,12 +1065,12 @@ function App() {
         >
           <Settings size={14} /> Settings
         </button>
-        {/* Dev Debug Tab - Only visible in dev mode */}
-        {import.meta.env.DEV && (
+        {/* Dev Debug Tab - Only visible when unlocked via 20-click version */}
+        {debugModeUnlocked && (
           <button
             onClick={() => setActiveTab("dev-debug")}
             style={activeTab === "dev-debug" ? styles.tabActive : styles.tab}
-            title="Debug page showing unknown event patterns (dev only)"
+            title="Debug page showing unknown event patterns"
           >
             <Bug size={14} /> Debug
           </button>
@@ -1246,7 +1105,7 @@ function App() {
             session={session}
             stats={stats}
             activeLoadout={activeLoadout}
-            onNavigateToPage={setActiveTab}
+            onNavigateToPage={(page) => setActiveTab(page as Tab)}
             isPaused={sessionPaused}
             liveEvents={liveEvents}
           />
@@ -1295,7 +1154,16 @@ function App() {
             stats={displayStats}
             markupLibrary={markupLibrary}
             markupConfig={markupConfig}
-            onUpdateMarkup={async (itemName, updates) => {
+            onUpdateMarkup={async (
+              itemName: string,
+              updates: {
+                markupPercent?: number;
+                markupValue?: number;
+                useFixed?: boolean;
+                ignored?: boolean;
+                favorite?: boolean;
+              }
+            ) => {
               await updateMarkupItem(itemName, updates);
               refreshMarkupLibrary();
             }}
@@ -1416,8 +1284,8 @@ function App() {
         </div>
       )}
 
-      {/* Dev Debug Tab - Only visible in dev mode */}
-      {import.meta.env.DEV && activeTab === "dev-debug" && (
+      {/* Dev Debug Tab - Only visible when unlocked via 20-click version */}
+      {debugModeUnlocked && activeTab === "dev-debug" && (
         <div style={{ ...styles.tabContent, overflow: "hidden" }}>
           <UnifiedDebugPage />
         </div>

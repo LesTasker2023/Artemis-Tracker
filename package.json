@@ -84,8 +84,8 @@
         "publish": [
             {
                 "provider": "github",
-                "owner": "LesTasker2023",
-                "repo": "Artemis-Tracker"
+                "owner": "projectdelta2026-bot",
+                "repo": "Artemis"
             }
         ],
         "icon": "build/icon",
